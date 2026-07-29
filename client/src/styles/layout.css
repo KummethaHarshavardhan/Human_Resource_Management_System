@@ -1,0 +1,10 @@
+.main-layout{
+    display:flex;
+    min-height:100vh;
+}
+
+.main-content{
+    flex:1;
+    background:var(--background);
+    padding:25px;
+}

@@ -1,0 +1,19 @@
+.light-theme{
+    background:var(--background);
+    color:var(--text-primary);
+}
+
+.dark-theme{
+    background:#111827;
+    color:#ffffff;
+}
+
+.dark-theme .card{
+    background:#1F2937;
+}
+
+.dark-theme input{
+    background:#374151;
+    color:white;
+    border:none;
+}

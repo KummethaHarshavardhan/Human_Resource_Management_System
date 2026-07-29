@@ -1,0 +1,23 @@
+@media(max-width:992px){
+
+.main-content{
+    padding:18px;
+}
+
+}
+
+@media(max-width:768px){
+
+.main-layout{
+    flex-direction:column;
+}
+
+}
+
+@media(max-width:480px){
+
+.main-content{
+    padding:12px;
+}
+
+}
