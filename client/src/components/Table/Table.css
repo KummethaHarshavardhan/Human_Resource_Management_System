@@ -1,0 +1,24 @@
+.custom-table{
+width:100%;
+border-collapse:collapse;
+background:#fff;
+}
+
+.custom-table th,
+.custom-table td{
+padding:15px;
+border:1px solid #ddd;
+text-align:left;
+}
+
+.custom-table th{
+background:#6a0dad;
+color:#fff;
+}
+
+@media(max-width:768px){
+.custom-table{
+display:block;
+overflow-x:auto;
+}
+}

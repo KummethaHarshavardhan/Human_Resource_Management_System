@@ -1,0 +1,26 @@
+.dashboard-card{
+background:#fff;
+padding:20px;
+border-radius:12px;
+box-shadow:0 4px 10px rgba(0,0,0,.1);
+transition:.3s;
+}
+
+.dashboard-card:hover{
+transform:translateY(-5px);
+}
+
+.dashboard-card h3{
+margin-bottom:10px;
+font-size:18px;
+}
+
+.dashboard-card h2{
+color:#6a0dad;
+}
+
+@media(max-width:768px){
+.dashboard-card{
+width:100%;
+}
+}
