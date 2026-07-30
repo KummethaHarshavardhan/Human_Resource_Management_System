@@ -146,7 +146,7 @@ export const googleLogin = async (req, res) => {
     }
 };
 
-
+//empotp
 
 export const EmpOtp = async (req, res) => {
     try {
