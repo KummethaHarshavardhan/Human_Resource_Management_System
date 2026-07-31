@@ -1,4 +1,4 @@
-import "../../styles/Login.css";
+import "../../styles/login.css";
 const Login = () => {
   return (
     <div className="login-container">

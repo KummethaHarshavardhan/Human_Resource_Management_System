@@ -11,7 +11,7 @@ import {
 
 import { NavLink } from "react-router-dom";
 
-import "../../styles/Sidebar.css";
+import "../../styles/sidebar.css";
 
 const Sidebar = ({ isOpen }) => {
   return (

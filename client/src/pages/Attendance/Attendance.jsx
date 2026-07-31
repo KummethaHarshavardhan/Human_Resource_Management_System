@@ -1,4 +1,4 @@
-import "../../styles/Attendance.css";
+import "../../styles/attendance.css";
 
 const Attendance = () => {
   return (

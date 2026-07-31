@@ -1,4 +1,4 @@
-import "../../styles/Profile.css";
+import "../../styles/profile.css";
 
 const Profile = () => {
   return (
