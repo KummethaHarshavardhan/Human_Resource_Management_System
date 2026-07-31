@@ -1,4 +1,4 @@
-import "../../styles/Leave.css";
+import "../../styles/leave.css";
 
 const Leave = () => {
   return (

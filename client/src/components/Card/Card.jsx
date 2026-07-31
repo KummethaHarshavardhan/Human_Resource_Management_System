@@ -1,4 +1,4 @@
-import "../../styles/Card.css";
+import "../../styles/card.css";
 const Card = ({ title, value }) => {
   return (
     <div className="dashboard-card">

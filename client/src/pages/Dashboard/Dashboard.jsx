@@ -1,5 +1,5 @@
 import DashboardCards from "./DashboardCards";
-import "../../styles/Dashboard.css";
+import "../../styles/dashboard.css";
 
 const Dashboard = () => {
   return (

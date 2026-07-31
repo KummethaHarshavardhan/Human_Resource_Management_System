@@ -1,4 +1,4 @@
-import "../../styles/Modal.css";
+import "../../styles/modal.css";
 
 const Modal = ({ title, children }) => {
   return (

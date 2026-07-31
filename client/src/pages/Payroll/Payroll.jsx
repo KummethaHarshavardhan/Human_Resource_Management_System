@@ -1,4 +1,4 @@
-import "../../styles/Payroll.css";
+import "../../styles/payroll.css";
 
 const Payroll = () => {
   return (
