@@ -2,7 +2,7 @@ import express from "express";
 import {
     EmpLogin, EmpOtp, EmpRegister, resetPassword, verifyOtp, googleLogin,
     getUserProfile, updateUserProfile
-} from "../controllers/UserController.js";
+} from "../controllers/userController.js";
 import { verifyToken, authorizeRoles, protect, authorize } from "../middlewares/authMiddleware.js";
 
 const route = express.Router();
