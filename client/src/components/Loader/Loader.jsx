@@ -1,11 +1,13 @@
-import "../../styles/loader.css";
+import "../../styles/input.css";
 
-const Loader = () => {
+const Input = ({ type, placeholder }) => {
   return (
-    <div className="loader-container">
-      <div className="loader"></div>
-    </div>
+    <input
+      className="custom-input"
+      type={type}
+      placeholder={placeholder}
+    />
   );
 };
 
-export default Loader;
+export default Input;
