@@ -1,4 +1,10 @@
-import { FaBars, FaBell, FaUserCircle } from "react-icons/fa";
+import {
+  FaBars,
+  FaBell,
+  FaSearch,
+  FaUserCircle
+} from "react-icons/fa";
+
 import "../../styles/navbar.css";
 
 const Navbar = ({ toggleSidebar }) => {
@@ -11,23 +17,39 @@ const Navbar = ({ toggleSidebar }) => {
           <FaBars />
         </button>
 
-        <h2>HRMS Dashboard</h2>
+        <div className="search-box">
+
+          <FaSearch className="search-icon"/>
+
+          <input
+            type="text"
+            placeholder="Search..."
+          />
+
+        </div>
 
       </div>
 
       <div className="navbar-right">
 
-        <button className="icon-btn">
+        <div className="notification">
+
           <FaBell />
-        </button>
+
+          <span className="badge">3</span>
+
+        </div>
 
         <div className="profile">
 
-          <FaUserCircle className="profile-icon" />
+          <FaUserCircle className="profile-icon"/>
 
           <div>
+
             <h4>Admin</h4>
-            <p>Administrator</p>
+
+            <small>Administrator</small>
+
           </div>
 
         </div>
