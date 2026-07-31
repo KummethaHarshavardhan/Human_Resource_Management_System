@@ -11,9 +11,9 @@ html{
 }
 
 body{
-    font-family: "Inter", sans-serif;
-    background: var(--background);
-    color: var(--text-primary);
+    font-family:var(--font-family);
+    background:var(--background);
+    color:var(--text-primary);
 }
 
 a{
@@ -23,12 +23,20 @@ a{
 
 button{
     border:none;
+    outline:none;
     cursor:pointer;
-    transition:var(--transition);
+    font-family:inherit;
 }
 
-button:hover{
-    opacity:0.9;
+input,
+select,
+textarea{
+    font-family:inherit;
+    outline:none;
+}
+
+ul{
+    list-style:none;
 }
 
 img{
@@ -36,15 +44,17 @@ img{
     display:block;
 }
 
-input,
-textarea,
-select{
-    outline:none;
-    border:1px solid var(--border);
-    border-radius:8px;
-    padding:10px;
+/* Scrollbar */
+
+::-webkit-scrollbar{
+    width:8px;
 }
 
-ul{
-    list-style:none;
+::-webkit-scrollbar-thumb{
+    background:var(--primary);
+    border-radius:10px;
+}
+
+::-webkit-scrollbar-track{
+    background:#ececec;
 }
