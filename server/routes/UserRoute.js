@@ -1,5 +1,5 @@
 import express from 'express';
-import { EmpLogin, googleLogin,EmpOtp, EmpRegister, resetPassword, verifyOtp } from '../controllers/UserController.js';
+import { EmpLogin, googleLogin,EmpOtp, EmpRegister, resetPassword, verifyOtp} from '../controllers/UserController.js';
 import { verifyToken, authorizeRoles } from '../middlewares/authMiddleware.js';
 
 const route = express.Router();
