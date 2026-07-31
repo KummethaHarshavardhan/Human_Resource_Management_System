@@ -2,10 +2,10 @@ import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import LeaveDashboard from "./pages/leave/LeaveDashboard";
-import ApplyLeave from "./pages/leave/ApplyLeave";
-import LeaveHistory from "./pages/leave/LeaveHistory";
+import ApplyLeave from "./pages/Leave/ApplyLeave";
+import LeaveHistory from "./pages/Leave/LeaveHistory";
 import LeaveApproval from "./pages/leave/LeaveApproval";
-import LeaveCalendar from "./pages/leave/LeaveCalendar";
+import LeaveCalendar from "./pages/Leave/LeaveCalendar";
 
 import "./App.css";
 
