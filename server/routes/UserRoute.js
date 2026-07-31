@@ -3,7 +3,7 @@ import {
     EmpLogin, EmpOtp, EmpRegister, resetPassword, verifyOtp, googleLogin,
     getUserProfile, updateUserProfile
 } from "../controllers/userController.js";
-import { verifyToken, authorize } from "../middlewares/authMiddleware.js";
+import { verifyToken, authorizeRoles, protect, authorize } from "../middlewares/authMiddleware.js";
 
 const route = express.Router();
 
