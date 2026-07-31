@@ -1,14 +1,12 @@
-import express from "express";
-import {
-    EmpLogin, EmpOtp, EmpRegister, resetPassword, verifyOtp, googleLogin,
-    getUserProfile, updateUserProfile
-} from "../controllers/userController.js";
-import { verifyToken, authorizeRoles, protect, authorize } from "../middlewares/authMiddleware.js";
+import express from 'express';
+import { EmpLogin, googleLogin, EmpOtp, EmpRegister, resetPassword, verifyOtp, getUserProfile, updateUserProfile } from '../controllers/UserController.js';
+import { verifyToken, authorizeRoles as authorize } from '../middlewares/authMiddleware.js';
 
 const route = express.Router();
 
 route.post("/newEmp", EmpRegister);
 route.post("/Emplogin", EmpLogin);
+
 route.post("/googleLogin", googleLogin);
 route.post("/sendOtp", EmpOtp);
 route.post("/verifyOtp", verifyOtp);
