@@ -1,23 +1,53 @@
-@media(max-width:992px){
+@media(max-width:1024px){
 
-.main-content{
-    padding:18px;
+.sidebar{
+
+width:220px;
+
+}
+
+.navbar-search{
+
+width:220px;
+
 }
 
 }
 
 @media(max-width:768px){
 
-.main-layout{
-    flex-direction:column;
+.sidebar{
+
+transform:translateX(-100%);
+
+}
+
+.sidebar.show{
+
+transform:translateX(0);
+
+}
+
+.navbar-search{
+
+display:none;
+
 }
 
 }
 
 @media(max-width:480px){
 
-.main-content{
-    padding:12px;
+.page{
+
+padding:15px;
+
+}
+
+.card{
+
+padding:15px;
+
 }
 
 }
