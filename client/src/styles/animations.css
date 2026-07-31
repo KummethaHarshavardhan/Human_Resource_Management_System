@@ -1,0 +1,44 @@
+@keyframes fadeIn{
+from{
+opacity:0;
+}
+to{
+opacity:1;
+}
+}
+
+.fade{
+animation:fadeIn .5s ease;
+}
+
+@keyframes slideUp{
+
+from{
+opacity:0;
+transform:translateY(20px);
+}
+
+to{
+opacity:1;
+transform:translateY(0);
+}
+
+}
+
+.slide-up{
+animation:slideUp .5s ease;
+}
+
+.card:hover{
+
+transform:translateY(-5px);
+
+transition:.3s;
+
+}
+
+.btn:hover{
+
+transform:scale(1.03);
+
+}

@@ -4,36 +4,32 @@ import { Outlet } from "react-router-dom";
 import Navbar from "../components/Navbar/Navbar";
 import Sidebar from "../components/Sidebar/Sidebar";
 
-const MainLayout = () => {
+import "../styles/layout.css";
 
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+const MainLayout = () => {
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   return (
-    <>
-      <Sidebar isOpen={sidebarOpen} />
+    <div className="main-content">
 
-      <div
-        style={{
-          marginLeft: "260px",
-          minHeight: "100vh",
-          background: "#f5f6fa",
-        }}
-      >
+      <Sidebar
+        isOpen={sidebarOpen}
+      />
+
+      <div className="layout-content">
+
         <Navbar
           toggleSidebar={() => setSidebarOpen(!sidebarOpen)}
         />
 
-        <main
-          style={{
-            padding: "20px",
-          }}
-        >
+        <main className="page-content">
           <Outlet />
         </main>
+
       </div>
-    </>
+
+    </div>
   );
 };
 
 export default MainLayout;
-
