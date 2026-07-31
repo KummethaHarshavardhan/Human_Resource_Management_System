@@ -1,36 +1,37 @@
-import express from 'express';
-import dotenv from 'dotenv';
-import cors from 'cors';
-import connectDB from './config/db.js';
-import userRoutes from './routes/userRoutes.js';
-
+import express from "express";
+import dotenv from "dotenv";
 dotenv.config();
-
-connectDB();
+import cors from "cors";
+import cookieParser from "cookie-parser";
+import connectDB from "./config/db.js";
+import route from "./routes/UserRoute.js";
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
-app.use('/api/users', userRoutes);
+connectDB();
 
-app.get('/', (req, res) => {
+app.use("/api", route);
+
+app.get("/", (req, res) => {
     res.status(200).json({
         success: true,
-        message: 'HRMS API Server is Running',
+        message: "HRMS API Server is Running",
     });
 });
 
 app.use((req, res) => {
     res.status(404).json({
         success: false,
-        message: 'Route Not Found',
+        message: "Route Not Found",
     });
 });
 
 const PORT = process.env.PORT || 5000;
-
 app.listen(PORT, () => {
-    console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+    console.log(`Server running in ${process.env.NODE_ENV || "development"} mode on port ${PORT}`);
 });

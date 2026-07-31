@@ -1,59 +1,34 @@
-import jwt from 'jsonwebtoken';
-import User from '../models/userModel.js';
+import jwt from "jsonwebtoken";
 
-export const protect = async (req, res, next) => {
-  let token;
+export const verifyToken = (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
+    const token = authHeader?.startsWith("Bearer ")
+      ? authHeader.split(" ")[1]
+      : req.cookies?.token;
 
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith('Bearer')
-  ) {
-    try {
-      token = req.headers.authorization.split(' ')[1];
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret123');
-      req.user = await User.findById(decoded.id).select('-password');
-
-      if (!req.user) {
-        return res.status(401).json({
-          success: false,
-          message: 'Not authorized, user not found',
-        });
-      }
-
-      next();
-    } catch (error) {
-      console.error('JWT Verification Error:', error.message);
-      return res.status(401).json({
-        success: false,
-        message: 'Not authorized, token failed or expired',
-      });
+    if (!token) {
+      return res.status(401).json({ success: false, message: "No token provided" });
     }
-  }
 
-  if (!token) {
-    return res.status(401).json({
-      success: false,
-      message: 'Not authorized, no token provided',
-    });
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (err) {
+    return res.status(401).json({ success: false, message: "Invalid or expired token" });
   }
 };
 
-export const authorize = (...roles) => {
+
+export const protect = verifyToken;
+
+export const authorizeRoles = (...roles) => {
   return (req, res, next) => {
-    if (!req.user) {
-      return res.status(401).json({
-        success: false,
-        message: 'User authentication required',
-      });
+    if (!req.user || !roles.includes(req.user.role)) {
+      return res.status(403).json({ success: false, message: "Access denied: insufficient role" });
     }
-
-    if (!roles.includes(req.user.role)) {
-      return res.status(403).json({
-        success: false,
-        message: `User role '${req.user.role}' is not authorized to access this resource`,
-      });
-    }
-
     next();
   };
 };
+
+export const authorize = authorizeRoles;
