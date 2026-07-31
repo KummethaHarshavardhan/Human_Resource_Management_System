@@ -18,9 +18,7 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: function() {
-        return !this.googleId;
-      },
+      required: [true, 'Please add a password'],
       minlength: 6,
       select: false,
     },
@@ -34,14 +32,6 @@ const userSchema = new mongoose.Schema(
       default: 'General',
     },
     phone: {
-      type: String,
-      default: '',
-    },
-    googleId: {
-      type: String,
-      default: null,
-    },
-    avatar: {
       type: String,
       default: '',
     },

@@ -1,5 +1,5 @@
 import express from 'express';
-import { getUserProfile, updateUserProfile, googleLogin } from '../controllers/userController.js';
+import { getUserProfile, updateUserProfile } from '../controllers/userController.js';
 import { protect, authorize } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
@@ -9,7 +9,6 @@ router
   .get(protect, getUserProfile)
   .put(protect, updateUserProfile);
 
-router.post('/google-login', googleLogin);
 
 router.get('/admin-only', protect, authorize('Admin'), (req, res) => {
   res.status(200).json({
