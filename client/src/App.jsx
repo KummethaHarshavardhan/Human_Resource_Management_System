@@ -1,10 +1,12 @@
 import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-import LeaveDashboard from "./pages/leave/LeaveDashboard";
+import AttendanceDashboard from "./pages/Attendance/AttendanceDashboard";
+
+import LeaveDashboard from "./pages/Leave/LeaveDashboard";
 import ApplyLeave from "./pages/Leave/ApplyLeave";
 import LeaveHistory from "./pages/Leave/LeaveHistory";
-import LeaveApproval from "./pages/leave/LeaveApproval";
+import LeaveApproval from "./pages/Leave/LeaveApproval";
 import LeaveCalendar from "./pages/Leave/LeaveCalendar";
 
 import "./App.css";
@@ -13,6 +15,12 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+
+        <Route
+          path="/attendance-dashboard"
+          element={<AttendanceDashboard />}
+        />
+
         <Route
           path="/leave-dashboard"
           element={<LeaveDashboard />}
@@ -37,6 +45,7 @@ function App() {
           path="/leave-calendar"
           element={<LeaveCalendar />}
         />
+
       </Routes>
     </BrowserRouter>
   );
