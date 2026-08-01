@@ -6,6 +6,9 @@ import cors from 'cors';
 import connectDB from './config/db.js';
 import route from './routes/UserRoute.js';
 
+import departmentRoutes from "./routes/departmentRoutes.js";
+import roleRoutes from "./routes/roleRoutes.js";
+
 const app = express();
 
 app.use(cors({
@@ -20,6 +23,9 @@ app.use(cookieParser());
 connectDB();
 
 app.use("/api", route);
+
+app.use("/api/departments", departmentRoutes);
+app.use("/api/roles", roleRoutes);
 
 app.get("/", (req, res) => {
     res.status(200).json({
