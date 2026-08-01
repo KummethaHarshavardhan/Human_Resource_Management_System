@@ -1,21 +1,23 @@
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
-import { canAccessFeature } from "../../utils/permissions.js";
+import { canAccessFeature } from "../../utils/permission.js";
+import "./Sidebar.css";
 
 const menuItems = [
-  {  label: "Dashboard", to: "/dashboard", feature: "dashboard" },
-  {  label: "Profile", to: "/profile", feature: "profile" },
-  {  label: "Directory", to: "/employee", feature: "employee" },
-  {  label: "Attendance", to: "/attendance", feature: "attendance" },
-  {  label: "Leave Management", to: "/leave", feature: "leave" },
-  {  label: "Payroll", to: "/payroll", feature: "payroll" },
-  {  label: "Reports", to: "/reports", feature: "reports" },
-  {  label: "Settings", to: "/settings", feature: "settings" },
+  { label:"Dashboard", to:"/dashboard", feature:"dashboard" },
+  { label:"Profile", to:"/profile", feature:"profile" },
+  { label:"Directory", to:"/employee", feature:"employee" },
+  { label:"Attendance", to:"/attendance", feature:"attendance" },
+  { label:"Leave Management", to:"/leave", feature:"leave" },
+  { label:"Payroll", to:"/payroll", feature:"payroll" },
+  { label:"Reports", to:"/reports", feature:"reports" },
+  { label:"Settings", to:"/settings", feature:"settings" },
 ];
+
 
 export default function Sidebar() {
   const { user } = useAuth();
-  const role = user?.role?.toString().toLowerCase() || "";
+  const role = user?.role || "";
 
   return (
     <aside className="sidebar">
@@ -38,9 +40,14 @@ export default function Sidebar() {
       )}
 
       <nav className="sidebar-nav">
-        {menuItems
-          .filter((item) => canAccessFeature(role, item.feature))
-          .map((item) => (
+        {(() => {
+          const visibleItems = menuItems.filter((item) => canAccessFeature(role, item.feature));
+
+          if (visibleItems.length === 0) {
+            return <div style={{ padding: "12px 16px", color: "#6b7280", fontSize: "14px" }}>No menu items available for this role.</div>;
+          }
+
+          return visibleItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
@@ -48,10 +55,10 @@ export default function Sidebar() {
                 `sidebar-link${isActive ? " active" : ""}`
               }
             >
-              
               <span>{item.label}</span>
             </NavLink>
-          ))}
+          ));
+        })()}
       </nav>
 
       {/* Footer intentionally empty per Vamsi's request */}

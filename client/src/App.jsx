@@ -1,157 +1,93 @@
+import { BrowserRouter, Navigate, Outlet, Route, Routes, useLocation } from "react-router-dom";
+import { useAuth } from "./context/AuthContext.jsx";
+import Navbar from "./components/Navbar/Navbar.jsx";
+import Sidebar from "./components/Sidebar/Sidebar.jsx";
+import ProtectedRoute from "./utils/ProtectedRoute.jsx";
 
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import Login from "./pages/Login/Login.jsx";
+import Register from "./pages/Register/Register.jsx";
+import ForgotPassword from "./pages/ForgotPassword/ForgotPassword.jsx";
+import VerifyOTP from "./pages/VerifyOTP/VerifyOTP.jsx";
+import ResetPassword from "./pages/ResetPassword/ResetPassword.jsx";
+import ChangePassword from "./pages/ChangePassword/ChangePassword.jsx";
+import Dashboard from "./pages/Dashboard/Dashboard.jsx";
+import Profile from "./pages/Profile/Profile.jsx";
+import Employee from "./pages/Employee/Employee.jsx";
+import Attendance from "./pages/Attendance/Attendance.jsx";
+import Leave from "./pages/Leave/Leave.jsx";
+import Payroll from "./pages/Payroll/Payroll.jsx";
+import Reports from "./pages/Reports/Reports.jsx";
+import Settings from "./pages/Settings/Settings.jsx";
 
-function App() {
-  const [count, setCount] = useState(0)
+function ProtectedLayout() {
+  const { isAuthenticated } = useAuth();
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+    <div style={{ display: "flex", minHeight: "100vh", background: "#f6f7fb" }}>
+      <Sidebar />
+      <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+        <Navbar />
+        <main style={{ flex: 1, padding: "24px" }}>
+          <Outlet />
+        </main>
+      </div>
+    </div>
+  );
 }
 
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+function AppRoutes() {
+  const { isAuthenticated } = useAuth();
+  const location = useLocation();
 
-import Login from './pages/Login/Login';
-import Register from './pages/Register/Register';
-import ForgotPassword from './pages/ForgotPassword/ForgotPassword';
-import ResetPassword from './pages/ResetPassword/ResetPassword';
-import Dashboard from './pages/Dashboard/Dashboard';
-import Profile from './pages/Profile/Profile';
+  const publicPaths = ["/login", "/register", "/forgot-password", "/verify-otp", "/reset-password"];
 
-const isAuthenticated = () => {
-  return Boolean(localStorage.getItem('token') || localStorage.getItem('user'));
-};
+  if (!isAuthenticated && publicPaths.includes(location.pathname)) {
+    return (
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/verify-otp" element={<VerifyOTP />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+    );
+  }
 
-function ProtectedRoute({ children }) {
-  return isAuthenticated() ? children : <Navigate to="/login" replace />;
+  return (
+    <Routes>
+      <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />} />
+      <Route path="/register" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Register />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/verify-otp" element={<VerifyOTP />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
+
+      <Route element={<ProtectedRoute><ProtectedLayout /></ProtectedRoute>}>
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/employee" element={<Employee />} />
+        <Route path="/attendance" element={<Attendance />} />
+        <Route path="/leave" element={<Leave />} />
+        <Route path="/payroll" element={<Payroll />} />
+        <Route path="/reports" element={<Reports />} />
+        <Route path="/settings" element={<Settings />} />
+        <Route path="/change-password" element={<ChangePassword />} />
+      </Route>
+
+      <Route path="*" element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />} />
+    </Routes>
+  );
 }
 
 function App() {
-  const auth = isAuthenticated();
-
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={auth ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />} />
-        <Route path="/login" element={auth ? <Navigate to="/dashboard" replace /> : <Login />} />
-        <Route path="/register" element={auth ? <Navigate to="/dashboard" replace /> : <Register />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password/:token" element={<ResetPassword />} />
-        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-        <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      <AppRoutes />
     </BrowserRouter>
   );
 }

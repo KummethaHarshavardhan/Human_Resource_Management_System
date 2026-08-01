@@ -1,7 +1,11 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 
-export default function ProtectedRoute({ children, allowedRoles }) {
+export default function ProtectedRoute({ 
+  children, 
+  allowedRoles = [] 
+}) {
+
   const { isAuthenticated, user, loading } = useAuth();
 
   if (loading) {
@@ -12,14 +16,19 @@ export default function ProtectedRoute({ children, allowedRoles }) {
     return <Navigate to="/login" replace />;
   }
 
-  const normalizedRole = user?.role?.toString().toLowerCase() || "";
-  const normalizedAllowed = Array.isArray(allowedRoles)
-    ? allowedRoles.map((role) => role.toString().toLowerCase())
-    : [];
 
-  if (allowedRoles && normalizedAllowed.length && !normalizedAllowed.includes(normalizedRole)) {
-    return <Navigate to="/" replace />;
+  const userRole = user?.role?.toLowerCase();
+
+
+  if (
+    allowedRoles.length > 0 &&
+    !allowedRoles
+      .map(role => role.toLowerCase())
+      .includes(userRole)
+  ) {
+    return <Navigate to="/dashboard" replace />;
   }
+
 
   return children;
 }

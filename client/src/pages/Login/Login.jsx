@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { loginUser, googleLoginUser } from '../../api';
+import { loginUser, googleLoginUser } from '../../services/api';
+import { useAuth } from "../../context/AuthContext.jsx";
 import logo from '../../assets/infinetra-logo.png';
 import './Login.css';
 
@@ -12,6 +13,7 @@ function Login() {
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
+  const { login } = useAuth();
   const googleButtonRef = useRef(null);
 
   const showToast = (type, message) => {
@@ -69,13 +71,10 @@ function Login() {
 
       const data = await googleLoginUser(response.credential);
 
-      if (data.user) {
-        localStorage.setItem('user', JSON.stringify(data.user));
-      }
-
-      if (data.token) {
-        localStorage.setItem('token', data.token);
-      }
+      login({
+        user: data.user,
+        token: data.token
+      });
 
       showToast('success', 'Google login successful');
 
@@ -132,13 +131,10 @@ function Login() {
         password
       });
 
-      if (data.user) {
-        localStorage.setItem('user', JSON.stringify(data.user));
-      }
-
-      if (data.token) {
-        localStorage.setItem('token', data.token);
-      }
+      login({
+        user: data.user,
+        token: data.token
+      });
 
       showToast('success', 'Login successful');
 

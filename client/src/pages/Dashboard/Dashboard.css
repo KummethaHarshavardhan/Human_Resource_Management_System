@@ -25,15 +25,6 @@
   font-size: 14px;
 }
 
-.dashboard-date {
-  padding: 10px 16px;
-  background: white;
-  border: 1px solid #e5e9f0;
-  border-radius: 8px;
-  color: #4a5568;
-  font-size: 14px;
-}
-
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);

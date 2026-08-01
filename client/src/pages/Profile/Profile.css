@@ -22,6 +22,47 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 28px;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.profile-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.profile-link-button,
+.edit-profile-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+}
+
+.profile-link-button {
+  color: #172033;
+  background: #f1f5f9;
+}
+
+.profile-link-button:hover {
+  background: #e2e8f0;
+}
+
+.edit-profile-btn {
+  background: #1d4ed8;
+  color: #ffffff;
+}
+
+.edit-profile-btn:hover {
+  background: #2563eb;
 }
 
 .profile-header h1 {

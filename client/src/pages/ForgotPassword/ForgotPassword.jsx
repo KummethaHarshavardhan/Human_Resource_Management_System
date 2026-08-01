@@ -4,7 +4,11 @@ import { Link, useNavigate } from 'react-router-dom';
 import './ForgotPassword.css';
 import logo from '../../assets/infinetra-logo.png';
 
-const API_URL = 'http://localhost:5000/api';
+import {
+  sendOtp,
+  verifyOtp,
+  resetPassword
+} from '../../services/api';
 
 function ForgotPassword() {
   const [email, setEmail] = useState('');
@@ -47,27 +51,15 @@ function ForgotPassword() {
     try {
       setLoading(true);
 
-      const response = await fetch(`${API_URL}/sendOtp`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          email: email.trim()
-        })
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to send OTP.');
-      }
+      const data = await sendOtp(email.trim());
 
       showPopup(data.message || 'OTP sent successfully.', 'success');
       setStep('verify');
+
     } catch (error) {
       console.error('Send OTP error:', error);
       showPopup(error.message || 'Failed to send OTP.', 'error');
+
     } finally {
       setLoading(false);
     }
@@ -84,28 +76,18 @@ function ForgotPassword() {
     try {
       setLoading(true);
 
-      const response = await fetch(`${API_URL}/verifyOtp`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          email: email.trim(),
-          otp: otp.trim()
-        })
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'OTP verification failed.');
-      }
+      const data = await verifyOtp(
+        email.trim(),
+        otp.trim()
+      );
 
       showPopup(data.message || 'OTP verified successfully.', 'success');
       setStep('reset');
+
     } catch (error) {
       console.error('Verify OTP error:', error);
       showPopup(error.message || 'OTP verification failed.', 'error');
+
     } finally {
       setLoading(false);
     }
@@ -127,33 +109,24 @@ function ForgotPassword() {
     try {
       setLoading(true);
 
-      const response = await fetch(`${API_URL}/resetpassword`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          email: email.trim(),
-          newPassword,
-          confirmPassword
-        })
+      const data = await resetPassword({
+        email: email.trim(),
+        newPassword,
+        confirmPassword
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Password reset failed.');
-      }
 
       showPopup(data.message || 'Password reset successful.', 'success');
       setStep('success');
+
     } catch (error) {
       console.error('Reset password error:', error);
       showPopup(error.message || 'Password reset failed.', 'error');
+
     } finally {
       setLoading(false);
     }
   };
+
 
   return (
     <div className="login-container">

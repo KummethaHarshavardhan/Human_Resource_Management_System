@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { resetPassword } from '../../api';
+import { resetPassword } from '../../services/api';
 import './ResetPassword.css';
 import logo from '../../assets/infinetra-logo.png';
 

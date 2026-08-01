@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { getProfile, updateProfile } from '../../api';
+import { getProfile, updateProfile } from '../../services/api';
 import './Profile.css';
 
 function Profile() {
   const [profile, setProfile] = useState(null);
-  const [form, setForm] = useState({ name: '', email: '' });
+  const [form, setForm] = useState({
+    name: '',
+    phone: '',
+    department: ''
+  });
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -20,7 +24,11 @@ function Profile() {
       try {
         const data = await getProfile();
         setProfile(data.user);
-        setForm({ name: data.user.name, email: data.user.email });
+        setForm({
+          name: data.user.name,
+          phone: data.user.phone || '',
+          department: data.user.department || ''
+        });
       } catch (err) {
         setError(err.message || 'Unable to load profile.');
         if (err.message === 'Authentication required') {
@@ -42,8 +50,13 @@ function Profile() {
 
   const handleCancel = () => {
     if (profile) {
-      setForm({ name: profile.name, email: profile.email });
+      setForm({
+        name: profile.name,
+        phone: profile.phone || '',
+        department: profile.department || ''
+      });
     }
+
     setIsEditing(false);
     setError('');
     setSuccess('');
@@ -59,9 +72,17 @@ function Profile() {
     setError('');
     setSuccess('');
     try {
-      const data = await updateProfile({ name: form.name, email: form.email });
+      const data = await updateProfile({
+        name: form.name,
+        phone: form.phone,
+        department: form.department
+      });
       setProfile(data.user);
-      setForm({ name: data.user.name, email: data.user.email });
+      setForm({
+        name: data.user.name,
+        phone: data.user.phone || '',
+        department: data.user.department || ''
+      });
       setSuccess('Profile updated successfully.');
       setIsEditing(false);
       localStorage.setItem('user', JSON.stringify(data.user));
@@ -125,7 +146,7 @@ function Profile() {
           <h2>Personal Information</h2>
 
           <div className="detail-row">
-            <span>Name</span>
+            <span>Name :</span>
             {isEditing ? (
               <input
                 name="name"
@@ -140,7 +161,7 @@ function Profile() {
           </div>
 
           <div className="detail-row">
-            <span>Email</span>
+            <span>Email :</span>
             {isEditing ? (
               <input
                 name="email"
@@ -153,9 +174,41 @@ function Profile() {
               <strong>{profile.email}</strong>
             )}
           </div>
+          <div className="detail-row">
+            <span>Phone :</span>
+
+            {isEditing ? (
+              <input
+                name="phone"
+                type="text"
+                value={form.phone}
+                onChange={handleChange}
+                className="profile-input"
+              />
+            ) : (
+              <strong>{profile.phone}</strong>
+            )}
+          </div>
+
 
           <div className="detail-row">
-            <span>Role</span>
+            <span>Department :</span>
+
+            {isEditing ? (
+              <input
+                name="department"
+                type="text"
+                value={form.department}
+                onChange={handleChange}
+                className="profile-input"
+              />
+            ) : (
+              <strong>{profile.department}</strong>
+            )}
+          </div>
+
+          <div className="detail-row">
+            <span>Role :</span>
             <strong>{profile.role || 'Employee'}</strong>
           </div>
 

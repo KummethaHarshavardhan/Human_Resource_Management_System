@@ -37,7 +37,7 @@ export const loginUser = async (loginData) => {
 };
 
 export const googleLoginUser = async (googleToken) => {
-  const response = await fetch(`${API_URL}/google-login`, {
+  const response = await fetch(`${API_URL}/googleLogin`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -99,7 +99,7 @@ export const updateProfile = async (profileData) => {
 };
 
 export const forgotPassword = async (email) => {
-  const response = await fetch(`${API_URL}/forgot-password`, {
+  const response = await fetch(`${API_URL}/sendOtp`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -117,7 +117,7 @@ export const forgotPassword = async (email) => {
 };
 
 export const verifyOtp = async (email, otp) => {
-  const response = await fetch(`${API_URL}/verify-otp`, {
+  const response = await fetch(`${API_URL}/verifyOtp`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -134,8 +134,12 @@ export const verifyOtp = async (email, otp) => {
   return data;
 };
 
+export const verifyOtpForEmail = async (email, otp) => {
+  return verifyOtp(email, otp);
+};
+
 export const resetPassword = async (email, otp, newPassword) => {
-  const response = await fetch(`${API_URL}/reset-password`, {
+  const response = await fetch(`${API_URL}/resetpassword`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'

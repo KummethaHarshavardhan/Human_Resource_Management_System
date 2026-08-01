@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './Register.css';
 import logo from '../../assets/infinetra-logo.png';
-import { registerUser } from '../../api';
+import { registerUser } from '../../services/api';
 
 function Register() {
   const [name, setName] = useState('');
@@ -63,7 +63,7 @@ function Register() {
         email,
         password,
         confirm_password: confirmPassword,
-        phone,
+        phone:Number(phone),
         department,
         role
       });
