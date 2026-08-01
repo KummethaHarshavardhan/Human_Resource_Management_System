@@ -8,6 +8,7 @@ import route from './routes/UserRoute.js';
 
 import departmentRoutes from "./routes/departmentRoutes.js";
 import roleRoutes from "./routes/roleRoutes.js";
+import employeeRoutes from "./routes/employeeRoutes.js";
 
 const app = express();
 
@@ -26,6 +27,7 @@ app.use("/api", route);
 
 app.use("/api/departments", departmentRoutes);
 app.use("/api/roles", roleRoutes);
+app.use("/api/employees", employeeRoutes);
 
 app.get("/", (req, res) => {
     res.status(200).json({
