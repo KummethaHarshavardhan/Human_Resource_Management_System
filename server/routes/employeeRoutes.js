@@ -18,68 +18,49 @@ import {
 
 const router = express.Router();
 
-// =====================================================
-// EMPLOYEE PROFILE ROUTES
-// Logged-in user can view/update own employee profile
-// =====================================================
-
-// Get logged-in employee profile
 router.get("/profile", verifyToken, getMyProfile);
 
-// Update logged-in employee profile
 router.put("/profile", verifyToken, updateMyProfile);
 
-
-// =====================================================
-// EMPLOYEE MANAGEMENT ROUTES
-// Admin and HR only
-// =====================================================
-
-// Create new employee
 router.post(
   "/",
   verifyToken,
-  authorizeRoles("Admin", "HR"),
+  authorizeRoles("Admin", "HR", "Employee"),
   createEmployee
 );
 
-// Get all employees
 router.get(
   "/",
   verifyToken,
-  authorizeRoles("Admin", "HR"),
+  authorizeRoles("Admin", "HR", "Employee"),
   getAllEmployees
 );
 
-// Get single employee by ID
 router.get(
   "/:id",
   verifyToken,
-  authorizeRoles("Admin", "HR"),
+  authorizeRoles("Admin", "HR", "Employee"),
   getEmployeeById
 );
 
-// Update employee
 router.put(
   "/:id",
   verifyToken,
-  authorizeRoles("Admin", "HR"),
+  authorizeRoles("Admin", "HR", "Employee"),
   updateEmployee
 );
 
-// Delete employee
 router.delete(
   "/:id",
   verifyToken,
-  authorizeRoles("Admin"),
+  authorizeRoles("Admin", "HR", "Employee"),
   deleteEmployee
 );
 
-// Update employee status
 router.patch(
   "/:id/status",
   verifyToken,
-  authorizeRoles("Admin", "HR"),
+  authorizeRoles("Admin", "HR", "Employee"),
   updateEmployeeStatus
 );
 

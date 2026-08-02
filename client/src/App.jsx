@@ -12,12 +12,17 @@ import ResetPassword from "./pages/ResetPassword/ResetPassword.jsx";
 import ChangePassword from "./pages/ChangePassword/ChangePassword.jsx";
 import Dashboard from "./pages/Dashboard/Dashboard.jsx";
 import Profile from "./pages/Profile/Profile.jsx";
-import Employee from "./pages/Employee/Employee.jsx";
 import Attendance from "./pages/Attendance/Attendance.jsx";
 import Leave from "./pages/Leave/Leave.jsx";
 import Payroll from "./pages/Payroll/Payroll.jsx";
 import Reports from "./pages/Reports/Reports.jsx";
 import Settings from "./pages/Settings/Settings.jsx";
+
+import EmployeeList from "./pages/employee/EmployeeList.jsx";
+import AddEmployee from "./pages/employee/AddEmployee.jsx";
+import EditEmployee from "./pages/employee/EditEmployee.jsx";
+import EmployeeDetails from "./pages/employee/EmployeeDetails.jsx";
+import EmployeeProfile from "./pages/employee/EmployeeProfile.jsx";
 
 function ProtectedLayout() {
   const { isAuthenticated } = useAuth();
@@ -70,7 +75,13 @@ function AppRoutes() {
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/profile" element={<Profile />} />
-        <Route path="/employee" element={<Employee />} />
+
+        <Route path="/employee" element={<EmployeeList />} />
+        <Route path="/employee/add" element={<AddEmployee />} />
+        <Route path="/employee/profile" element={<EmployeeProfile />} />
+        <Route path="/employee/:id" element={<EmployeeDetails />} />
+        <Route path="/employee/:id/edit" element={<EditEmployee />} />
+
         <Route path="/attendance" element={<Attendance />} />
         <Route path="/leave" element={<Leave />} />
         <Route path="/payroll" element={<Payroll />} />

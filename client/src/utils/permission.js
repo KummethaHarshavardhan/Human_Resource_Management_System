@@ -23,16 +23,14 @@ const permissions = {
   employee: [
     "dashboard",
     "profile",
+    "employee",
     "attendance",
     "leave"
   ]
 };
 
-
 export const canAccessFeature = (role, feature) => {
   if (!role) return false;
-
   const normalizedRole = role.toLowerCase();
-
   return permissions[normalizedRole]?.includes(feature) || false;
 };
