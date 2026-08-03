@@ -6,7 +6,6 @@ import {
   deleteDepartmentService,
 } from "../services/departmentService.js";
 
-// Create Department
 export const createDepartment = async (req, res) => {
   try {
     const department = await createDepartmentService(req.body);
@@ -24,7 +23,6 @@ export const createDepartment = async (req, res) => {
   }
 };
 
-// Get All Departments
 export const getAllDepartments = async (req, res) => {
   try {
     const departments = await getAllDepartmentsService();
@@ -42,7 +40,6 @@ export const getAllDepartments = async (req, res) => {
   }
 };
 
-// Get Department By ID
 export const getDepartmentById = async (req, res) => {
   try {
     const department = await getDepartmentByIdService(req.params.id);
@@ -66,7 +63,6 @@ export const getDepartmentById = async (req, res) => {
   }
 };
 
-// Update Department
 export const updateDepartment = async (req, res) => {
   try {
     const department = await updateDepartmentService(
@@ -94,7 +90,6 @@ export const updateDepartment = async (req, res) => {
   }
 };
 
-// Delete Department
 export const deleteDepartment = async (req, res) => {
   try {
     const department = await deleteDepartmentService(req.params.id);

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import "../employee/emp.shared.css";
 import "../employee/EmployeeForm.css";
 
@@ -17,14 +17,13 @@ export default function EmployeeForm({
   onCancel,
   loading = false,
   departments = [],
-  users = [],          // list of {_id, name, email} for the autocomplete
+  users = [],   
   title = "Employee Details",
   isEditMode = false,
-  linkedUserName = "", // pre-resolved display name shown in edit mode
+  linkedUserName = "",
 }) {
   const [form, setForm] = useState({ ...EMPTY, ...initialData });
   const [errors, setErrors] = useState({});
-  // Display text for the user search box (add mode only)
   const [userSearch, setUserSearch] = useState("");
   const initialDataStr = JSON.stringify(initialData);
 
@@ -40,20 +39,17 @@ export default function EmployeeForm({
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
-  // When user types in the search box, try to match a user by name or email
   const handleUserSearchChange = (e) => {
     const text = e.target.value;
     setUserSearch(text);
     if (errors.user_id) setErrors((prev) => ({ ...prev, user_id: "" }));
 
-    // Find a matching user from the list (name or email match)
     const match = users.find(
       (u) =>
         u.name?.toLowerCase() === text.toLowerCase() ||
         u.email?.toLowerCase() === text.toLowerCase() ||
         `${u.name} (${u.email})`.toLowerCase() === text.toLowerCase()
     );
-    // If matched, use the ID. If not, use the raw text value directly (e.g. for new emails)
     setForm((prev) => ({ ...prev, user_id: match ? (match._id || match.id) : text }));
   };
 
@@ -95,7 +91,6 @@ export default function EmployeeForm({
         <div className="emp-form-grid">
 
           {isEditMode ? (
-            /* ── EDIT MODE: read-only linked user ── */
             <div className="emp-form-group full-width">
               <label className="emp-form-label">Linked User Account</label>
               <div
@@ -116,13 +111,11 @@ export default function EmployeeForm({
               </span>
             </div>
           ) : (
-            /* ── ADD MODE: searchable autocomplete ── */
             <div className="emp-form-group full-width">
               <label className="emp-form-label">
                 Select User <span>*</span>
               </label>
 
-              {/* Datalist provides suggestions; typed value is display text, actual _id is stored separately */}
               <datalist id={datalistId}>
                 {users.map((u) => (
                   <option key={u._id || u.id} value={`${u.name} (${u.email})`} />
@@ -139,7 +132,6 @@ export default function EmployeeForm({
                 autoComplete="off"
               />
 
-              {/* Show whether we matched a user or will create a new one */}
               {form.user_id && !errors.user_id && (
                 <span style={{ fontSize: "0.78rem", color: users.some(u => (u._id || u.id) === form.user_id) ? "#16a34a" : "#2563eb", marginTop: 4 }}>
                   {users.some(u => (u._id || u.id) === form.user_id) 

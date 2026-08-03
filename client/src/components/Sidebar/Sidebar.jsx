@@ -61,7 +61,6 @@ export default function Sidebar() {
         })()}
       </nav>
 
-      {/* Footer intentionally empty per Vamsi's request */}
     </aside>
   );
 }
