@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
 import EmployeeForm from "../../components/employee/EmployeeForm.jsx";
 import { createEmployee, getAllEmployees } from "../../services/employeeService.js";
@@ -36,49 +36,18 @@ export default function AddEmployee() {
   const [success, setSuccess] = useState("");
 
   useEffect(() => {
-  const loadData = async () => {
-    try {
-      const [deptData, empData, userData] = await Promise.all([
-        getAllDepartments(),
-        getAllEmployees({ page: 1, limit: 100 }),
-        fetchUsers(),
-      ]);
-
-      console.log("Departments API Response:", deptData);
-      console.log("Employees API Response:", empData);
-      console.log("Users API Response:", userData);
-
-      // Handle different response formats
-      const departmentList = Array.isArray(deptData)
-        ? deptData
-        : deptData?.departments ||
-          deptData?.data ||
-          deptData?.results ||
-          [];
-
-      const employeeList = Array.isArray(empData?.employees)
-        ? empData.employees
-        : Array.isArray(empData)
-        ? empData
-        : [];
-
-      const userList = Array.isArray(userData)
-        ? userData
-        : userData?.users || [];
-
-      setDepartments(departmentList);
-      setEmployees(employeeList);
-      setUsers(userList);
-    } catch (err) {
-      console.error("Error loading Add Employee data:", err);
-      setDepartments([]);
-      setEmployees([]);
-      setUsers([]);
-    }
-  };
-
-  loadData();
-}, []);
+    Promise.all([
+      getAllDepartments(),
+      getAllEmployees({ page: 1, limit: 100 }),
+      fetchUsers(),
+    ])
+      .then(([deptData, empData, userData]) => {
+        setDepartments(deptData?.departments || []);
+        setEmployees(empData?.employees || []);
+        setUsers(Array.isArray(userData) ? userData : []);
+      })
+      .catch(() => {});
+  }, []);
 
   const handleSubmit = async (formData) => {
     setLoading(true);
@@ -102,13 +71,14 @@ export default function AddEmployee() {
           <h1>Add New Employee</h1>
           <p>Fill in the details to onboard a new employee.</p>
         </div>
-        <button
+        <Link
+          to="/employee"
           className="emp-btn-secondary"
-          onClick={() => navigate("/employee")}
           id="add-emp-back-btn"
+          style={{ cursor: "pointer" }}
         >
           <FiArrowLeft size={16} /> Back to Directory
-        </button>
+        </Link>
       </div>
 
       {error && <div className="emp-alert error">{error}</div>}

@@ -25,7 +25,7 @@ router.put("/profile", verifyToken, updateMyProfile);
 router.post(
   "/",
   verifyToken,
-  authorizeRoles("Admin", "HR", "Employee"),
+  authorizeRoles("Admin", "HR"),
   createEmployee
 );
 
@@ -46,21 +46,21 @@ router.get(
 router.put(
   "/:id",
   verifyToken,
-  authorizeRoles("Admin", "HR", "Employee"),
+  authorizeRoles("Admin", "HR"),
   updateEmployee
 );
 
 router.delete(
   "/:id",
   verifyToken,
-  authorizeRoles("Admin", "HR", "Employee"),
+  authorizeRoles("Admin", "HR"),
   deleteEmployee
 );
 
 router.patch(
   "/:id/status",
   verifyToken,
-  authorizeRoles("Admin", "HR", "Employee"),
+  authorizeRoles("Admin", "HR"),
   updateEmployeeStatus
 );
 

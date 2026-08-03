@@ -42,8 +42,8 @@ function ConfirmDialog({ employee, onConfirm, onCancel, loading }) {
 export default function EmployeeDetails() {
   const { id } = useParams();
   const { user } = useAuth();
-  const navigate = useNavigate();
-  const canEdit = true;
+  const userRole = (user?.role || "").toLowerCase();
+  const canEdit = userRole === "admin" || userRole === "hr";
 
   const [employee, setEmployee] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -91,6 +91,22 @@ export default function EmployeeDetails() {
     } finally {
       setDeleting(false);
     }
+  };
+
+  const handleEditClick = (emp) => {
+    if (!canEdit) {
+      setError("You do not have access permission to edit employee details.");
+      return;
+    }
+    navigate(`/employee/${emp._id || emp.id}/edit`);
+  };
+
+  const handleDeleteClick = () => {
+    if (!canEdit) {
+      setError("You do not have access permission to delete employee details.");
+      return;
+    }
+    setConfirmDelete(true);
   };
 
   if (loading) {
@@ -164,9 +180,9 @@ export default function EmployeeDetails() {
 
       <EmployeeDetailsCard
         employee={employee}
-        canEdit={canEdit}
-        onEdit={(emp) => navigate(`/employee/${emp._id || emp.id}/edit`)}
-        onDelete={() => setConfirmDelete(true)}
+        canEdit={true}
+        onEdit={handleEditClick}
+        onDelete={handleDeleteClick}
         onBack={() => navigate("/employee")}
       />
 

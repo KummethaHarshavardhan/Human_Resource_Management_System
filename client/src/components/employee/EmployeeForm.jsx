@@ -142,7 +142,7 @@ export default function EmployeeForm({
               <option value="">— Select Department —</option>
               {departments.map((d) => (
                 <option key={d._id || d.id} value={d._id || d.id}>
-                  {d.departmentName}
+                  {d.departmentName || d.name}
                 </option>
               ))}
             </select>
@@ -177,24 +177,6 @@ export default function EmployeeForm({
             >
               <option value="Active">Active</option>
               <option value="Inactive">Inactive</option>
-            </select>
-          </div>
-
-          <div className="emp-form-group full-width">
-            <label className="emp-form-label">Manager (optional)</label>
-            <select
-              name="manager_id"
-              className="emp-form-select"
-              value={form.manager_id || ""}
-              onChange={handleChange}
-            >
-              <option value="">— No Manager —</option>
-              {employees.map((emp) => (
-                <option key={emp._id || emp.id} value={emp._id || emp.id}>
-                  {emp.employee_code} – {emp.designation}{" "}
-                  {emp.user_id?.name ? `(${emp.user_id.name})` : ""}
-                </option>
-              ))}
             </select>
           </div>
         </div>
