@@ -38,15 +38,23 @@ export default function AddEmployee() {
   useEffect(() => {
     Promise.all([
       getAllDepartments(),
-      getAllEmployees({ page: 1, limit: 100 }),
+      getAllEmployees({ page: 1, limit: 200 }),
       fetchUsers(),
     ])
       .then(([deptData, empData, userData]) => {
         setDepartments(deptData?.departments || deptData?.data || (Array.isArray(deptData) ? deptData : []));
-        setEmployees(empData?.employees || empData?.data || (Array.isArray(empData) ? empData : []));
-        setUsers(Array.isArray(userData) ? userData : userData?.users || []);
+        const allEmps = empData?.employees || empData?.data || (Array.isArray(empData) ? empData : []);
+        setEmployees(allEmps);
+
+        const linkedUserIds = new Set(
+          allEmps.map((e) =>
+            typeof e.user_id === "object" ? e.user_id?._id : e.user_id
+          ).filter(Boolean)
+        );
+        const allUsers = Array.isArray(userData) ? userData : userData?.users || [];
+        setUsers(allUsers.filter((u) => !linkedUserIds.has(String(u._id || u.id))));
       })
-      .catch(() => {});
+      .catch((err) => setError(err.message || "Failed to load form data"));
   }, []);
 
   const handleSubmit = async (formData) => {

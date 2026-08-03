@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import "../employee/emp.shared.css";
 import "../employee/EmployeeForm.css";
 
@@ -17,12 +17,15 @@ export default function EmployeeForm({
   onCancel,
   loading = false,
   departments = [],
-  employees = [],
-  users = [],
+  users = [],          // list of {_id, name, email} for the autocomplete
   title = "Employee Details",
+  isEditMode = false,
+  linkedUserName = "", // pre-resolved display name shown in edit mode
 }) {
   const [form, setForm] = useState({ ...EMPTY, ...initialData });
   const [errors, setErrors] = useState({});
+  // Display text for the user search box (add mode only)
+  const [userSearch, setUserSearch] = useState("");
   const initialDataStr = JSON.stringify(initialData);
 
   useEffect(() => {
@@ -37,9 +40,28 @@ export default function EmployeeForm({
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
+  // When user types in the search box, try to match a user by name or email
+  const handleUserSearchChange = (e) => {
+    const text = e.target.value;
+    setUserSearch(text);
+    if (errors.user_id) setErrors((prev) => ({ ...prev, user_id: "" }));
+
+    // Find a matching user from the list (name or email match)
+    const match = users.find(
+      (u) =>
+        u.name?.toLowerCase() === text.toLowerCase() ||
+        u.email?.toLowerCase() === text.toLowerCase() ||
+        `${u.name} (${u.email})`.toLowerCase() === text.toLowerCase()
+    );
+    // If matched, use the ID. If not, use the raw text value directly (e.g. for new emails)
+    setForm((prev) => ({ ...prev, user_id: match ? (match._id || match.id) : text }));
+  };
+
   const validate = () => {
     const errs = {};
-    if (!form.user_id) errs.user_id = "User is required";
+    if (!isEditMode && !form.user_id?.trim()) {
+      errs.user_id = "User account (email or ID) is required";
+    }
     if (!form.department_id) errs.department_id = "Department is required";
     if (!form.designation.trim()) errs.designation = "Designation is required";
     if (!form.date_of_joining) errs.date_of_joining = "Date of joining is required";
@@ -53,9 +75,8 @@ export default function EmployeeForm({
       setErrors(errs);
       return;
     }
-
     const payload = {
-      user_id: form.user_id,
+      ...(isEditMode ? {} : { user_id: form.user_id }),
       department_id: form.department_id,
       designation: form.designation.trim(),
       manager_id: form.manager_id || null,
@@ -65,47 +86,67 @@ export default function EmployeeForm({
     onSubmit(payload);
   };
 
+  const datalistId = "users-datalist";
+
   return (
     <form onSubmit={handleSubmit} noValidate>
       <div className="emp-form-card">
         <h2>{title}</h2>
         <div className="emp-form-grid">
 
-          {users.length > 0 ? (
+          {isEditMode ? (
+            /* ── EDIT MODE: read-only linked user ── */
             <div className="emp-form-group full-width">
-              <label className="emp-form-label">
-                User Account <span>*</span>
-              </label>
-              <select
-                name="user_id"
-                className={`emp-form-select${errors.user_id ? " error" : ""}`}
-                value={form.user_id}
-                onChange={handleChange}
+              <label className="emp-form-label">Linked User Account</label>
+              <div
+                className="emp-form-input"
+                style={{
+                  background: "var(--emp-surface, #f4f4f8)",
+                  color: "var(--emp-text-muted, #6b7280)",
+                  cursor: "not-allowed",
+                  display: "flex",
+                  alignItems: "center",
+                  minHeight: 42,
+                }}
               >
-                <option value="">— Select User —</option>
-                {users.map((u) => (
-                  <option key={u._id || u.id} value={u._id || u.id}>
-                    {u.name} ({u.email})
-                  </option>
-                ))}
-              </select>
-              {errors.user_id && (
-                <span className="emp-field-error">{errors.user_id}</span>
-              )}
+                {linkedUserName || "—"}
+              </div>
+              <span style={{ fontSize: "0.75rem", color: "var(--emp-text-muted, #6b7280)", marginTop: 4 }}>
+                User account cannot be changed after creation.
+              </span>
             </div>
           ) : (
+            /* ── ADD MODE: searchable autocomplete ── */
             <div className="emp-form-group full-width">
               <label className="emp-form-label">
-                User ID / Account <span>*</span>
+                Select User <span>*</span>
               </label>
+
+              {/* Datalist provides suggestions; typed value is display text, actual _id is stored separately */}
+              <datalist id={datalistId}>
+                {users.map((u) => (
+                  <option key={u._id || u.id} value={`${u.name} (${u.email})`} />
+                ))}
+              </datalist>
+
               <input
                 type="text"
-                name="user_id"
+                list={datalistId}
                 className={`emp-form-input${errors.user_id ? " error" : ""}`}
-                placeholder="User ID"
-                value={form.user_id}
-                onChange={handleChange}
+                placeholder="Type to search by name or email…"
+                value={userSearch}
+                onChange={handleUserSearchChange}
+                autoComplete="off"
               />
+
+              {/* Show whether we matched a user or will create a new one */}
+              {form.user_id && !errors.user_id && (
+                <span style={{ fontSize: "0.78rem", color: users.some(u => (u._id || u.id) === form.user_id) ? "#16a34a" : "#2563eb", marginTop: 4 }}>
+                  {users.some(u => (u._id || u.id) === form.user_id) 
+                    ? "✓ Existing user matched and will be linked" 
+                    : "+ New user account will be created automatically"}
+                </span>
+              )}
               {errors.user_id && (
                 <span className="emp-field-error">{errors.user_id}</span>
               )}

@@ -72,6 +72,7 @@ const employeeSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
+    collection: "employee_details",
   }
 );
 

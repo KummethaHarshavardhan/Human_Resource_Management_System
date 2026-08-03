@@ -1,4 +1,6 @@
 import Employees from "../models/UserModel.js";
+import Employee from "../models/Employee.js";
+import Department from "../models/Department.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import FORGOT from "../models/forgotModel.js";
@@ -37,6 +39,48 @@ export const EmpRegister = async (req, res) => {
             department
         });
         await newUser.save();
+
+        let dept = null;
+        const deptNameInput = department || "General";
+        dept = await Department.findOne({ departmentName: { $regex: new RegExp("^" + deptNameInput + "$", "i") } });
+        if (!dept) {
+            dept = await Department.findOne({});
+        }
+        if (!dept) {
+            dept = await Department.create({
+                departmentId: "DEP001",
+                departmentName: "General",
+                description: "Default department",
+                location: "Office",
+                status: "Active"
+            });
+        }
+
+        const lastEmployee = await Employee.findOne()
+            .sort({ createdAt: -1 })
+            .select("employee_code");
+
+        let employeeNumber = 1;
+        if (lastEmployee && lastEmployee.employee_code) {
+            const lastNumber = parseInt(
+                lastEmployee.employee_code.replace("EMP", ""),
+                10
+            );
+            if (!isNaN(lastNumber)) {
+                employeeNumber = lastNumber + 1;
+            }
+        }
+        const employee_code = `EMP${String(employeeNumber).padStart(3, "0")}`;
+
+        await Employee.create({
+            user_id: newUser._id,
+            employee_code,
+            department_id: dept._id,
+            designation: role || "Employee",
+            date_of_joining: new Date(),
+            employment_status: "Active"
+        });
+
         return res.status(201).json({
             success: true,
             message: "Employee Registered Successfully"
@@ -304,5 +348,17 @@ export const updateUserProfile = async (req, res) => {
     } catch (err) {
         return res.status(500).json({ success: false, message: err.message });
 
+    }
+};
+
+export const getAllUsers = async (req, res) => {
+    try {
+        const users = await Employees.find({}).select("-password").sort({ createdAt: -1 });
+        return res.status(200).json({
+            success: true,
+            users,
+        });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
     }
 };

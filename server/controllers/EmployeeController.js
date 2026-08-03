@@ -1,4 +1,6 @@
 import Employee from "../models/Employee.js";
+import User from "../models/UserModel.js";
+import mongoose from "mongoose";
 
 // =====================================================
 // 1. CREATE EMPLOYEE
@@ -19,13 +21,45 @@ export const createEmployee = async (req, res) => {
     if (!user_id || !department_id || !designation || !date_of_joining) {
       return res.status(400).json({
         success: false,
-        message:
-          "user_id, department_id, designation and date_of_joining are required",
+        message: "user_id, department_id, designation and date_of_joining are required",
       });
     }
 
+    let resolvedUserId = null;
+
+    // Check if user_id is a valid mongoose ObjectId
+    const isValidObjectId = mongoose.Types.ObjectId.isValid(user_id);
+
+    if (isValidObjectId) {
+      const existingUser = await User.findById(user_id);
+      if (existingUser) {
+        resolvedUserId = existingUser._id;
+      }
+    }
+
+    if (!resolvedUserId) {
+      // Treat user_id as email and find or create a user account for them
+      const email = user_id.trim().toLowerCase();
+      let existingUser = await User.findOne({ email });
+
+      if (!existingUser) {
+        // Auto-create user account if it doesn't exist
+        const name = email.split("@")[0] || email;
+        const defaultHash = "$2b$10$ogIhRcMOO.jB0UJZ7/ufkugvwWrUdjT47j7klcDFW5iyMx9xo2.SG"; // Hashed "123456"
+        
+        existingUser = await User.create({
+          name,
+          email,
+          password: defaultHash,
+          role: "Employee",
+          department: "General"
+        });
+      }
+      resolvedUserId = existingUser._id;
+    }
+
     // Check if user is already linked to an employee
-    const existingEmployee = await Employee.findOne({ user_id });
+    const existingEmployee = await Employee.findOne({ user_id: resolvedUserId });
 
     if (existingEmployee) {
       return res.status(409).json({
@@ -56,7 +90,7 @@ export const createEmployee = async (req, res) => {
 
     // Create employee
     const employee = await Employee.create({
-      user_id,
+      user_id: resolvedUserId,
       employee_code,
       department_id,
       designation,
@@ -218,8 +252,7 @@ export const updateEmployee = async (req, res) => {
       });
     }
 
-    // Update only provided fields
-    if (user_id !== undefined) employee.user_id = user_id;
+    // Update only provided fields (user_id is immutable after creation)
     if (department_id !== undefined)
       employee.department_id = department_id;
     if (designation !== undefined)
