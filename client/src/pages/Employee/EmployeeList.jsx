@@ -51,9 +51,9 @@ const PAGE_SIZE = 10;
 export default function EmployeeList() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const role = user?.role || "";
-  const canEdit = true;
-  const canDelete = true;
+  const userRole = (user?.role || "").toLowerCase();
+  const canEdit = userRole === "admin" || userRole === "hr";
+  const canDelete = userRole === "admin" || userRole === "hr";
 
   const [employees, setEmployees] = useState([]);
   const [totalEmployees, setTotalEmployees] = useState(0);
@@ -82,7 +82,7 @@ export default function EmployeeList() {
 
   useEffect(() => {
     getAllDepartments()
-      .then((data) => setDepartments(data?.departments || []))
+      .then((data) => setDepartments(data?.departments || data?.data || (Array.isArray(data) ? data : [])))
       .catch(() => setDepartments([]));
   }, []);
 
@@ -183,8 +183,27 @@ export default function EmployeeList() {
   };
 
   const handleView = (emp) => navigate(`/employee/${emp._id || emp.id}`);
-  const handleEdit = (emp) => navigate(`/employee/${emp._id || emp.id}/edit`);
-  const handleAdd = () => navigate("/employee/add");
+  const handleEdit = (emp) => {
+    if (!canEdit) {
+      setError("You do not have access permission to edit employee details.");
+      return;
+    }
+    navigate(`/employee/${emp._id || emp.id}/edit`);
+  };
+  const handleDelete = (emp) => {
+    if (!canDelete) {
+      setError("You do not have access permission to delete employee details.");
+      return;
+    }
+    setDeleteTarget(emp);
+  };
+  const handleAdd = () => {
+    if (!canEdit) {
+      setError("You do not have access permission to add a new employee.");
+      return;
+    }
+    navigate("/employee/add");
+  };
 
   return (
     <div className="emp-page">
@@ -232,7 +251,7 @@ export default function EmployeeList() {
         onPage={setCurrentPage}
         onView={handleView}
         onEdit={handleEdit}
-        onDelete={setDeleteTarget}
+        onDelete={handleDelete}
         canEdit={canEdit}
         canDelete={canDelete}
         loading={loading}

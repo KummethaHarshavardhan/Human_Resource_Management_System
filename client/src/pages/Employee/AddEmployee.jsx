@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
 import EmployeeForm from "../../components/employee/EmployeeForm.jsx";
 import { createEmployee, getAllEmployees } from "../../services/employeeService.js";
@@ -42,9 +42,9 @@ export default function AddEmployee() {
       fetchUsers(),
     ])
       .then(([deptData, empData, userData]) => {
-        setDepartments(deptData?.departments || []);
-        setEmployees(empData?.employees || []);
-        setUsers(Array.isArray(userData) ? userData : []);
+        setDepartments(deptData?.departments || deptData?.data || (Array.isArray(deptData) ? deptData : []));
+        setEmployees(empData?.employees || empData?.data || (Array.isArray(empData) ? empData : []));
+        setUsers(Array.isArray(userData) ? userData : userData?.users || []);
       })
       .catch(() => {});
   }, []);
@@ -71,13 +71,14 @@ export default function AddEmployee() {
           <h1>Add New Employee</h1>
           <p>Fill in the details to onboard a new employee.</p>
         </div>
-        <button
+        <Link
+          to="/employee"
           className="emp-btn-secondary"
-          onClick={() => navigate("/employee")}
           id="add-emp-back-btn"
+          style={{ cursor: "pointer" }}
         >
           <FiArrowLeft size={16} /> Back to Directory
-        </button>
+        </Link>
       </div>
 
       {error && <div className="emp-alert error">{error}</div>}

@@ -1,6 +1,6 @@
 import "../employee/emp.shared.css";
 import "../employee/EmployeeTable.css";
-import { FiSearch, FiEye, FiEdit2, FiTrash2, FiSliders, FiDownload, FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import { FiSearch, FiEye, FiEdit2, FiTrash2, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { HiOutlineUserGroup } from "react-icons/hi2";
 
 const avatarColors = [
@@ -127,14 +127,6 @@ export default function EmployeeTable({
               {tab}
             </button>
           ))}
-        </div>
-        <div className="emp-table-top-actions">
-          <button className="emp-btn-outline" id="filters-btn" title="Filter list">
-            <FiSliders size={14} /> Filters
-          </button>
-          <button className="emp-btn-outline" id="export-btn" title="Export directory">
-            <FiDownload size={14} /> Export
-          </button>
         </div>
       </div>
 

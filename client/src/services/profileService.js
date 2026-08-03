@@ -43,5 +43,10 @@ export const getAllDepartments = async () => {
       Authorization: `Bearer ${token}`,
     },
   });
-  return handleResponse(res);
+  const data = await handleResponse(res);
+  return {
+    ...data,
+    departments: data?.departments || data?.data || (Array.isArray(data) ? data : []),
+  };
 };
+
