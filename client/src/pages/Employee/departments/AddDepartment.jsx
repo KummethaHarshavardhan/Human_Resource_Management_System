@@ -19,7 +19,6 @@ export default function AddDepartment() {
 
       alert("Department added successfully.");
 
-      // After saving, return to Departments list
       navigate("/employee/departments");
     } catch (err) {
       alert(err.message);
@@ -32,7 +31,6 @@ export default function AddDepartment() {
     <div className="page">
       <div className="page-header">
         <div>
-          {/* Back Button */}
           <button
             className="btn-secondary"
             style={{ marginBottom: "15px" }}
