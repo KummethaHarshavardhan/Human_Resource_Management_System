@@ -9,23 +9,44 @@ import {
 import { getAllDepartments } from "../../services/profileService.js";
 import "../../components/employee/emp.shared.css";
 import "./EmployeeList.css";
-import { FiAlertTriangle, FiUserPlus, FiUsers, FiCheckCircle, FiCalendar, FiSlash } from "react-icons/fi";
+import {
+  FiAlertTriangle,
+  FiUserPlus,
+  FiUsers,
+  FiCheckCircle,
+  FiCalendar,
+  FiSlash,
+  FiLayers,
+  FiShield,
+} from "react-icons/fi";
 
 function ConfirmDialog({ employee, onConfirm, onCancel, loading }) {
   const name = employee?.user_id?.name || employee?.name || "this employee";
   return (
     <div className="emp-confirm-overlay" role="dialog" aria-modal="true">
       <div className="emp-confirm-box">
-        <div className="emp-confirm-icon"><FiAlertTriangle size={28} /></div>
+        <div className="emp-confirm-icon">
+          <FiAlertTriangle size={28} />
+        </div>
         <h3>Delete Employee?</h3>
         <p>
-          Are you sure you want to delete <strong>{name}</strong>? This action cannot be undone.
+          Are you sure you want to delete <strong>{name}</strong>? This action
+          cannot be undone.
         </p>
         <div className="emp-confirm-actions">
-          <button className="emp-btn-secondary" onClick={onCancel} disabled={loading}>
+          <button
+            className="emp-btn-secondary"
+            onClick={onCancel}
+            disabled={loading}
+          >
             Cancel
           </button>
-          <button className="emp-btn-danger" onClick={onConfirm} disabled={loading} id="confirm-delete-btn">
+          <button
+            className="emp-btn-danger"
+            onClick={onConfirm}
+            disabled={loading}
+            id="confirm-delete-btn"
+          >
             {loading ? "Deleting..." : "Yes, Delete"}
           </button>
         </div>
@@ -40,7 +61,9 @@ function StatCard({ icon, label, value, colorClass }) {
       <div className={`emp-stat-icon ${colorClass}`}>{icon}</div>
       <div className="emp-stat-content">
         <div className="emp-stat-label">{label}</div>
-        <div className={`emp-stat-value ${colorClass}`}>{typeof value === "number" ? value.toLocaleString() : value}</div>
+        <div className={`emp-stat-value ${colorClass}`}>
+          {typeof value === "number" ? value.toLocaleString() : value}
+        </div>
       </div>
     </div>
   );
@@ -102,9 +125,7 @@ export default function EmployeeList() {
           terminated: Math.max(0, total - active - Math.round(total * 0.03)),
         });
       }
-    } catch {
-      
-    }
+    } catch {}
   }, []);
 
   useEffect(() => {
@@ -126,13 +147,18 @@ export default function EmployeeList() {
 
       if (deptFilter !== "All Departments") {
         emps = emps.filter(
-          (e) => (e.department_id?.departmentName || e.department) === deptFilter
+          (e) =>
+            (e.department_id?.departmentName || e.department) === deptFilter,
         );
       }
 
       setEmployees(emps);
       setTotalEmployees(data?.totalEmployees || emps.length);
-      setTotalPages(data?.totalPages || Math.ceil((data?.totalEmployees || emps.length) / PAGE_SIZE) || 1);
+      setTotalPages(
+        data?.totalPages ||
+          Math.ceil((data?.totalEmployees || emps.length) / PAGE_SIZE) ||
+          1,
+      );
     } catch (err) {
       setError(err.message || "Failed to load employees");
     } finally {
@@ -168,7 +194,7 @@ export default function EmployeeList() {
     try {
       await deleteEmployee(deleteTarget._id || deleteTarget.id);
       setDeleteSuccess(
-        `${deleteTarget.user_id?.name || deleteTarget.name || "Employee"} deleted successfully.`
+        `${deleteTarget.user_id?.name || deleteTarget.name || "Employee"} deleted successfully.`,
       );
       setDeleteTarget(null);
       await fetchEmployees();
@@ -210,29 +236,75 @@ export default function EmployeeList() {
       <div className="emp-page-header">
         <div className="emp-page-header-text">
           <h1>Employee Directory</h1>
+
           <p>
-            Manage your global workforce of {stats.total.toLocaleString()} employees.
+            Manage your global workforce of {stats.total.toLocaleString()}{" "}
+            employees.
           </p>
         </div>
-        {canEdit && (
+
+        <div className="emp-header-actions">
           <button
-            className="emp-btn-primary"
-            onClick={handleAdd}
-            id="add-employee-btn"
+            className="emp-btn-secondary"
+            onClick={() => navigate("/employee/departments")}
+            title="Manage Departments"
           >
-            <FiUserPlus size={18} /> Add New Employee
+            <FiLayers />
+            Departments
           </button>
-        )}
+
+          <button
+            className="emp-btn-secondary"
+            onClick={() => navigate("/employee/roles")}
+            title="Manage Roles"
+          >
+            <FiShield />
+            Roles
+          </button>
+
+          {canEdit && (
+            <button
+              className="emp-btn-primary"
+              onClick={handleAdd}
+              id="add-employee-btn"
+            >
+              <FiUserPlus />
+              Add New Employee
+            </button>
+          )}
+        </div>
       </div>
 
       {error && <div className="emp-alert error">{error}</div>}
-      {deleteSuccess && <div className="emp-alert success">{deleteSuccess}</div>}
+      {deleteSuccess && (
+        <div className="emp-alert success">{deleteSuccess}</div>
+      )}
 
       <div className="emp-stats-row">
-        <StatCard icon={<FiUsers size={22} />} label="Total Employees" value={stats.total} colorClass="purple" />
-        <StatCard icon={<FiCheckCircle size={22} />} label="Active" value={stats.active} colorClass="blue" />
-        <StatCard icon={<FiCalendar size={22} />} label="On Leave" value={stats.onLeave} colorClass="yellow" />
-        <StatCard icon={<FiSlash size={22} />} label="Terminated" value={stats.terminated} colorClass="red" />
+        <StatCard
+          icon={<FiUsers size={22} />}
+          label="Total Employees"
+          value={stats.total}
+          colorClass="purple"
+        />
+        <StatCard
+          icon={<FiCheckCircle size={22} />}
+          label="Active"
+          value={stats.active}
+          colorClass="blue"
+        />
+        <StatCard
+          icon={<FiCalendar size={22} />}
+          label="On Leave"
+          value={stats.onLeave}
+          colorClass="yellow"
+        />
+        <StatCard
+          icon={<FiSlash size={22} />}
+          label="Terminated"
+          value={stats.terminated}
+          colorClass="red"
+        />
       </div>
 
       <EmployeeTable

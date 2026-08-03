@@ -34,7 +34,7 @@ export const updateDepartmentService = async (id, departmentData) => {
         id,
         departmentData,
         {
-            new: true,
+            returnDocument:"after",
             runValidators: true,
         }
     );

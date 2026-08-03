@@ -43,16 +43,8 @@ export default function AddEmployee() {
     ])
       .then(([deptData, empData, userData]) => {
         setDepartments(deptData?.departments || deptData?.data || (Array.isArray(deptData) ? deptData : []));
-        const allEmps = empData?.employees || empData?.data || (Array.isArray(empData) ? empData : []);
-        setEmployees(allEmps);
-
-        const linkedUserIds = new Set(
-          allEmps.map((e) =>
-            typeof e.user_id === "object" ? e.user_id?._id : e.user_id
-          ).filter(Boolean)
-        );
-        const allUsers = Array.isArray(userData) ? userData : userData?.users || [];
-        setUsers(allUsers.filter((u) => !linkedUserIds.has(String(u._id || u.id))));
+        setEmployees(empData?.employees || empData?.data || (Array.isArray(empData) ? empData : []));
+        setUsers(Array.isArray(userData) ? userData : userData?.users || []);
       })
       .catch((err) => setError(err.message || "Failed to load form data"));
   }, []);

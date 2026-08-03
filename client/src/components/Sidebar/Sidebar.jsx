@@ -4,16 +4,15 @@ import { canAccessFeature } from "../../utils/permission.js";
 import "./Sidebar.css";
 
 const menuItems = [
-  { label:"Dashboard", to:"/dashboard", feature:"dashboard" },
-  { label:"Profile", to:"/profile", feature:"profile" },
-  { label:"Directory", to:"/employee", feature:"employee" },
-  { label:"Attendance", to:"/attendance", feature:"attendance" },
-  { label:"Leave Management", to:"/leave", feature:"leave" },
-  { label:"Payroll", to:"/payroll", feature:"payroll" },
-  { label:"Reports", to:"/reports", feature:"reports" },
-  { label:"Settings", to:"/settings", feature:"settings" },
+  { label: "Dashboard", to: "/dashboard", feature: "dashboard" },
+  { label: "Profile", to: "/profile", feature: "profile" },
+  { label: "Directory", to: "/employee", feature: "employee" },
+  { label: "Attendance", to: "/attendance", feature: "attendance" },
+  { label: "Leave Management", to: "/leave", feature: "leave" },
+  { label: "Payroll", to: "/payroll", feature: "payroll" },
+  { label: "Reports", to: "/reports", feature: "reports" },
+  { label: "Settings", to: "/settings", feature: "settings" },
 ];
-
 
 export default function Sidebar() {
   const { user } = useAuth();
@@ -22,7 +21,6 @@ export default function Sidebar() {
   return (
     <aside className="sidebar">
       <div className="sidebar-brand">
-        
         <div>
           <strong>Infinetra</strong>
           <small>HR Portal</small>
@@ -31,7 +29,9 @@ export default function Sidebar() {
 
       {user && (
         <div className="sidebar-user-card">
-          <div className="sidebar-user-avatar">{user.name?.charAt(0) || ""}</div>
+          <div className="sidebar-user-avatar">
+            {user.name?.charAt(0) || ""}
+          </div>
           <div>
             <div className="sidebar-user-name">{user.name}</div>
             <div className="sidebar-user-role">{user.role}</div>
@@ -41,10 +41,22 @@ export default function Sidebar() {
 
       <nav className="sidebar-nav">
         {(() => {
-          const visibleItems = menuItems.filter((item) => canAccessFeature(role, item.feature));
+          const visibleItems = menuItems.filter((item) =>
+            canAccessFeature(role, item.feature),
+          );
 
           if (visibleItems.length === 0) {
-            return <div style={{ padding: "12px 16px", color: "#6b7280", fontSize: "14px" }}>No menu items available for this role.</div>;
+            return (
+              <div
+                style={{
+                  padding: "12px 16px",
+                  color: "#6b7280",
+                  fontSize: "14px",
+                }}
+              >
+                No menu items available for this role.
+              </div>
+            );
           }
 
           return visibleItems.map((item) => (
