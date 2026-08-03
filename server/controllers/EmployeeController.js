@@ -309,7 +309,7 @@ export const updateEmployeeStatus = async (req, res) => {
     const employee = await Employee.findByIdAndUpdate(
       id,
       { employment_status },
-      { new: true, runValidators: true }
+      { returnDocument:"after", runValidators: true }
     )
       .populate("user_id", "name email role")
       .populate(

@@ -1,28 +1,28 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-import DepartmentForm from "../../../components/department/DepartmentForm";
+import RoleForm from "../../../components/role/RoleForm";
 
 import {
-  getDepartmentById,
-  updateDepartment,
-} from "../../../services/departmentService";
+  getRoleById,
+  updateRole,
+} from "../../../services/roleService";
 
 import "../department-role.css";
 
-export default function EditDepartment() {
+export default function EditRole() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const [department, setDepartment] = useState(null);
+  const [role, setRole] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    const fetchDepartment = async () => {
+    const fetchRole = async () => {
       try {
-        const res = await getDepartmentById(id);
-        setDepartment(res.data || res);
+        const res = await getRoleById(id);
+        setRole(res.data || res);
       } catch (err) {
         alert(err.message);
       } finally {
@@ -30,18 +30,18 @@ export default function EditDepartment() {
       }
     };
 
-    fetchDepartment();
+    fetchRole();
   }, [id]);
 
   const handleUpdate = async (formData) => {
     try {
       setSaving(true);
 
-      await updateDepartment(id, formData);
+      await updateRole(id, formData);
 
-      alert("Department updated successfully.");
+      alert("Role updated successfully.");
 
-      navigate("/employee/departments");
+      navigate("/employee/roles");
     } catch (err) {
       alert(err.message);
     } finally {
@@ -52,29 +52,26 @@ export default function EditDepartment() {
   if (loading) {
     return (
       <div className="page">
-        <h3>Loading...</h3>
+        <div className="loading">Loading...</div>
       </div>
     );
   }
 
   return (
     <div className="page">
-
       <div className="page-header">
-        <div>
-          <h2>Edit Department</h2>
-          <p>Update department information.</p>
+        <div className="page-title">
+          <h2>Edit Role</h2>
+          <p>Update role information.</p>
         </div>
       </div>
 
-      <DepartmentForm
-        title="Edit Department"
-        initialData={department}
+      <RoleForm
+        initialData={role}
         loading={saving}
         onSubmit={handleUpdate}
-        onCancel={() => navigate("/employee/departments")}
+        onCancel={() => navigate("/employee/roles")}
       />
-
     </div>
   );
 }

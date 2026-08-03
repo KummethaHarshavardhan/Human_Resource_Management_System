@@ -289,7 +289,7 @@ export const updateUserProfile = async (req, res) => {
         const updatedUser = await Employees.findByIdAndUpdate(
             req.user.id,
             { name, phone, department },
-            { new: true, runValidators: true }
+            { returnDocument:"after", runValidators: true }
         ).select("-password");
 
         if (!updatedUser) {

@@ -1,79 +1,73 @@
-// Mock Department Data
-const departments = [
-  {
-    id: 1,
-    departmentName: "Human Resources",
-    departmentCode: "HR",
-    manager: "John Smith",
-    employeeCount: 15,
-    location: "Hyderabad",
-    status: "Active",
-  },
-  {
-    id: 2,
-    departmentName: "Information Technology",
-    departmentCode: "IT",
-    manager: "Rahul Kumar",
-    employeeCount: 42,
-    location: "Bengaluru",
-    status: "Active",
-  },
-  {
-    id: 3,
-    departmentName: "Finance",
-    departmentCode: "FIN",
-    manager: "David Wilson",
-    employeeCount: 18,
-    location: "Chennai",
-    status: "Active",
-  },
-  {
-    id: 4,
-    departmentName: "Marketing",
-    departmentCode: "MKT",
-    manager: "Priya Sharma",
-    employeeCount: 12,
-    location: "Mumbai",
-    status: "Inactive",
-  },
-];
+const API_BASE = "/api/departments";
+
+const getAuthHeaders = () => {
+  const token = localStorage.getItem("token");
+
+  return {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+  };
+};
+
+const handleResponse = async (res) => {
+  const text = await res.text();
+  const data = text ? JSON.parse(text) : null;
+
+  if (!res.ok) {
+    throw new Error(data?.message || "Request failed");
+  }
+
+  return data;
+};
 
 // Get All Departments
 export const getDepartments = async () => {
-  return Promise.resolve(departments);
+  const res = await fetch(API_BASE, {
+    method: "GET",
+    headers: getAuthHeaders(),
+  });
+
+  return handleResponse(res);
 };
 
 // Get Department By ID
 export const getDepartmentById = async (id) => {
-  const department = departments.find(
-    (dept) => dept.id === Number(id)
-  );
+  const res = await fetch(`${API_BASE}/${id}`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+  });
 
-  return Promise.resolve(department);
+  return handleResponse(res);
 };
 
-// Add Department
+// Create Department
 export const addDepartment = async (department) => {
-  return Promise.resolve({
-    success: true,
-    message: "Department added successfully",
-    data: department,
+  const res = await fetch(API_BASE, {
+    method: "POST",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(department),
   });
+
+  return handleResponse(res);
 };
 
 // Update Department
-export const updateDepartment = async (id, updatedDepartment) => {
-  return Promise.resolve({
-    success: true,
-    message: "Department updated successfully",
-    data: updatedDepartment,
+export const updateDepartment = async (id, department) => {
+  const res = await fetch(`${API_BASE}/${id}`, {
+    method: "PUT",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(department),
   });
+
+  return handleResponse(res);
 };
 
 // Delete Department
 export const deleteDepartment = async (id) => {
-  return Promise.resolve({
-    success: true,
-    message: "Department deleted successfully",
+  const res = await fetch(`${API_BASE}/${id}`, {
+    method: "DELETE",
+    headers: getAuthHeaders(),
   });
+
+  return handleResponse(res);
 };

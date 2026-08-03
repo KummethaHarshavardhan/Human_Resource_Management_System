@@ -1,4 +1,11 @@
-import { BrowserRouter, Navigate, Outlet, Route, Routes, useLocation } from "react-router-dom";
+import {
+  BrowserRouter,
+  Navigate,
+  Outlet,
+  Route,
+  Routes,
+  useLocation,
+} from "react-router-dom";
 import { useAuth } from "./context/AuthContext.jsx";
 import Navbar from "./components/Navbar/Navbar.jsx";
 import Sidebar from "./components/Sidebar/Sidebar.jsx";
@@ -24,6 +31,14 @@ import EditEmployee from "./pages/employee/EditEmployee.jsx";
 import EmployeeDetails from "./pages/employee/EmployeeDetails.jsx";
 import EmployeeProfile from "./pages/employee/EmployeeProfile.jsx";
 
+import DepartmentList from "./pages/Employee/departments/DepartmentList.jsx";
+import AddDepartment from "./pages/Employee/departments/AddDepartment.jsx";
+import EditDepartment from "./pages/Employee/departments/EditDepartment.jsx";
+
+import RoleList from "./pages/Employee/roles/RoleList.jsx";
+import AddRole from "./pages/Employee/roles/AddRole.jsx";
+import EditRole from "./pages/Employee/roles/EditRole.jsx";
+
 function ProtectedLayout() {
   const { isAuthenticated } = useAuth();
 
@@ -48,7 +63,13 @@ function AppRoutes() {
   const { isAuthenticated } = useAuth();
   const location = useLocation();
 
-  const publicPaths = ["/login", "/register", "/forgot-password", "/verify-otp", "/reset-password"];
+  const publicPaths = [
+    "/login",
+    "/register",
+    "/forgot-password",
+    "/verify-otp",
+    "/reset-password",
+  ];
 
   if (!isAuthenticated && publicPaths.includes(location.pathname)) {
     return (
@@ -65,13 +86,29 @@ function AppRoutes() {
 
   return (
     <Routes>
-      <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />} />
-      <Route path="/register" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Register />} />
+      <Route
+        path="/login"
+        element={
+          isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />
+        }
+      />
+      <Route
+        path="/register"
+        element={
+          isAuthenticated ? <Navigate to="/dashboard" replace /> : <Register />
+        }
+      />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/verify-otp" element={<VerifyOTP />} />
       <Route path="/reset-password" element={<ResetPassword />} />
 
-      <Route element={<ProtectedRoute><ProtectedLayout /></ProtectedRoute>}>
+      <Route
+        element={
+          <ProtectedRoute>
+            <ProtectedLayout />
+          </ProtectedRoute>
+        }
+      >
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/profile" element={<Profile />} />
@@ -82,6 +119,19 @@ function AppRoutes() {
         <Route path="/employee/:id" element={<EmployeeDetails />} />
         <Route path="/employee/:id/edit" element={<EditEmployee />} />
 
+        <Route path="/employee/departments" element={<DepartmentList />} />
+
+        <Route path="/employee/departments/add" element={<AddDepartment />} />
+
+        <Route
+          path="/employee/departments/edit/:id"
+          element={<EditDepartment />}
+        />
+
+        <Route path="/employee/roles" element={<RoleList />} />
+        <Route path="/employee/roles/add" element={<AddRole />} />
+        <Route path="/employee/roles/edit/:id" element={<EditRole />} />
+
         <Route path="/attendance" element={<Attendance />} />
         <Route path="/leave" element={<Leave />} />
         <Route path="/payroll" element={<Payroll />} />
@@ -90,7 +140,12 @@ function AppRoutes() {
         <Route path="/change-password" element={<ChangePassword />} />
       </Route>
 
-      <Route path="*" element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />} />
+      <Route
+        path="*"
+        element={
+          <Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />
+        }
+      />
     </Routes>
   );
 }

@@ -1,114 +1,100 @@
 import { useEffect, useState } from "react";
-import { getDepartments } from "../../../services/departmentService";
+import { useNavigate } from "react-router-dom";
 
-const DepartmentList = () => {
+import DepartmentTable from "../../../components/department/DepartmentTable";
+
+import {
+  getDepartments,
+  deleteDepartment,
+} from "../../../services/departmentService";
+
+import "../department-role.css";
+
+export default function DepartmentList() {
+  const navigate = useNavigate();
+
   const [departments, setDepartments] = useState([]);
-  const [filteredDepartments, setFilteredDepartments] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    loadDepartments();
-  }, []);
+  const [message, setMessage] = useState("");
 
   const loadDepartments = async () => {
     try {
-      const data = await getDepartments();
-      setDepartments(data);
-      setFilteredDepartments(data);
-    } catch (error) {
-      console.error("Failed to load departments:", error);
+      setLoading(true);
+
+      const res = await getDepartments();
+
+      setDepartments(res.data || res);
+    } catch (err) {
+      setMessage(err.message || "Failed to load departments");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSearch = (e) => {
-    const value = e.target.value;
-    setSearchTerm(value);
+  useEffect(() => {
+    loadDepartments();
+  }, []);
 
-    const filtered = departments.filter((department) =>
-      department.departmentName.toLowerCase().includes(value.toLowerCase()) ||
-      department.departmentCode.toLowerCase().includes(value.toLowerCase()) ||
-      department.manager.toLowerCase().includes(value.toLowerCase())
+  const handleEdit = (department) => {
+    navigate(`/employee/departments/edit/${department._id}`);
+  };
+
+  const handleDelete = async (id) => {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this department?",
     );
 
-    setFilteredDepartments(filtered);
+    if (!confirmDelete) return;
+
+    try {
+      await deleteDepartment(id);
+
+      setMessage("Department deleted successfully.");
+
+      loadDepartments();
+
+      setTimeout(() => {
+        setMessage("");
+      }, 3000);
+    } catch (err) {
+      setMessage(err.message || "Failed to delete department");
+    }
   };
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h2>Department Management</h2>
+    <div className="page">
+      <div className="page-header">
+        <div>
+          <button
+            className="btn-secondary"
+            style={{ marginBottom: "15px" }}
+            onClick={() => navigate("/employee")}
+          >
+            ← Back to Directory
+          </button>
 
-      <div style={{ marginBottom: "20px" }}>
-        <input
-          type="text"
-          placeholder="Search Department..."
-          value={searchTerm}
-          onChange={handleSearch}
-          style={{
-            padding: "10px",
-            width: "300px",
-          }}
-        />
+          <h2>Departments</h2>
+          <p>Manage all company departments.</p>
+        </div>
+
+        <button
+          className="btn-primary"
+          onClick={() => navigate("/employee/departments/add")}
+        >
+          + Add Department
+        </button>
       </div>
 
-      {loading ? (
-        <p>Loading departments...</p>
-      ) : (
-        <table
-          border="1"
-          cellPadding="10"
-          cellSpacing="0"
-          width="100%"
-        >
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Department</th>
-              <th>Code</th>
-              <th>Manager</th>
-              <th>Employees</th>
-              <th>Location</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
+      {message && <div className="success-message">{message}</div>}
 
-          <tbody>
-            {filteredDepartments.length > 0 ? (
-              filteredDepartments.map((department) => (
-                <tr key={department.id}>
-                  <td>{department.id}</td>
-                  <td>{department.departmentName}</td>
-                  <td>{department.departmentCode}</td>
-                  <td>{department.manager}</td>
-                  <td>{department.employeeCount}</td>
-                  <td>{department.location}</td>
-                  <td>{department.status}</td>
-                  <td>
-                    <button>View</button>{" "}
-                    <button>Edit</button>{" "}
-                    <button>Delete</button>
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="8" align="center">
-                  No Departments Found
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      )}
-
-      <div style={{ marginTop: "20px" }}>
-        <strong>Total Departments:</strong> {filteredDepartments.length}
+      <div className="table-card">
+        <DepartmentTable
+          departments={departments}
+          loading={loading}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+        />
       </div>
     </div>
   );
-};
-
-export default DepartmentList;
+}

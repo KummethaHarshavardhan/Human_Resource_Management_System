@@ -50,7 +50,7 @@ export const updateRoleService = async (id, roleData) => {
         id,
         roleData,
         {
-            new: true,
+            returnDocument:"after",
             runValidators: true,
         }
     );

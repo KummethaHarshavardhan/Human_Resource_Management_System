@@ -36,18 +36,49 @@ export default function AddEmployee() {
   const [success, setSuccess] = useState("");
 
   useEffect(() => {
-    Promise.all([
-      getAllDepartments(),
-      getAllEmployees({ page: 1, limit: 100 }),
-      fetchUsers(),
-    ])
-      .then(([deptData, empData, userData]) => {
-        setDepartments(deptData?.departments || []);
-        setEmployees(empData?.employees || []);
-        setUsers(Array.isArray(userData) ? userData : []);
-      })
-      .catch(() => {});
-  }, []);
+  const loadData = async () => {
+    try {
+      const [deptData, empData, userData] = await Promise.all([
+        getAllDepartments(),
+        getAllEmployees({ page: 1, limit: 100 }),
+        fetchUsers(),
+      ]);
+
+      console.log("Departments API Response:", deptData);
+      console.log("Employees API Response:", empData);
+      console.log("Users API Response:", userData);
+
+      // Handle different response formats
+      const departmentList = Array.isArray(deptData)
+        ? deptData
+        : deptData?.departments ||
+          deptData?.data ||
+          deptData?.results ||
+          [];
+
+      const employeeList = Array.isArray(empData?.employees)
+        ? empData.employees
+        : Array.isArray(empData)
+        ? empData
+        : [];
+
+      const userList = Array.isArray(userData)
+        ? userData
+        : userData?.users || [];
+
+      setDepartments(departmentList);
+      setEmployees(employeeList);
+      setUsers(userList);
+    } catch (err) {
+      console.error("Error loading Add Employee data:", err);
+      setDepartments([]);
+      setEmployees([]);
+      setUsers([]);
+    }
+  };
+
+  loadData();
+}, []);
 
   const handleSubmit = async (formData) => {
     setLoading(true);

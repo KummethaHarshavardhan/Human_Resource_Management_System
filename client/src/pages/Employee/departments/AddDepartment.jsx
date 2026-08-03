@@ -1,162 +1,63 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+
+import DepartmentForm from "../../../components/department/DepartmentForm";
 import { addDepartment } from "../../../services/departmentService";
 
-const AddDepartment = () => {
-  const [department, setDepartment] = useState({
-    departmentName: "",
-    departmentCode: "",
-    manager: "",
-    employeeCount: "",
-    location: "",
-    status: "Active",
-  });
+import "../department-role.css";
 
-  const handleChange = (e) => {
-    setDepartment({
-      ...department,
-      [e.target.name]: e.target.value,
-    });
-  };
+export default function AddDepartment() {
+  const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const [loading, setLoading] = useState(false);
 
-    if (
-      !department.departmentName ||
-      !department.departmentCode ||
-      !department.manager ||
-      !department.location
-    ) {
-      alert("Please fill all required fields.");
-      return;
-    }
-
+  const handleSubmit = async (formData) => {
     try {
-      const response = await addDepartment(department);
-      alert(response.message);
+      setLoading(true);
 
-      setDepartment({
-        departmentName: "",
-        departmentCode: "",
-        manager: "",
-        employeeCount: "",
-        location: "",
-        status: "Active",
-      });
-    } catch (error) {
-      console.error(error);
-      alert("Failed to add department.");
+      await addDepartment(formData);
+
+      alert("Department added successfully.");
+
+      // After saving, return to Departments list
+      navigate("/employee/departments");
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setLoading(false);
     }
-  };
-
-  const handleReset = () => {
-    setDepartment({
-      departmentName: "",
-      departmentCode: "",
-      manager: "",
-      employeeCount: "",
-      location: "",
-      status: "Active",
-    });
   };
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h2>Add Department</h2>
-
-      <form onSubmit={handleSubmit}>
+    <div className="page">
+      <div className="page-header">
         <div>
-          <label>Department Name</label>
-          <br />
-          <input
-            type="text"
-            name="departmentName"
-            value={department.departmentName}
-            onChange={handleChange}
-          />
-        </div>
-
-        <br />
-
-        <div>
-          <label>Department Code</label>
-          <br />
-          <input
-            type="text"
-            name="departmentCode"
-            value={department.departmentCode}
-            onChange={handleChange}
-          />
-        </div>
-
-        <br />
-
-        <div>
-          <label>Manager</label>
-          <br />
-          <input
-            type="text"
-            name="manager"
-            value={department.manager}
-            onChange={handleChange}
-          />
-        </div>
-
-        <br />
-
-        <div>
-          <label>Employee Count</label>
-          <br />
-          <input
-            type="number"
-            name="employeeCount"
-            value={department.employeeCount}
-            onChange={handleChange}
-          />
-        </div>
-
-        <br />
-
-        <div>
-          <label>Location</label>
-          <br />
-          <input
-            type="text"
-            name="location"
-            value={department.location}
-            onChange={handleChange}
-          />
-        </div>
-
-        <br />
-
-        <div>
-          <label>Status</label>
-          <br />
-          <select
-            name="status"
-            value={department.status}
-            onChange={handleChange}
+          {/* Back Button */}
+          <button
+            className="btn-secondary"
+            style={{ marginBottom: "15px" }}
+            onClick={() => navigate("/employee/departments")}
           >
-            <option value="Active">Active</option>
-            <option value="Inactive">Inactive</option>
-          </select>
+            ← Back to Departments
+          </button>
+
+          <h2>Add Department</h2>
+          <p>Create a new department for your organization.</p>
         </div>
+      </div>
 
-        <br />
-
-        <button type="submit">Save Department</button>
-
-        <button
-          type="button"
-          onClick={handleReset}
-          style={{ marginLeft: "10px" }}
-        >
-          Reset
-        </button>
-      </form>
+      <DepartmentForm
+        initialData={{
+          departmentId: "",
+          departmentName: "",
+          description: "",
+          location: "",
+          status: "Active",
+        }}
+        loading={loading}
+        onSubmit={handleSubmit}
+        onCancel={() => navigate("/employee/departments")}
+      />
     </div>
   );
-};
-
-export default AddDepartment;
+}
