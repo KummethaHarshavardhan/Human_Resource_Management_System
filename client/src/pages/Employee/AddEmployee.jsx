@@ -38,15 +38,15 @@ export default function AddEmployee() {
   useEffect(() => {
     Promise.all([
       getAllDepartments(),
-      getAllEmployees({ page: 1, limit: 100 }),
+      getAllEmployees({ page: 1, limit: 200 }),
       fetchUsers(),
     ])
       .then(([deptData, empData, userData]) => {
-        setDepartments(deptData?.departments || []);
-        setEmployees(empData?.employees || []);
-        setUsers(Array.isArray(userData) ? userData : []);
+        setDepartments(deptData?.departments || deptData?.data || (Array.isArray(deptData) ? deptData : []));
+        setEmployees(empData?.employees || empData?.data || (Array.isArray(empData) ? empData : []));
+        setUsers(Array.isArray(userData) ? userData : userData?.users || []);
       })
-      .catch(() => {});
+      .catch((err) => setError(err.message || "Failed to load form data"));
   }, []);
 
   const handleSubmit = async (formData) => {

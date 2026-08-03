@@ -12,19 +12,6 @@ import "../../components/employee/emp.shared.css";
 import "../../components/employee/EmployeeForm.css";
 import { FiArrowLeft, FiEye } from "react-icons/fi";
 
-async function fetchUsers() {
-  const token = localStorage.getItem("token");
-  const res = await fetch("/api/users", {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-  });
-  if (!res.ok) return [];
-  const data = await res.json();
-  return data?.users || data || [];
-}
-
 export default function EditEmployee() {
   const { id } = useParams();
   const { user } = useAuth();
@@ -33,7 +20,6 @@ export default function EditEmployee() {
   const [employee, setEmployee] = useState(null);
   const [departments, setDepartments] = useState([]);
   const [employees, setEmployees] = useState([]);
-  const [users, setUsers] = useState([]);
   const [pageLoading, setPageLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -44,16 +30,14 @@ export default function EditEmployee() {
       getEmployeeById(id),
       getAllDepartments(),
       getAllEmployees({ page: 1, limit: 100 }),
-      fetchUsers(),
     ])
-      .then(([empData, deptData, allEmpData, userData]) => {
+      .then(([empData, deptData, allEmpData]) => {
         setEmployee(empData?.employee || null);
         setDepartments(deptData?.departments || deptData?.data || (Array.isArray(deptData) ? deptData : []));
         const others = (allEmpData?.employees || allEmpData?.data || []).filter(
           (e) => (e._id || e.id) !== id
         );
         setEmployees(others);
-        setUsers(Array.isArray(userData) ? userData : userData?.users || []);
       })
       .catch((err) => setError(err.message || "Failed to load data"))
       .finally(() => setPageLoading(false));
@@ -124,6 +108,10 @@ export default function EditEmployee() {
     employee?.name ||
     "Employee";
 
+  const linkedUserName = typeof employee?.user_id === "object"
+    ? `${employee.user_id.name} (${employee.user_id.email})`
+    : empName;
+
   return (
     <div className="emp-page">
       <div className="emp-page-header">
@@ -159,8 +147,9 @@ export default function EditEmployee() {
           initialData={initialData}
           departments={departments}
           employees={employees}
-          users={users}
           loading={saving}
+          isEditMode={true}
+          linkedUserName={linkedUserName}
           onSubmit={handleSubmit}
           onCancel={() => navigate(`/employee/${id}`)}
         />
