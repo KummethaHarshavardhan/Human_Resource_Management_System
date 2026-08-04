@@ -1,6 +1,8 @@
 import React from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+
 import AttendanceDashboard from "./pages/Attendance/AttendanceDashboard";
+
 import LeaveDashboard from "./pages/Leave/LeaveDashboard";
 import ApplyLeave from "./pages/Leave/ApplyLeave";
 import LeaveHistory from "./pages/Leave/LeaveHistory";
@@ -13,10 +15,19 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Default Route */}
+        <Route
+          path="/"
+          element={<Navigate to="/leave-dashboard" replace />}
+        />
+
+        {/* Attendance */}
         <Route
           path="/attendance-dashboard"
           element={<AttendanceDashboard />}
         />
+
+        {/* Leave */}
         <Route
           path="/leave-dashboard"
           element={<LeaveDashboard />}
