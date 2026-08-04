@@ -1,96 +1,40 @@
-import React, { useEffect, useState } from "react";
-import { getLeaveHistory } from "../../services/leaveService";
+import React from "react";
 
-
-const LeaveCalendar = () => {
-
-  const [leaves, setLeaves] = useState([]);
-
-
-
-  useEffect(() => {
-
-    fetchLeaves();
-
-  }, []);
-
-
-
-  const fetchLeaves = async () => {
-
-    try {
-
-      const data = await getLeaveHistory();
-
-      setLeaves(data);
-
-    } catch (error) {
-
-      console.error(
-        "Leave Calendar Error:",
-        error
-      );
-
-    }
-
-  };
-
-
-
+const LeaveCalendar = ({ leaves }) => {
   return (
-
     <div className="leave-calendar">
+      <h2>Leave Calendar</h2>
 
-      <h1>
-        Leave Calendar
-      </h1>
+      {leaves.length === 0 ? (
+        <p>No leave records found</p>
+      ) : (
+        leaves.map((leave) => (
+          <div
+            key={leave._id}
+            className="calendar-card"
+          >
+            <p>
+              <strong>Leave Type:</strong> {leave.leaveType}
+            </p>
 
+            <p>
+              <strong>Start:</strong>{" "}
+              {new Date(leave.startDate).toLocaleDateString()}
+            </p>
 
+            <p>
+              <strong>End:</strong>{" "}
+              {new Date(leave.endDate).toLocaleDateString()}
+            </p>
 
-      {
-        leaves.length === 0 ? (
-
-          <p>
-            No leave records found
-          </p>
-
-        ) : (
-
-          leaves.map((leave) => (
-
-            <div
-              className="calendar-card"
-              key={leave._id}
-            >
-
-              <p>
-                Leave Type: {leave.leaveType}
-              </p>
-
-
-              <p>
-                Date: {leave.startDate} - {leave.endDate}
-              </p>
-
-
-              <p>
-                Status: {leave.status}
-              </p>
-
-
-            </div>
-
-          ))
-
-        )
-      }
-
-
+            <p>
+              <strong>Status:</strong> {leave.status}
+            </p>
+          </div>
+        ))
+      )}
     </div>
-
   );
-
 };
-
 
 export default LeaveCalendar;

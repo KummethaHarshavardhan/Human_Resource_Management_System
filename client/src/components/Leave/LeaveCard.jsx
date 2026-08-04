@@ -1,73 +1,78 @@
-import React from "react";
 import { cancelLeave } from "../../services/leaveService";
 
+export default function LeaveCard({
+  leave,
+  refreshLeaves,
+}) {
 
-const LeaveCard = ({ leave, refreshLeaves }) => {
+  const formatDate = (date) => {
+    if (!date) return "--";
 
-
-  const handleCancel = async () => {
-
-    try {
-
-      await cancelLeave(leave._id);
-
-      alert("Leave Cancelled");
-
-      refreshLeaves();
-
-    } catch(error){
-
-      alert("Unable to cancel leave");
-
-    }
-
+    return new Date(date).toLocaleDateString();
   };
 
+  const handleCancel = async () => {
+    try {
+      await cancelLeave(leave._id);
+
+      alert("Leave cancelled successfully.");
+
+      if (refreshLeaves) {
+        refreshLeaves();
+      }
+
+    } catch (error) {
+
+      console.error(error);
+
+      alert(
+        error.response?.data?.message ||
+        error.message ||
+        "Unable to cancel leave."
+      );
+    }
+  };
 
   return (
 
     <div className="leave-card">
 
-      <h3>
-        {leave.leaveType}
-      </h3>
-
+      <h3>{leave.leaveType}</h3>
 
       <p>
-        Start Date: {leave.startDate}
+        <strong>Start Date:</strong>{" "}
+        {formatDate(leave.startDate)}
       </p>
-
 
       <p>
-        End Date: {leave.endDate}
+        <strong>End Date:</strong>{" "}
+        {formatDate(leave.endDate)}
       </p>
-
 
       <p>
-        Reason: {leave.reason}
+        <strong>Reason:</strong>{" "}
+        {leave.reason}
       </p>
-
 
       <p>
-        Status: {leave.status}
+        <strong>Status:</strong>{" "}
+        <span
+          className={`status ${leave.status?.toLowerCase()}`}
+        >
+          {leave.status}
+        </span>
       </p>
 
-
-
-      {
-        leave.status === "Pending" &&
-
-        <button onClick={handleCancel}>
+      {leave.status === "Pending" && (
+        <button
+          type="button"
+          onClick={handleCancel}
+        >
           Cancel Leave
         </button>
-      }
-
+      )}
 
     </div>
 
   );
-
-};
-
-
-export default LeaveCard;
+}
