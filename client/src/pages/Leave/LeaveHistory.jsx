@@ -1,5 +1,5 @@
 import React from "react";
-import LeaveCard from "./LeaveCard";
+import LeaveCard from "../../components/Leave/LeaveCard";
 
 
 const LeaveHistory = ({ leaves, refreshLeaves }) => {

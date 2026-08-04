@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 
-import ApplyLeaveForm from "../components/leave/ApplyLeaveForm";
-import LeaveHistory from "../components/leave/LeaveHistory";
+import ApplyLeaveForm from "./ApplyLeave";
+import LeaveHistory from "./LeaveHistory";
 
-import { getLeaveHistory } from "../services/leaveService";
+import { getLeaveHistory } from "../../services/leaveService";
 
 
 const LeaveDashboard = () => {
