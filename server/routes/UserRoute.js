@@ -1,21 +1,34 @@
 import express from 'express';
-import { EmpLogin, EmpOtp, EmpRegister, resetPassword, verifyOtp, getProfile } from '../controllers/UserController.js';
-import { verifyToken, authorizeRoles } from '../middlewares/authMiddleware.js';
+import { EmpLogin, googleLogin, EmpOtp, EmpRegister, resetPassword, verifyOtp, getUserProfile, updateUserProfile, getAllUsers } from '../controllers/UserController.js';
+import { verifyToken, authorizeRoles as authorize } from '../middlewares/authMiddleware.js';
 
 const route = express.Router();
 
+route.post("/newEmp", EmpRegister);
+route.post("/Emplogin", EmpLogin);
 
-route.post('/newEmp', EmpRegister);
-route.post('/Emplogin', EmpLogin);
-route.post('/sendOtp', EmpOtp);
-route.post('/verifyOtp', verifyOtp);
-route.post('/resetpassword', resetPassword);
+route.post("/googleLogin", googleLogin);
+route.post("/sendOtp", EmpOtp);
+route.post("/verifyOtp", verifyOtp);
+route.post("/resetpassword", resetPassword);
 
-route.get('/profile', verifyToken, getProfile);
 
-route.get('/admin-only', verifyToken, authorizeRoles("Admin"), (req, res) => {
-    res.json({ success: true, message: "Welcome Admin" });
+route.get("/profile", verifyToken, getUserProfile);
+route.put("/profile", verifyToken, updateUserProfile);
+
+route.get("/users", verifyToken, authorize("Admin", "HR"), getAllUsers);
+
+
+route.get("/admin-only", verifyToken, authorize("Admin"), (req, res) => {
+    res.status(200).json({ success: true, message: "Welcome Admin!", user: req.user });
+});
+
+route.get("/hr-only", verifyToken, authorize("Admin", "HR"), (req, res) => {
+    res.status(200).json({ success: true, message: "Welcome HR/Admin!", user: req.user });
+});
+
+route.get("/employee-only", verifyToken, authorize("Admin", "HR", "Employee"), (req, res) => {
+    res.status(200).json({ success: true, message: "Welcome Employee!", user: req.user });
 });
 
 export default route;
-
