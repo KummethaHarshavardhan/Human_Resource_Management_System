@@ -3,10 +3,10 @@ import mongoose from "mongoose";
 const attendanceSchema = new mongoose.Schema(
   {
     employeeId: {
-  type: String,
-  required: true,
-  trim: true,
-},
+      type: String,
+      required: true,
+      trim: true,
+    },
 
     date: {
       type: Date,
@@ -31,14 +31,19 @@ const attendanceSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["Present", "Absent", "Half Day", "On Leave"],
+      enum: [
+        "Present",
+        "Late",
+        "Half Day",
+        "Early Checkout"
+      ],
       default: "Present",
     },
 
     location: {
       type: String,
       trim: true,
-      default: "Office",
+      default: "",
     },
 
     remarks: {
@@ -52,8 +57,17 @@ const attendanceSchema = new mongoose.Schema(
   }
 );
 
-attendanceSchema.index({ employeeId: 1, date: 1 }, { unique: true });
 
-const Attendance = mongoose.model("Attendance", attendanceSchema);
+attendanceSchema.index(
+  { employeeId: 1, date: 1 },
+  { unique: true }
+);
+
+
+const Attendance = mongoose.model(
+  "Attendance",
+  attendanceSchema
+);
+
 
 export default Attendance;
