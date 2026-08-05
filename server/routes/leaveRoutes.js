@@ -15,25 +15,25 @@ import {
 const router = express.Router();
 
 // Employee
-router.post("/leave/apply", verifyToken, applyLeave);
-router.get("/leave/history", verifyToken, getLeaveHistory);
+router.post("/apply", verifyToken, applyLeave);
+router.get("/history", verifyToken, getLeaveHistory);
 
 // HR/Admin
 router.put(
-  "/leave/approve/:id",
+  "/approve/:id",
   verifyToken,
   authorizeRoles("Admin", "HR"),
   approveLeave
 );
 
 router.put(
-  "/leave/reject/:id",
+  "/reject/:id",
   verifyToken,
   authorizeRoles("Admin", "HR"),
   rejectLeave
 );
 
 // Employee
-router.delete("/leave/:id", verifyToken, cancelLeave);
+router.delete("/:id", verifyToken, cancelLeave);
 
 export default router;

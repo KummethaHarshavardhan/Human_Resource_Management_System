@@ -30,7 +30,10 @@ export const applyLeave = async (req, res) => {
 // Get Leave History
 export const getLeaveHistory = async (req, res) => {
   try {
-    const leaves = await getLeaveHistoryService(req.user.id);
+    const leaves = await getLeaveHistoryService(
+      req.user.id,
+      req.user.role
+    );
 
     return res.status(200).json({
       success: true,
