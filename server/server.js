@@ -13,6 +13,7 @@ import roleRoutes from "./routes/roleRoutes.js";
 import employeeRoutes from "./routes/employeeRoutes.js";
 import attendanceRoutes from "./routes/attendanceRoutes.js";
 import leaveRoutes from "./routes/leaveRoutes.js";
+import leaveBalanceRoutes from "./routes/leaveBalanceRoutes.js";
 
 const app = express();
 
@@ -33,6 +34,7 @@ app.use("/api/roles", roleRoutes);
 app.use("/api/employees", employeeRoutes);
 app.use("/api/attendance", attendanceRoutes);
 app.use("/api/leave", leaveRoutes);
+app.use("/api/leave-balance", leaveBalanceRoutes);
 
 app.get("/", (req, res) => {
     res.json({
