@@ -1,4 +1,9 @@
 import Leave from "../models/Leave.js";
+import {
+  deductLeaveBalance,
+  restoreLeaveBalance,
+  calculateLeaveDays,
+} from "./leaveBalanceService.js";
 
 // Apply Leave
 export const applyLeaveService = async (leaveData) => {
@@ -22,11 +27,20 @@ export const getLeaveHistoryService = async (userId, role) => {
 
 // Approve Leave
 export const approveLeaveService = async (id) => {
-    return await Leave.findByIdAndUpdate(
-        id,
-        { status: "Approved" },
-        { new: true }
-    );
+    const leave = await Leave.findById(id);
+    if (!leave) {
+      throw new Error("Leave request not found");
+    }
+
+    if (leave.status !== "Approved") {
+      leave.status = "Approved";
+      await leave.save();
+
+      const days = calculateLeaveDays(leave.startDate, leave.endDate);
+      await deductLeaveBalance(leave.employee, leave.leaveType, days);
+    }
+
+    return leave;
 };
 
 // Reject Leave
@@ -40,5 +54,13 @@ export const rejectLeaveService = async (id) => {
 
 // Cancel Leave
 export const cancelLeaveService = async (id) => {
-    return await Leave.findByIdAndDelete(id);
+    const leave = await Leave.findById(id);
+    if (leave) {
+      if (leave.status === "Approved") {
+        const days = calculateLeaveDays(leave.startDate, leave.endDate);
+        await restoreLeaveBalance(leave.employee, leave.leaveType, days);
+      }
+      await Leave.findByIdAndDelete(id);
+    }
+    return true;
 };
