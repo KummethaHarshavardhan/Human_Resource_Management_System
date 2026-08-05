@@ -4,6 +4,7 @@ import ApplyLeave from "./ApplyLeave";
 import LeaveHistory from "./LeaveHistory";
 import LeaveApproval from "./LeaveApproval";
 import LeaveCalendar from "./LeaveCalendar";
+import LeaveBalance from "./LeaveBalance";
 
 import { getLeaveHistory } from "../../services/leaveService";
 
@@ -30,6 +31,8 @@ export default function LeaveDashboard() {
   return (
     <div className="leave-dashboard">
       <h1>Leave Management</h1>
+
+      <LeaveBalance />
 
       <ApplyLeave refreshLeaves={fetchLeaves} />
 
