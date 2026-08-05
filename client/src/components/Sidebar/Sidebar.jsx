@@ -7,7 +7,7 @@ const menuItems = [
   { label: "Dashboard", to: "/dashboard", feature: "dashboard" },
   { label: "Profile", to: "/profile", feature: "profile" },
   { label: "Directory", to: "/employee", feature: "employee" },
-  { label: "Attendance", to: "/attendance", feature: "attendance" },
+  { label: "Attendance", to: "/attendance-dashboard", feature: "attendance" },
   { label: "Leave Management", to: "/leave", feature: "leave" },
   { label: "Payroll", to: "/payroll", feature: "payroll" },
   { label: "Reports", to: "/reports", feature: "reports" },
