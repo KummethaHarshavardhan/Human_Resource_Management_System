@@ -7,9 +7,17 @@ export const applyLeaveService = async (leaveData) => {
 };
 
 // Get Leave History
-export const getLeaveHistoryService = async (employeeId) => {
-    const leaves = await Leave.find({ employee: employeeId });
-    return leaves;
+export const getLeaveHistoryService = async (userId, role) => {
+
+  if (role === "Admin" || role === "HR") {
+    return await Leave.find()
+      .populate("employee", "name email role")
+      .sort({ createdAt: -1 });
+  }
+
+  return await Leave.find({ employee: userId })
+    .populate("employee", "name email role")
+    .sort({ createdAt: -1 });
 };
 
 // Approve Leave

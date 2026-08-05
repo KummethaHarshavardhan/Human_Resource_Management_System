@@ -1,8 +1,7 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { applyLeave } from "../../services/leaveService";
 
-const ApplyLeaveForm = ({ refreshLeaves }) => {
-
+export default function ApplyLeave({ refreshLeaves }) {
   const [formData, setFormData] = useState({
     leaveType: "",
     startDate: "",
@@ -10,24 +9,24 @@ const ApplyLeaveForm = ({ refreshLeaves }) => {
     reason: "",
   });
 
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
+    setFormData((prev) => ({
+      ...prev,
       [e.target.name]: e.target.value,
-    });
+    }));
   };
-
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
+      setLoading(true);
 
       await applyLeave(formData);
 
-      alert("Leave Applied Successfully");
-
+      alert("Leave applied successfully.");
 
       setFormData({
         leaveType: "",
@@ -36,113 +35,87 @@ const ApplyLeaveForm = ({ refreshLeaves }) => {
         reason: "",
       });
 
-
       if (refreshLeaves) {
         refreshLeaves();
       }
-
-
     } catch (error) {
-
-      console.error(
-        "Apply Leave Error:",
-        error
-      );
-
+      console.error(error);
 
       alert(
         error.response?.data?.message ||
-        "Failed to apply leave"
+        error.message ||
+        "Failed to apply leave."
       );
-
+    } finally {
+      setLoading(false);
     }
   };
 
-
   return (
-
     <div className="leave-form">
 
-      <h2>
-        Apply Leave
-      </h2>
-
+      <h2>Apply Leave</h2>
 
       <form onSubmit={handleSubmit}>
 
+        <div className="form-group">
+          <label>Leave Type</label>
 
-        <select
-          name="leaveType"
-          value={formData.leaveType}
-          onChange={handleChange}
-          required
-        >
+          <select
+            name="leaveType"
+            value={formData.leaveType}
+            onChange={handleChange}
+            required
+          >
+            <option value="">Select Leave Type</option>
+            <option value="Sick">Sick Leave</option>
+            <option value="Casual">Casual Leave</option>
+            <option value="Emergency">Emergency Leave</option>
+          </select>
+        </div>
 
-          <option value="">
-            Select Leave Type
-          </option>
+        <div className="form-group">
+          <label>Start Date</label>
 
+          <input
+            type="date"
+            name="startDate"
+            value={formData.startDate}
+            onChange={handleChange}
+            required
+          />
+        </div>
 
-          <option value="Sick">
-            Sick Leave
-          </option>
+        <div className="form-group">
+          <label>End Date</label>
 
+          <input
+            type="date"
+            name="endDate"
+            value={formData.endDate}
+            onChange={handleChange}
+            required
+          />
+        </div>
 
-          <option value="Casual">
-            Casual Leave
-          </option>
+        <div className="form-group">
+          <label>Reason</label>
 
+          <textarea
+            name="reason"
+            placeholder="Enter reason"
+            rows={4}
+            value={formData.reason}
+            onChange={handleChange}
+            required
+          />
+        </div>
 
-          <option value="Emergency">
-            Emergency Leave
-          </option>
-
-
-        </select>
-
-
-
-        <input
-          type="date"
-          name="startDate"
-          value={formData.startDate}
-          onChange={handleChange}
-          required
-        />
-
-
-
-        <input
-          type="date"
-          name="endDate"
-          value={formData.endDate}
-          onChange={handleChange}
-          required
-        />
-
-
-
-        <textarea
-          name="reason"
-          placeholder="Enter reason"
-          value={formData.reason}
-          onChange={handleChange}
-          required
-        />
-
-
-        <button type="submit">
-          Apply Leave
+        <button type="submit" disabled={loading}>
+          {loading ? "Applying..." : "Apply Leave"}
         </button>
 
-
       </form>
-
-
     </div>
-
   );
-};
-
-
-export default ApplyLeaveForm;
+}

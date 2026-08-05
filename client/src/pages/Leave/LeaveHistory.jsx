@@ -1,47 +1,26 @@
-import React from "react";
-import LeaveCard from "./LeaveCard";
+import LeaveCard from "../../components/Leave/LeaveCard";
 
-
-const LeaveHistory = ({ leaves, refreshLeaves }) => {
-
+export default function LeaveHistory({
+  leaves = [],
+  refreshLeaves,
+}) {
+  const leaveList = Array.isArray(leaves) ? leaves : [];
 
   return (
+    <div>
+      <h2>Leave History</h2>
 
-    <div className="leave-history">
-
-      <h2>
-        Leave History
-      </h2>
-
-
-      {
-        leaves.length === 0 ? (
-
-          <p>
-            No leave records found
-          </p>
-
-        ) : (
-
-          leaves.map((leave) => (
-
-            <LeaveCard
-              key={leave._id}
-              leave={leave}
-              refreshLeaves={refreshLeaves}
-            />
-
-          ))
-
-        )
-      }
-
-
+      {leaveList.length === 0 ? (
+        <p>No leave records found.</p>
+      ) : (
+        leaveList.map((leave) => (
+          <LeaveCard
+            key={leave._id}
+            leave={leave}
+            refreshLeaves={refreshLeaves}
+          />
+        ))
+      )}
     </div>
-
   );
-
-};
-
-
-export default LeaveHistory;
+}

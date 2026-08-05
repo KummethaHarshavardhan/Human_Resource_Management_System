@@ -22,8 +22,8 @@ import ChangePassword from "./pages/ChangePassword/ChangePassword";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import Profile from "./pages/Profile/Profile";
 
-import Attendance from "./pages/Attendance/Attendance";
-import Leave from "./pages/Leave/Leave";
+// import Attendance from "./pages/Attendance/Attendance";
+// import Leave from "./pages/Leave/Leave";
 import Payroll from "./pages/Payroll/Payroll";
 import Reports from "./pages/Reports/Reports";
 import Settings from "./pages/Settings/Settings";
@@ -41,6 +41,9 @@ import EditDepartment from "./pages/Employee/departments/EditDepartment";
 import RoleList from "./pages/Employee/roles/RoleList";
 import AddRole from "./pages/Employee/roles/AddRole";
 import EditRole from "./pages/Employee/roles/EditRole";
+
+
+import LeaveDashboard from "./pages/Leave/LeaveDashboard";
 
 function ProtectedLayout() {
   const { isAuthenticated } = useAuth();
@@ -143,10 +146,7 @@ function AppRoutes() {
         />
 
         <Route path="/employee/departments" element={<DepartmentList />} />
-        <Route
-          path="/employee/departments/add"
-          element={<AddDepartment />}
-        />
+        <Route path="/employee/departments/add" element={<AddDepartment />} />
         <Route
           path="/employee/departments/edit/:id"
           element={<EditDepartment />}
@@ -156,8 +156,17 @@ function AppRoutes() {
         <Route path="/employee/roles/add" element={<AddRole />} />
         <Route path="/employee/roles/edit/:id" element={<EditRole />} />
 
-        <Route path="/attendance" element={<Attendance />} />
-        <Route path="/leave" element={<Leave />} />
+        
+
+        <Route
+          path="/leave"
+          element={
+            <ProtectedRoute allowedRoles={["Employee", "HR", "Admin"]}>
+              <LeaveDashboard />
+            </ProtectedRoute>
+          }
+        />
+
         <Route path="/payroll" element={<Payroll />} />
         <Route path="/reports" element={<Reports />} />
         <Route path="/settings" element={<Settings />} />
