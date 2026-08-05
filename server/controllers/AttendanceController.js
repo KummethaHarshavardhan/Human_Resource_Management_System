@@ -8,9 +8,15 @@ import {
 } from "../services/attendanceService.js";
 
 
+// CHECK IN
 export const checkIn = async (req, res) => {
   try {
-    const employeeId = req.user.id;
+    const employeeId = req.user?._id || req.user?.id;
+
+    if (!employeeId) {
+      throw new Error("User authentication failed.");
+    }
+
     const { location, remarks } = req.body;
 
     const attendance = await checkInService({
@@ -24,6 +30,7 @@ export const checkIn = async (req, res) => {
       message: "Check In successful.",
       data: attendance,
     });
+
   } catch (error) {
     res.status(400).json({
       success: false,
@@ -32,9 +39,16 @@ export const checkIn = async (req, res) => {
   }
 };
 
+
+
+// CHECK OUT
 export const checkOut = async (req, res) => {
   try {
-    const employeeId = req.user.id;
+    const employeeId = req.user?._id || req.user?.id;
+
+    if (!employeeId) {
+      throw new Error("User authentication failed.");
+    }
 
     const attendance = await checkOutService(employeeId);
 
@@ -43,6 +57,7 @@ export const checkOut = async (req, res) => {
       message: "Check Out successful.",
       data: attendance,
     });
+
   } catch (error) {
     res.status(400).json({
       success: false,
@@ -52,9 +67,15 @@ export const checkOut = async (req, res) => {
 };
 
 
+
+// GET TODAY ATTENDANCE
 export const getTodayAttendance = async (req, res) => {
   try {
-    const employeeId = req.user.id;
+    const employeeId = req.user?._id || req.user?.id;
+
+    if (!employeeId) {
+      throw new Error("User authentication failed.");
+    }
 
     const attendance = await getTodayAttendanceService(employeeId);
 
@@ -62,6 +83,7 @@ export const getTodayAttendance = async (req, res) => {
       success: true,
       data: attendance,
     });
+
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -70,9 +92,16 @@ export const getTodayAttendance = async (req, res) => {
   }
 };
 
+
+
+// GET ATTENDANCE HISTORY
 export const getAttendanceHistory = async (req, res) => {
   try {
-    const employeeId = req.user.id;
+    const employeeId = req.user?._id || req.user?.id;
+
+    if (!employeeId) {
+      throw new Error("User authentication failed.");
+    }
 
     const history = await getAttendanceHistoryService(employeeId);
 
@@ -81,6 +110,7 @@ export const getAttendanceHistory = async (req, res) => {
       count: history.length,
       data: history,
     });
+
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -90,9 +120,16 @@ export const getAttendanceHistory = async (req, res) => {
 };
 
 
+
+// GET MONTHLY ATTENDANCE
 export const getMonthlyAttendance = async (req, res) => {
   try {
-    const employeeId = req.user.id;
+    const employeeId = req.user?._id || req.user?.id;
+
+    if (!employeeId) {
+      throw new Error("User authentication failed.");
+    }
+
     const { year, month } = req.params;
 
     const attendance = await getMonthlyAttendanceService(
@@ -106,6 +143,7 @@ export const getMonthlyAttendance = async (req, res) => {
       count: attendance.length,
       data: attendance,
     });
+
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -114,9 +152,17 @@ export const getMonthlyAttendance = async (req, res) => {
   }
 };
 
+
+
+// GET ATTENDANCE CALENDAR
 export const getAttendanceCalendar = async (req, res) => {
   try {
-    const employeeId = req.user.id;
+    const employeeId = req.user?._id || req.user?.id;
+
+    if (!employeeId) {
+      throw new Error("User authentication failed.");
+    }
+
     const { year, month } = req.params;
 
     const data = await getAttendanceCalendarService(
@@ -132,6 +178,7 @@ export const getAttendanceCalendar = async (req, res) => {
       month,
       calendar: data,
     });
+
   } catch (error) {
     res.status(500).json({
       success: false,

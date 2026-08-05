@@ -22,8 +22,8 @@ import ChangePassword from "./pages/ChangePassword/ChangePassword";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import Profile from "./pages/Profile/Profile";
 
-// import Attendance from "./pages/Attendance/Attendance";
-// import Leave from "./pages/Leave/Leave";
+import AttendanceDashboard from "./pages/Attendance/AttendanceDashboard";
+
 import Payroll from "./pages/Payroll/Payroll";
 import Reports from "./pages/Reports/Reports";
 import Settings from "./pages/Settings/Settings";
@@ -156,6 +156,15 @@ function AppRoutes() {
         <Route path="/employee/roles/add" element={<AddRole />} />
         <Route path="/employee/roles/edit/:id" element={<EditRole />} />
 
+
+      <Route
+          path="/attendance-dashboard"
+          element={
+            <ProtectedRoute allowedRoles={["Employee", "HR", "Admin"]}>
+              <AttendanceDashboard />
+            </ProtectedRoute>
+          }
+        />
         
 
         <Route
