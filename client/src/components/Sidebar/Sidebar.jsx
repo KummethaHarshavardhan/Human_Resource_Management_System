@@ -4,14 +4,14 @@ import { canAccessFeature } from "../../utils/permission.js";
 import "./Sidebar.css";
 
 const menuItems = [
-  { label: "Dashboard", to: "/dashboard", feature: "dashboard" },
-  { label: "Profile", to: "/profile", feature: "profile" },
-  { label: "Directory", to: "/employee", feature: "employee" },
-  { label: "Attendance", to: "/attendance-dashboard", feature: "attendance" },
-  { label: "Leave Management", to: "/leave", feature: "leave" },
-  { label: "Payroll", to: "/payroll", feature: "payroll" },
-  { label: "Reports", to: "/reports", feature: "reports" },
-  { label: "Settings", to: "/settings", feature: "settings" },
+  { label: "Dashboard", to: "/dashboard", feature: "dashboard", icon: "📊" },
+  { label: "Profile", to: "/profile", feature: "profile", icon: "👤" },
+  { label: "Directory", to: "/employee", feature: "employee", icon: "👥" },
+  { label: "Attendance", to: "/attendance-dashboard", feature: "attendance", icon: "⏰" },
+  { label: "Leave Management", to: "/leave", feature: "leave", icon: "📅" },
+  { label: "Payroll", to: "/payroll", feature: "payroll", icon: "💳" },
+  { label: "Reports", to: "/reports", feature: "reports", icon: "📈" },
+  { label: "Settings", to: "/settings", feature: "settings", icon: "⚙️" },
 ];
 
 export default function Sidebar() {
@@ -24,7 +24,6 @@ export default function Sidebar() {
 
   return (
     <aside className="sidebar">
-
       <div className="sidebar-brand">
         <div>
           <strong>Infinetra</strong>
@@ -32,11 +31,10 @@ export default function Sidebar() {
         </div>
       </div>
 
-
       {user && (
         <div className="sidebar-user-card">
           <div className="sidebar-user-avatar">
-            {user.name?.charAt(0) || ""}
+            {user.name?.charAt(0).toUpperCase() || "U"}
           </div>
 
           <div>
@@ -51,39 +49,26 @@ export default function Sidebar() {
         </div>
       )}
 
-
       <nav className="sidebar-nav">
-
         {visibleItems.length === 0 ? (
-          <div
-            style={{
-              padding: "12px 16px",
-              color: "#6b7280",
-              fontSize: "14px",
-            }}
-          >
+          <div className="sidebar-no-items">
             No menu items available for this role.
           </div>
         ) : (
-
           visibleItems.map((item) => (
-
             <NavLink
               key={item.to}
               to={item.to}
-              className={({isActive}) =>
+              className={({ isActive }) =>
                 `sidebar-link ${isActive ? "active" : ""}`
               }
             >
+              <span className="sidebar-icon">{item.icon}</span>
               <span>{item.label}</span>
             </NavLink>
-
           ))
-
         )}
-
       </nav>
-
     </aside>
   );
 }
