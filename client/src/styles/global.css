@@ -60,19 +60,44 @@ a:hover {
   background-color: var(--bg-app);
 }
 
-.app-main-content {
+.app-main-wrapper {
   flex: 1;
   display: flex;
   flex-direction: column;
   min-width: 0;
+  margin-left: 260px;
+  transition: margin-left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.app-main {
+.sidebar-collapsed .app-main-wrapper {
+  margin-left: 80px;
+}
+
+.app-main-content {
   flex: 1;
-  padding: var(--space-6);
+  padding: 92px var(--space-6) var(--space-6);
   max-width: 1600px;
   width: 100%;
   margin: 0 auto;
+}
+
+/* Semi-transparent Mobile Drawer Overlay */
+.sidebar-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 999;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@media (max-width: 1024px) {
+  .app-main-wrapper {
+    margin-left: 0 !important;
+  }
 }
 
 /* Common Page Structure */
