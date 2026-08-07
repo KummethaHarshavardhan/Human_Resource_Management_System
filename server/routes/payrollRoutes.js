@@ -7,6 +7,7 @@ import {
   getPayrollsByEmployee,
   getPayrollById,
   markPayrollAsPaid,
+  downloadPayrollPDF,
 } from '../controllers/payrollController.js';
 import { validateGeneratePayroll } from '../validations/payrollValidation.js';
 
@@ -18,6 +19,7 @@ const router = express.Router();
 router.post('/generate', validateGeneratePayroll, generatePayroll);
 router.get('/', getAllPayrolls);
 router.get('/employee/:employeeId', getPayrollsByEmployee);
+router.get('/:id/download', downloadPayrollPDF);  // PDF download — must be before /:id
 router.get('/:id', getPayrollById);
 router.patch('/:id/mark-paid', markPayrollAsPaid);
 

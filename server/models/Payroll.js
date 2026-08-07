@@ -33,6 +33,12 @@ const payrollSchema = new mongoose.Schema(
       ref: 'User',
     },
     paymentDate: { type: Date, default: null },
+    employeeSnapshot: {
+      employeeCode: { type: String, default: '' },
+      fullName: { type: String, default: '' },
+      department: { type: String, default: '' },
+      designation: { type: String, default: '' },
+    },
   },
   { timestamps: true }
 );
