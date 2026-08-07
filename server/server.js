@@ -15,6 +15,14 @@ import attendanceRoutes from "./routes/attendanceRoutes.js";
 import leaveRoutes from "./routes/leaveRoutes.js";
 import leaveBalanceRoutes from "./routes/leaveBalanceRoutes.js";
 
+import payslipRoutes from "./routes/payslipRoutes.js";
+import reportRoutes from "./routes/reportRoutes.js";
+import analyticsRoutes from "./routes/analyticsRoutes.js";
+
+import salaryRoutes from "./routes/salaryRoutes.js";
+import payrollRoutes from "./routes/payrollRoutes.js";
+import { errorHandler, notFoundHandler } from "./middlewares/errorHandler.js";
+
 const app = express();
 
 app.use(cors({
@@ -35,6 +43,16 @@ app.use("/api/employees", employeeRoutes);
 app.use("/api/attendance", attendanceRoutes);
 app.use("/api/leave", leaveRoutes);
 app.use("/api/leave-balance", leaveBalanceRoutes);
+
+app.use("/api/payslips", payslipRoutes);
+app.use("/api/reports", reportRoutes);
+app.use("/api/analytics", analyticsRoutes);
+
+app.use("/api/salaries", salaryRoutes);
+app.use("/api/payrolls", payrollRoutes);
+
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 app.get("/", (req, res) => {
     res.json({
