@@ -24,7 +24,7 @@ import Profile from "./pages/Profile/Profile";
 
 import AttendanceDashboard from "./pages/Attendance/AttendanceDashboard";
 
-import Payroll from "./pages/Payroll/Payroll";
+import PayrollRoutes from "./routes/PayrollRoutes";
 import Reports from "./pages/Reports/Reports";
 import Settings from "./pages/Settings/Settings";
 
@@ -176,7 +176,7 @@ function AppRoutes() {
           }
         />
 
-        <Route path="/payroll" element={<Payroll />} />
+        <Route path="/payroll/*" element={<PayrollRoutes />} />
         <Route path="/reports" element={<Reports />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/change-password" element={<ChangePassword />} />

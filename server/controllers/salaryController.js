@@ -2,6 +2,15 @@
 
 import Salary from '../models/Salary.js';
 
+const populateEmployee = {
+  path: 'employeeId',
+  select: 'employee_code designation user_id department_id',
+  populate: [
+    { path: 'user_id', select: 'name email' },
+    { path: 'department_id', select: 'departmentId departmentName' },
+  ],
+};
+
 export const createSalary = async (req, res) => {
   try {
     const { employeeId, basicSalary, hra, allowances, bonus, deductions, effectiveFrom } = req.body;
@@ -15,16 +24,18 @@ export const createSalary = async (req, res) => {
       deductions,
       effectiveFrom,
       isActive: true,
-      createdBy: req.user?._id || null, // TEMP: no auth wired yet, Team 1's authMiddleware pending
+      createdBy: req.user?._id || null,
     });
+
+    const populatedSalary = await Salary.findById(salary._id).populate(populateEmployee);
 
     return res.status(201).json({
       success: true,
       message: 'Salary structure created successfully',
-      data: salary,
+      data: populatedSalary,
     });
   } catch (error) {
-    console.error('FULL ERROR:', error); // DEBUG - remove after fixing
+    console.error('CREATE SALARY ERROR:', error);
     return res.status(500).json({
       success: false,
       message: 'Failed to create salary structure',
@@ -35,8 +46,9 @@ export const createSalary = async (req, res) => {
 
 export const getAllSalaries = async (req, res) => {
   try {
-    // TEMP: populate('employeeId') removed until Team 2 delivers Employee.js model
-    const salaries = await Salary.find({ isActive: true }).sort({ createdAt: -1 });
+    const salaries = await Salary.find({ isActive: true })
+      .populate(populateEmployee)
+      .sort({ createdAt: -1 });
 
     return res.status(200).json({
       success: true,
@@ -56,8 +68,7 @@ export const getSalaryByEmployee = async (req, res) => {
   try {
     const { employeeId } = req.params;
 
-    // TEMP: populate('employeeId') removed until Team 2 delivers Employee.js model
-    const salary = await Salary.findOne({ employeeId, isActive: true });
+    const salary = await Salary.findOne({ employeeId, isActive: true }).populate(populateEmployee);
 
     if (!salary) {
       return res.status(404).json({
@@ -76,12 +87,11 @@ export const getSalaryByEmployee = async (req, res) => {
   }
 };
 
-// NEW: fetch a salary record by its own _id (used by the Edit page)
 export const getSalaryById = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const salary = await Salary.findById(id);
+    const salary = await Salary.findById(id).populate(populateEmployee);
 
     if (!salary) {
       return res.status(404).json({
@@ -103,7 +113,7 @@ export const getSalaryById = async (req, res) => {
 export const updateSalary = async (req, res) => {
   try {
     const { id } = req.params;
-    const { basicSalary, hra, allowances, bonus, deductions, effectiveFrom } = req.body;
+    const { employeeId, basicSalary, hra, allowances, bonus, deductions, effectiveFrom } = req.body;
 
     const existingSalary = await Salary.findById(id);
     if (!existingSalary) {
@@ -117,7 +127,7 @@ export const updateSalary = async (req, res) => {
     await existingSalary.save();
 
     const newSalary = await Salary.create({
-      employeeId: existingSalary.employeeId,
+      employeeId: employeeId || existingSalary.employeeId,
       basicSalary,
       hra,
       allowances,
@@ -125,13 +135,15 @@ export const updateSalary = async (req, res) => {
       deductions,
       effectiveFrom,
       isActive: true,
-      createdBy: req.user?._id || null, // TEMP: no auth wired yet, Team 1's authMiddleware pending
+      createdBy: req.user?._id || null,
     });
+
+    const populatedNewSalary = await Salary.findById(newSalary._id).populate(populateEmployee);
 
     return res.status(200).json({
       success: true,
       message: 'Salary structure updated successfully',
-      data: newSalary,
+      data: populatedNewSalary,
     });
   } catch (error) {
     return res.status(500).json({
