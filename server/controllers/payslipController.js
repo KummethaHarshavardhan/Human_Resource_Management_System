@@ -70,11 +70,19 @@ export const generatePayslip = async (req, res) => {
   }
 };
 
+const populateEmployeeConfig = {
+  path: "employeeId",
+  select: "employee_code designation user_id department_id",
+  populate: [
+    { path: "user_id", select: "name email" },
+    { path: "department_id", select: "departmentId departmentName" },
+  ],
+};
+
 export const getPayslipById = async (req, res) => {
   try {
     const { id } = req.params;
-    // TODO: re-add .populate("employeeId", "name email department") once Employee model is merged in
-    const payslip = await Payslip.findById(id);
+    const payslip = await Payslip.findById(id).populate(populateEmployeeConfig);
 
     if (!payslip) {
       return res.status(404).json({
@@ -104,7 +112,9 @@ export const getPayslipsByEmployee = async (req, res) => {
     const query = { employeeId };
     if (year) query.year = Number(year);
 
-    const payslips = await Payslip.find(query).sort({ year: -1, month: -1 });
+    const payslips = await Payslip.find(query)
+      .populate(populateEmployeeConfig)
+      .sort({ year: -1, month: -1 });
 
     return res.status(200).json({
       success: true,

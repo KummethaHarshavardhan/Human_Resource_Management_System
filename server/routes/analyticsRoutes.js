@@ -1,5 +1,6 @@
 import express from "express";
 import {
+  getSummaryStats,
   getPayrollTrend,
   getDepartmentBreakdown,
   getTopEarners,
@@ -8,6 +9,7 @@ import {
 
 const router = express.Router();
 
+router.get("/summary", getSummaryStats);
 router.get("/trend", getPayrollTrend);
 router.get("/department-breakdown", getDepartmentBreakdown);
 router.get("/top-earners", getTopEarners);
