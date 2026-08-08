@@ -1,45 +1,11 @@
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-}
+/* ==========================================
+   HRMS CORE STYLES ENTRY POINT
+   ========================================== */
 
-html,
-body,
-#root{
-    width:100%;
-    min-height:100%;
-}
-
-body{
-    font-family:Inter,Segoe UI,sans-serif;
-    background:#f5f7fb;
-    color:#1e293b;
-    overflow-x:hidden;
-}
-
-a{
-    text-decoration:none;
-    color:inherit;
-}
-
-button{
-    font-family:inherit;
-}
-
-input,
-textarea,
-select,
-button{
-    font:inherit;
-}
-
-img{
-    max-width:100%;
-    display:block;
-}
-
-table{
-    border-collapse:collapse;
-    width:100%;
-}
+@import './styles/variables.css';
+@import './styles/theme.css';
+@import './styles/global.css';
+@import './styles/components.css';
+@import './styles/animations.css';
+@import './styles/responsive.css';
+@import './App.css';

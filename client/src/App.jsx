@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   BrowserRouter,
   Navigate,
@@ -8,7 +9,7 @@ import {
 } from "react-router-dom";
 
 import { useAuth } from "./context/AuthContext";
-import Navbar from "./components/Navbar/Navbar";
+import Header from "./components/Header/Header";
 import Sidebar from "./components/Sidebar/Sidebar";
 import ProtectedRoute from "./utils/ProtectedRoute";
 
@@ -47,17 +48,40 @@ import LeaveDashboard from "./pages/Leave/LeaveDashboard";
 
 function ProtectedLayout() {
   const { isAuthenticated } = useAuth();
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
 
+  const handleToggleSidebar = () => {
+    if (window.innerWidth <= 1024) {
+      setIsMobileOpen((prev) => !prev);
+    } else {
+      setIsSidebarCollapsed((prev) => !prev);
+    }
+  };
+
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: "#f6f7fb" }}>
-      <Sidebar />
-      <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-        <Navbar />
-        <main style={{ flex: 1, padding: "24px" }}>
+    <div className={`app-layout ${isSidebarCollapsed ? "sidebar-collapsed" : ""}`}>
+      {isMobileOpen && (
+        <div
+          className="sidebar-backdrop"
+          onClick={() => setIsMobileOpen(false)}
+        />
+      )}
+
+      <Sidebar
+        isCollapsed={isSidebarCollapsed}
+        isMobileOpen={isMobileOpen}
+        onToggleSidebar={handleToggleSidebar}
+        onCloseMobile={() => setIsMobileOpen(false)}
+      />
+
+      <div className="app-main-wrapper">
+        <Header />
+        <main className="app-main-content">
           <Outlet />
         </main>
       </div>
@@ -157,7 +181,7 @@ function AppRoutes() {
         <Route path="/employee/roles/edit/:id" element={<EditRole />} />
 
 
-      <Route
+        <Route
           path="/attendance-dashboard"
           element={
             <ProtectedRoute allowedRoles={["Employee", "HR", "Admin"]}>
@@ -165,7 +189,7 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         />
-        
+
 
         <Route
           path="/leave"

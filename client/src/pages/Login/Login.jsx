@@ -254,8 +254,9 @@ function Login() {
 
       <div className="login-right">
         <div className="login-form-box">
-
-          <div className="theme-icon">☾</div>
+          <div className="mobile-logo-header">
+            <img src={logo} alt="Infinetra Logo" className="mobile-logo" />
+          </div>
 
           <h2>Welcome back</h2>
 
