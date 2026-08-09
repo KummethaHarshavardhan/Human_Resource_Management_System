@@ -144,11 +144,90 @@ export const resetPassword = async (req, res) => {
     }
 };
 
+export const changePassword = async (req, res) => {
+    try {
+        const { currentPassword, newPassword, confirmPassword } = req.body;
+
+        if (!currentPassword || !newPassword || !confirmPassword) {
+            return res.status(400).json({ success: false, message: "All password fields are required" });
+        }
+
+        if (newPassword !== confirmPassword) {
+            return res.status(400).json({ success: false, message: "New password and confirmation do not match" });
+        }
+
+        if (newPassword.length < 8) {
+            return res.status(400).json({ success: false, message: "New password must be at least 8 characters long" });
+        }
+
+        const user = await Employees.findById(req.user.id);
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ success: false, message: "Current password is incorrect" });
+        }
+
+        const hashPassword = await bcrypt.hash(newPassword, 10);
+        user.password = hashPassword;
+        await user.save();
+
+        return res.status(200).json({ success: true, message: "Password changed successfully" });
+    } catch (err) {
+        console.error("Change password error:", err.message);
+        return res.status(500).json({ success: false, message: "Internal server error changing password" });
+    }
+};
+
 export const getProfile = async (req, res) => {
     try {
         const user = await Employees.findById(req.user.id).select("-password -confirm_password");
         return res.status(200).json({ success: true, user });
     } catch (err) {
         return res.status(500).json({ success: false, message: "Error fetching profile" });
+    }
+};
+
+export const updateUserProfile = async (req, res) => {
+    try {
+        const { name, phone, department } = req.body;
+        const updateFields = {};
+
+        if (name !== undefined) {
+            const trimmedName = String(name).trim();
+            if (!trimmedName) {
+                return res.status(400).json({ success: false, message: "Name cannot be empty" });
+            }
+            updateFields.name = trimmedName;
+        }
+
+        if (phone !== undefined) {
+            updateFields.phone = String(phone).trim();
+        }
+
+        // Only Admin and HR roles are permitted to update department
+        if (department !== undefined) {
+            const userRole = req.user.role;
+            if (userRole === "Admin" || userRole === "HR") {
+                updateFields.department = String(department).trim();
+            }
+        }
+
+        const user = await Employees.findByIdAndUpdate(
+            req.user.id,
+            { $set: updateFields },
+            { new: true, runValidators: true }
+        ).select("-password -confirm_password");
+
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
+        return res.status(200).json({ success: true, message: "Profile updated successfully", user });
+    } catch (err) {
+        console.error("Update profile error:", err.message);
+        return res.status(500).json({ success: false, message: err.message || "Error updating profile" });
     }
 };

@@ -21,6 +21,7 @@ import analyticsRoutes from "./routes/analyticsRoutes.js";
 
 import salaryRoutes from "./routes/salaryRoutes.js";
 import payrollRoutes from "./routes/payrollRoutes.js";
+import notificationRoutes from "./routes/notificationRoutes.js";
 import { errorHandler, notFoundHandler } from "./middlewares/errorHandler.js";
 
 const app = express();
@@ -50,6 +51,7 @@ app.use("/api/analytics", analyticsRoutes);
 
 app.use("/api/salaries", salaryRoutes);
 app.use("/api/payrolls", payrollRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { getProfile, updateProfile } from "../../services/api";
+import { useAuth } from "../../context/AuthContext";
 import { FiEdit2, FiArrowLeft, FiUser, FiMail, FiPhone, FiBriefcase, FiShield, FiCheckCircle } from "react-icons/fi";
 import "../../components/employee/emp.shared.css";
 import "./Profile.css";
 
 function Profile() {
+  const { user: authUser, updateUser } = useAuth();
   const [profile, setProfile] = useState(null);
   const [form, setForm] = useState({
     name: "",
@@ -34,6 +36,9 @@ function Profile() {
           phone: u.phone || "",
           department: u.department || "",
         });
+        if (updateUser && u.name) {
+          updateUser(u);
+        }
       } catch (err) {
         setError(err.message || "Unable to load profile.");
         if (err.message === "Authentication required") {
@@ -46,6 +51,8 @@ function Profile() {
 
     loadProfile();
   }, [navigate]);
+
+  const canEditDepartment = profile?.role === "Admin" || profile?.role === "HR" || authUser?.role === "Admin" || authUser?.role === "HR";
 
   const handleEdit = () => {
     setError("");
@@ -77,11 +84,14 @@ function Profile() {
     setError("");
     setSuccess("");
     try {
-      const data = await updateProfile({
+      const payload = {
         name: form.name,
         phone: form.phone,
-        department: form.department,
-      });
+      };
+      if (canEditDepartment) {
+        payload.department = form.department;
+      }
+      const data = await updateProfile(payload);
       const updated = data.user || profile;
       setProfile(updated);
       setForm({
@@ -92,7 +102,9 @@ function Profile() {
       });
       setSuccess("Profile updated successfully!");
       setIsEditing(false);
-      localStorage.setItem("user", JSON.stringify(updated));
+      if (updateUser) {
+        updateUser(updated);
+      }
     } catch (err) {
       setError(err.message || "Unable to save profile.");
     } finally {
@@ -229,16 +241,22 @@ function Profile() {
 
                 <div className="profile-form-group">
                   <label className="profile-form-label">
-                    <FiBriefcase size={14} /> Department
+                    <FiBriefcase size={14} /> Department {!canEditDepartment && "(Read-Only)"}
                   </label>
                   <input
                     name="department"
                     type="text"
                     value={form.department}
                     onChange={handleChange}
-                    className="profile-form-input"
+                    disabled={!canEditDepartment}
+                    className={`profile-form-input ${!canEditDepartment ? "disabled" : ""}`}
                     placeholder="e.g. Engineering"
                   />
+                  {!canEditDepartment && (
+                    <span className="profile-field-hint" style={{ fontSize: "0.75rem", color: "#64748b", marginTop: 4, display: "block" }}>
+                      Department can only be modified by Admin or HR.
+                    </span>
+                  )}
                 </div>
               </div>
 

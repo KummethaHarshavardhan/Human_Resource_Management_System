@@ -28,10 +28,21 @@ export const applyLeave = async (leaveData) => {
 };
 
 
-// Get Leave History
+// Get Own Leave History (for the logged-in user only — works for all roles)
 export const getLeaveHistory = async () => {
   const response = await axios.get(
     `${API_URL}/history`,
+    getAuthHeader()
+  );
+
+  return response.data;
+};
+
+
+// Admin/HR management view: all employees' leave requests
+export const getAdminAllLeaves = async () => {
+  const response = await axios.get(
+    `${API_URL}/admin/all`,
     getAuthHeader()
   );
 

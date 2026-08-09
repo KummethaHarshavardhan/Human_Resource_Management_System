@@ -7,6 +7,7 @@ import {
   getAttendanceHistory,
   getMonthlyAttendance,
   getAttendanceCalendar,
+  getAllAttendanceAdmin,
 } from "../controllers/attendanceController.js";
 
 import {
@@ -33,7 +34,7 @@ router.get("/test", (req, res) => {
 router.post(
   "/check-in",
   verifyToken,
-  authorizeRoles("Employee"),
+  authorizeRoles("Employee", "HR"),
   validateCheckIn,
   checkIn
 );
@@ -42,7 +43,7 @@ router.post(
 router.post(
   "/check-out",
   verifyToken,
-  authorizeRoles("Employee"),
+  authorizeRoles("Employee", "HR"),
   validateCheckOut,
   checkOut
 );
@@ -78,6 +79,14 @@ router.get(
   verifyToken,
   authorizeRoles("Employee", "HR", "Admin"),
   getAttendanceCalendar
+);
+
+
+router.get(
+  "/admin/all",
+  verifyToken,
+  authorizeRoles("Admin"),
+  getAllAttendanceAdmin
 );
 
 export default router;

@@ -73,3 +73,18 @@ export async function getAttendanceCalendar(year, month) {
 
   return response.data;
 }
+
+// Admin: All Employees Attendance
+export async function getAllAttendanceAdmin({ status, employeeId } = {}) {
+  const params = {};
+  if (status) params.status = status;
+  if (employeeId) params.employeeId = employeeId;
+
+  const config = {
+    ...getAuthConfig(),
+    params,
+  };
+
+  const response = await axios.get(`${API}/admin/all`, config);
+  return response.data;
+}

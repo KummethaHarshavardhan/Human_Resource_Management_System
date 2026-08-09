@@ -1,5 +1,5 @@
 import React from "react";
-import { formatCurrency } from "../../../utils/formatCurrency";
+import { formatCurrency, formatCompactCurrency } from "../../../utils/formatCurrency";
 import "./ReportSummary.css";
 
 export default function ReportSummary({ summary = {} }) {
@@ -12,6 +12,7 @@ export default function ReportSummary({ summary = {} }) {
     {
       title: "Total Employees",
       value: totalEmployees.toLocaleString(),
+      fullValue: totalEmployees.toLocaleString(),
       subtitle: "Covered in report",
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -25,7 +26,8 @@ export default function ReportSummary({ summary = {} }) {
     },
     {
       title: "Total Gross Pay",
-      value: formatCurrency(totalGrossPay),
+      value: formatCompactCurrency(totalGrossPay),
+      fullValue: formatCurrency(totalGrossPay),
       subtitle: "Gross earnings",
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -36,7 +38,8 @@ export default function ReportSummary({ summary = {} }) {
     },
     {
       title: "Total Deductions",
-      value: formatCurrency(totalDeductions),
+      value: formatCompactCurrency(totalDeductions),
+      fullValue: formatCurrency(totalDeductions),
       subtitle: "Taxes & PF deductions",
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -47,7 +50,8 @@ export default function ReportSummary({ summary = {} }) {
     },
     {
       title: "Total Net Pay",
-      value: formatCurrency(totalNetPay),
+      value: formatCompactCurrency(totalNetPay),
+      fullValue: formatCurrency(totalNetPay),
       subtitle: "Net disbursed",
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -67,7 +71,7 @@ export default function ReportSummary({ summary = {} }) {
             <span className="summary-card-title">{card.title}</span>
             <div className="summary-card-icon">{card.icon}</div>
           </div>
-          <div className="summary-card-value">{card.value}</div>
+          <div className="summary-card-value" title={card.fullValue}>{card.value}</div>
           <div className="summary-card-subtitle">{card.subtitle}</div>
         </div>
       ))}

@@ -5,8 +5,10 @@ import {
   EmpRegister,
   resetPassword,
   verifyOtp,
-  getProfile
-} from "../controllers/UserController.js";
+  getProfile,
+  updateUserProfile,
+  changePassword
+} from "../controllers/userController.js";
 import { verifyToken, authorizeRoles as authorize } from '../middlewares/authMiddleware.js';
 
 const route = express.Router();
@@ -18,10 +20,10 @@ route.post("/Emplogin", EmpLogin);
 route.post("/sendOtp", EmpOtp);
 route.post("/verifyOtp", verifyOtp);
 route.post("/resetpassword", resetPassword);
-
+route.put("/change-password", verifyToken, changePassword);
 
 route.get("/profile", verifyToken, getProfile);
-// route.put("/profile", verifyToken, updateUserProfile);
+route.put("/profile", verifyToken, updateUserProfile);
 
 // route.get("/users", verifyToken, authorize("Admin", "HR"), getAllUsers);
 

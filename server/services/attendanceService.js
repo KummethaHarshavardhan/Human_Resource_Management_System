@@ -414,3 +414,22 @@ export const getAttendanceCalendarService = async(
 
 
 };
+
+
+// ================= ADMIN: ALL EMPLOYEES ATTENDANCE =================
+
+export const getAllAttendanceAdminService = async ({ status, employeeId } = {}) => {
+
+  const query = {};
+
+  if (status) {
+    query.status = status;
+  }
+
+  if (employeeId) {
+    query.employeeId = employeeId;
+  }
+
+  return await Attendance.find(query).sort({ date: -1 });
+
+};

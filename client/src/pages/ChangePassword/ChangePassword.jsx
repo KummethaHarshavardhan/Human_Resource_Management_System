@@ -1,83 +1,207 @@
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { FiLock, FiEye, FiEyeOff, FiCheck, FiShield } from 'react-icons/fi';
+import { changePassword } from '../../services/api';
 import './ChangePassword.css';
 
 function ChangePassword() {
+  const navigate = useNavigate();
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+
+  const [showCurrent, setShowCurrent] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  const [status, setStatus] = useState({ type: '', message: '' });
+  const [submitting, setSubmitting] = useState(false);
+
+  // Live Password Criteria Checks
+  const hasMinLength = newPassword.length >= 8;
+  const hasUppercase = /[A-Z]/.test(newPassword);
+  const hasNumber = /[0-9]/.test(newPassword);
+  const hasSpecial = /[^A-Za-z0-9]/.test(newPassword);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setStatus({ type: '', message: '' });
+
+    if (!currentPassword) {
+      setStatus({ type: 'error', message: 'Please enter your current password.' });
+      return;
+    }
+
+    if (!newPassword || !confirmPassword) {
+      setStatus({ type: 'error', message: 'Please fill in both new password fields.' });
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setStatus({ type: 'error', message: 'New password and confirmation do not match.' });
+      return;
+    }
+
+    if (!hasMinLength || !hasUppercase || !hasNumber || !hasSpecial) {
+      setStatus({
+        type: 'error',
+        message: 'New password does not satisfy all security requirements.',
+      });
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const res = await changePassword({
+        currentPassword,
+        newPassword,
+        confirmPassword,
+      });
+      setStatus({
+        type: 'success',
+        message: res?.message || 'Your account password has been updated successfully.',
+      });
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (err) {
+      setStatus({
+        type: 'error',
+        message: err.message || 'Failed to update password. Please check your current password.',
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleCancel = () => {
+    navigate('/settings');
+  };
+
   return (
     <div className="change-password-page">
-
-      <div className="change-password-header">
-        <h1>Change Password</h1>
-        <p>Update your account password to keep your account secure.</p>
-      </div>
-
-      <div className="password-card">
-
-        <div className="security-icon">
-          🔒
+      <div className="page-header">
+        <div className="page-title-box">
+          <h1 className="page-title">Change Password</h1>
+          <p className="page-subtitle">
+            Update your credentials and maintain strict account security.
+          </p>
         </div>
-
-        <h2>Update Password</h2>
-
-        <p className="password-description">
-          Choose a strong password that you don't use anywhere else.
-        </p>
-
-        <form>
-
-          <div className="password-group">
-            <label>Current Password</label>
-
-            <input
-              type="password"
-              placeholder="Enter current password"
-            />
-          </div>
-
-          <div className="password-group">
-            <label>New Password</label>
-
-            <input
-              type="password"
-              placeholder="Enter new password"
-            />
-          </div>
-
-          <div className="password-group">
-            <label>Confirm New Password</label>
-
-            <input
-              type="password"
-              placeholder="Confirm new password"
-            />
-          </div>
-
-          <div className="password-rules">
-            <p>Password must contain:</p>
-            <span>✓ At least 8 characters</span>
-            <span>✓ One uppercase letter</span>
-            <span>✓ One number</span>
-            <span>✓ One special character</span>
-          </div>
-
-          <div className="password-actions">
-            <button
-              type="button"
-              className="cancel-btn"
-            >
-              Cancel
-            </button>
-
-            <button
-              type="submit"
-              className="update-btn"
-            >
-              Update Password
-            </button>
-          </div>
-
-        </form>
-
       </div>
 
+      <div className="password-card-container">
+        <div className="password-card-inner">
+          <div className="security-icon-badge">
+            <FiShield />
+          </div>
+
+          <h2 className="password-card-title">Update Account Password</h2>
+          <p className="password-description">
+            Choose a strong password that you do not use for any other service.
+          </p>
+
+          {status.message && (
+            <div className={`status-message ${status.type}`} style={{ marginBottom: '20px' }}>
+              {status.message}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit}>
+            <div className="password-group">
+              <label>Current Password</label>
+              <div className="password-input-box">
+                <input
+                  type={showCurrent ? 'text' : 'password'}
+                  placeholder="Enter current password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                />
+                <button
+                  type="button"
+                  className="password-eye-toggle"
+                  onClick={() => setShowCurrent(!showCurrent)}
+                  aria-label="Toggle current password view"
+                >
+                  {showCurrent ? <FiEyeOff size={16} /> : <FiEye size={16} />}
+                </button>
+              </div>
+            </div>
+
+            <div className="password-group">
+              <label>New Password</label>
+              <div className="password-input-box">
+                <input
+                  type={showNew ? 'text' : 'password'}
+                  placeholder="Enter new password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                />
+                <button
+                  type="button"
+                  className="password-eye-toggle"
+                  onClick={() => setShowNew(!showNew)}
+                  aria-label="Toggle new password view"
+                >
+                  {showNew ? <FiEyeOff size={16} /> : <FiEye size={16} />}
+                </button>
+              </div>
+            </div>
+
+            <div className="password-group">
+              <label>Confirm New Password</label>
+              <div className="password-input-box">
+                <input
+                  type={showConfirm ? 'text' : 'password'}
+                  placeholder="Confirm new password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                />
+                <button
+                  type="button"
+                  className="password-eye-toggle"
+                  onClick={() => setShowConfirm(!showConfirm)}
+                  aria-label="Toggle confirm password view"
+                >
+                  {showConfirm ? <FiEyeOff size={16} /> : <FiEye size={16} />}
+                </button>
+              </div>
+            </div>
+
+            <div className="password-rules-box">
+              <span className="password-rules-title">Security Requirements:</span>
+
+              <div className={`password-rule-item ${hasMinLength ? 'valid' : ''}`}>
+                <span className="rule-check-icon">{hasMinLength ? <FiCheck /> : '•'}</span>
+                <span>At least 8 characters long</span>
+              </div>
+
+              <div className={`password-rule-item ${hasUppercase ? 'valid' : ''}`}>
+                <span className="rule-check-icon">{hasUppercase ? <FiCheck /> : '•'}</span>
+                <span>Includes at least one uppercase letter (A-Z)</span>
+              </div>
+
+              <div className={`password-rule-item ${hasNumber ? 'valid' : ''}`}>
+                <span className="rule-check-icon">{hasNumber ? <FiCheck /> : '•'}</span>
+                <span>Includes at least one numeric digit (0-9)</span>
+              </div>
+
+              <div className={`password-rule-item ${hasSpecial ? 'valid' : ''}`}>
+                <span className="rule-check-icon">{hasSpecial ? <FiCheck /> : '•'}</span>
+                <span>Includes at least one special character (!@#$%^&*)</span>
+              </div>
+            </div>
+
+            <div className="password-actions">
+              <button type="button" className="btn-secondary" onClick={handleCancel}>
+                Cancel
+              </button>
+              <button type="submit" className="btn-primary" disabled={submitting}>
+                {submitting ? 'Updating Password...' : 'Update Password'}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
   );
 }

@@ -7,7 +7,7 @@ import PayrollTable from '../../../components/Payroll/PayrollTable';
 import LoadingState from '../../../components/Payroll/LoadingState';
 import ErrorState from '../../../components/Payroll/ErrorState';
 import EmptyState from '../../../components/Payroll/EmptyState';
-import formatCurrency from '../../../utils/formatCurrency';
+import formatCurrency, { formatCompactCurrency } from '../../../utils/formatCurrency';
 import { MONTH_NAMES, YEARS_LIST, getEmployeeOptionLabel } from '../../../utils/payrollConstants';
 import '../../../components/Payroll/payrollTheme.css';
 import './PayrollDashboard.css';
@@ -184,8 +184,9 @@ export default function PayrollDashboard() {
         />
         <SummaryCard
           title="Total Net Salary Payout"
-          value={formatCurrency(totalNet)}
-          subtitle={`Gross: ${formatCurrency(totalGross)} | Ded: ${formatCurrency(totalDeductions)}`}
+          value={formatCompactCurrency(totalNet)}
+          exactValue={formatCurrency(totalNet)}
+          subtitle={`Gross: ${formatCompactCurrency(totalGross)} | Ded: ${formatCompactCurrency(totalDeductions)}`}
           variant="primary"
           icon="💰"
         />
