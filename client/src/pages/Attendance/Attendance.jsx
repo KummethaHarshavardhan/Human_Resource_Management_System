@@ -1,16 +1,18 @@
 export default function Attendance() {
   return (
-    <div className="page" style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#fff", padding: "20px 24px", borderRadius: "16px", boxShadow: "0 8px 24px rgba(15, 23, 42, 0.06)" }}>
-        <div>
-          <h1 style={{ margin: 0, fontSize: "28px", color: "#111827" }}>Attendance</h1>
-          <p style={{ margin: "6px 0 0", color: "#6b7280" }}>Track check-ins, absences, and attendance summaries.</p>
+    <div className="page">
+      <div className="page-header">
+        <div className="page-title-box">
+          <h1 className="page-title">Attendance Management</h1>
+          <p className="page-subtitle">Track check-ins, absences, and attendance summaries across teams.</p>
         </div>
       </div>
 
-      <div style={{ background: "#fff", padding: "24px", borderRadius: "16px", boxShadow: "0 8px 24px rgba(15, 23, 42, 0.06)" }}>
-        <h2 style={{ margin: "0 0 8px", color: "#111827" }}>Attendance Overview</h2>
-        <p style={{ margin: 0, color: "#6b7280" }}>This section will display your attendance records and daily summaries.</p>
+      <div className="card">
+        <div className="card-header">
+          <h2 className="card-title">Attendance Overview</h2>
+        </div>
+        <p className="page-subtitle">This view provides centralized access to employee check-ins, logs, and attendance summaries.</p>
       </div>
     </div>
   );

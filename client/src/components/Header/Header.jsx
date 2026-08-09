@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
+import NotificationBell from '../Notifications/NotificationBell.jsx';
 import Button from '../Button/Button.jsx';
 import './Header.css';
 
@@ -45,6 +46,7 @@ const Header = () => {
       </div>
 
       <div className="header-right">
+        <NotificationBell />
         <Button variant="outline" size="sm" onClick={handleProfile} icon="👤">
           Profile
         </Button>

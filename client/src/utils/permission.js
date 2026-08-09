@@ -7,7 +7,8 @@ const permissions = {
     "leave",
     "payroll",
     "reports",
-    "settings"
+    "settings",
+    "users"
   ],
 
   hr: [
@@ -17,7 +18,8 @@ const permissions = {
     "attendance",
     "leave",
     "reports",
-    "settings"
+    "settings",
+    "users"
   ],
 
   employee: [
@@ -25,7 +27,8 @@ const permissions = {
     "profile",
     "employee",
     "attendance",
-    "leave"
+    "leave",
+    "settings"
   ]
 };
 

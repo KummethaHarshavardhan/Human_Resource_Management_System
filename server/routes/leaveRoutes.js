@@ -2,6 +2,7 @@ import express from "express";
 import {
   applyLeave,
   getLeaveHistory,
+  getAllLeaves,
   approveLeave,
   rejectLeave,
   cancelLeave,
@@ -14,11 +15,19 @@ import {
 
 const router = express.Router();
 
-// Employee
+// Any authenticated user can apply and view their own history
 router.post("/apply", verifyToken, applyLeave);
 router.get("/history", verifyToken, getLeaveHistory);
 
-// HR/Admin
+// Admin/HR management: all leaves for review
+router.get(
+  "/admin/all",
+  verifyToken,
+  authorizeRoles("Admin", "HR"),
+  getAllLeaves
+);
+
+// HR/Admin approval and rejection
 router.put(
   "/approve/:id",
   verifyToken,
@@ -33,7 +42,7 @@ router.put(
   rejectLeave
 );
 
-// Employee
+// Any authenticated user can cancel their own leave (controller enforces ownership)
 router.delete("/:id", verifyToken, cancelLeave);
 
 export default router;

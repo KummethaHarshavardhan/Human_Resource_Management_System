@@ -12,6 +12,7 @@ const menuItems = [
   { label: "Leave Management", to: "/leave", feature: "leave", icon: "📅" },
   { label: "Payroll", to: "/payroll", feature: "payroll", icon: "💰" },
   { label: "Reports", to: "/reports", feature: "reports", icon: "📊" },
+  { label: "Users", to: "/users", feature: "users", icon: "👥" },
   { label: "Settings", to: "/settings", feature: "settings", icon: "⚙️" },
 ];
 

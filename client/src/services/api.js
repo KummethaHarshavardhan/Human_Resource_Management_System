@@ -135,3 +135,11 @@ export const resetPassword = async (data) => {
     body: JSON.stringify(data)
   });
 };
+
+export const changePassword = async (passwordData) => {
+  return requestJson(`${API_URL}/change-password`, {
+    method: "PUT",
+    headers: authHeaders(),
+    body: JSON.stringify(passwordData)
+  });
+};

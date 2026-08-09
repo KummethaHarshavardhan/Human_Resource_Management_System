@@ -28,6 +28,7 @@ import AttendanceDashboard from "./pages/Attendance/AttendanceDashboard";
 import PayrollRoutes from "./routes/PayrollRoutes";
 import ReportsRoutes from "./routes/ReportsRoutes";
 import Settings from "./pages/Settings/Settings";
+import Users from "./pages/Users/Users";
 
 import EmployeeList from "./pages/employee/EmployeeList";
 import AddEmployee from "./pages/employee/AddEmployee";
@@ -203,6 +204,7 @@ function AppRoutes() {
         <Route path="/payroll/*" element={<PayrollRoutes />} />
         <Route path="/reports/*" element={<ReportsRoutes />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/users" element={<Users />} />
         <Route path="/change-password" element={<ChangePassword />} />
       </Route>
 

@@ -11,16 +11,17 @@ export const applyLeaveService = async (leaveData) => {
     return leave;
 };
 
-// Get Leave History
-export const getLeaveHistoryService = async (userId, role) => {
-
-  if (role === "Admin" || role === "HR") {
-    return await Leave.find()
-      .populate("employee", "name email role")
-      .sort({ createdAt: -1 });
-  }
-
+// Get Own Leave History — returns ONLY the logged-in user's own leaves
+// regardless of role (Employee, HR, or Admin all see only their own leaves here)
+export const getLeaveHistoryService = async (userId) => {
   return await Leave.find({ employee: userId })
+    .populate("employee", "name email role")
+    .sort({ createdAt: -1 });
+};
+
+// Admin Management — returns ALL employees' leaves for review/approval
+export const getAllLeavesAdminService = async () => {
+  return await Leave.find()
     .populate("employee", "name email role")
     .sort({ createdAt: -1 });
 };

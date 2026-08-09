@@ -1,111 +1,197 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useAuth } from "../../context/AuthContext";
 
 import CheckInCard from "../../components/Attendance/CheckInCard";
 import TodayAttendanceCard from "../../components/Attendance/TodayAttendanceCard";
 import AttendanceHistory from "../../components/Attendance/AttendanceHistory";
 import MonthlyAttendance from "../../components/Attendance/MonthlyAttendance";
 import AttendanceCalendar from "../../components/Attendance/AttendanceCalendar";
+import AdminAttendanceMonitor from "../../components/Attendance/AdminAttendanceMonitor";
 
 import {
   getTodayAttendance,
   getAttendanceHistory,
   getMonthlyAttendance,
   getAttendanceCalendar,
+  getAllAttendanceAdmin,
 } from "../../services/attendanceService";
+import { getLeaveHistory as getOwnLeaves } from "../../services/leaveService";
+
+import "./AttendanceDashboard.css";
 
 function AttendanceDashboard() {
+  const { user } = useAuth();
+  const role = user?.role || "";
+
+  const isAdmin    = role === "Admin";
+  const isHR       = role === "HR";
+  const isEmployee = role === "Employee";
+
   const [currentTime, setCurrentTime] = useState(new Date());
 
-  const [todayAttendance, setTodayAttendance] = useState(null);
+  // Personal attendance state (Employee + HR)
+  const [todayAttendance,   setTodayAttendance]   = useState(null);
   const [attendanceHistory, setAttendanceHistory] = useState([]);
   const [monthlyAttendance, setMonthlyAttendance] = useState([]);
   const [calendarAttendance, setCalendarAttendance] = useState([]);
+  const [approvedLeaves, setApprovedLeaves]       = useState([]);
 
+  // Admin monitoring state
+  const [adminRecords,      setAdminRecords]      = useState([]);
+  const [adminLoading,      setAdminLoading]      = useState(false);
+  const [adminError,        setAdminError]        = useState(null);
+
+  // Live clock
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
-
-    loadAttendanceData();
-
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
-  const loadAttendanceData = async () => {
+  // ── PERSONAL attendance loader (Employee + HR) ───────────────────────────
+  const loadAttendanceData = useCallback(async () => {
     try {
       const today = new Date();
-      const year = today.getFullYear();
+      const year  = today.getFullYear();
       const month = today.getMonth() + 1;
 
-      const todayData = await getTodayAttendance();
-      console.log("Today API Response:", todayData);
+      const [todayData, historyData, monthlyData, calendarData, ownLeaveRes] =
+        await Promise.all([
+          getTodayAttendance(),
+          getAttendanceHistory(),
+          getMonthlyAttendance(year, month),
+          getAttendanceCalendar(year, month),
+          getOwnLeaves().catch(() => ({ leaves: [] })),
+        ]);
 
-      const historyData = await getAttendanceHistory();
-      console.log("History API Response:", historyData);
-
-      const monthlyData = await getMonthlyAttendance(year, month);
-      console.log("Monthly API Response:", monthlyData);
-
-      const calendarData = await getAttendanceCalendar(year, month);
-      console.log("Calendar API Response:", calendarData);
-
-     setTodayAttendance(todayData?.data || null);
-
-     setAttendanceHistory(historyData?.data || []);
-
-     setMonthlyAttendance(monthlyData?.data || []);
-
-     setCalendarAttendance(
-          calendarData?.calendar ||
-          calendarData?.data ||
-          []
-    );
+      setTodayAttendance(todayData?.data || null);
+      setAttendanceHistory(historyData?.data || []);
+      setMonthlyAttendance(monthlyData?.data || []);
+      setCalendarAttendance(
+        calendarData?.calendar || calendarData?.data || []
+      );
+      setApprovedLeaves(
+        (ownLeaveRes?.leaves || []).filter((l) => l.status === "Approved")
+      );
     } catch (error) {
-      console.error("Failed to load attendance:", error);
+      console.error("Failed to load personal attendance:", error);
     }
-  };
+  }, []);
+
+  // ── ADMIN monitoring loader ───────────────────────────────────────────────
+  const loadAdminAttendance = useCallback(async () => {
+    setAdminLoading(true);
+    setAdminError(null);
+    try {
+      const res = await getAllAttendanceAdmin();
+      setAdminRecords(res?.data || []);
+    } catch (error) {
+      console.error("Failed to load admin attendance:", error);
+      setAdminError(
+        error?.response?.data?.message || "Failed to load attendance records."
+      );
+    } finally {
+      setAdminLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isAdmin) {
+      loadAdminAttendance();
+    } else {
+      loadAttendanceData();
+    }
+  }, [isAdmin, loadAdminAttendance, loadAttendanceData]);
+
+  // ── HERO HEADER ─────────────────────────────────────────────────────────
+  const heroTitle    = isAdmin ? "Attendance Monitoring" : "Attendance Dashboard";
+  const heroSubtitle = isAdmin
+    ? "Monitor employee and HR attendance records across the organisation."
+    : "Track check-in times, work duration, monthly logs, and attendance history.";
 
   return (
-    <div className="attendance-dashboard">
-      <h1>Attendance Dashboard</h1>
+    <div className="attendance-page">
+      {/* Hero Header & Live Clock */}
+      <div className="attendance-hero-card">
+        <div className="attendance-hero-info">
+          <h1>{heroTitle}</h1>
+          <p>{heroSubtitle}</p>
+        </div>
 
-      <p>
-        <strong>Date:</strong> {currentTime.toLocaleDateString()}
-      </p>
+        <div className="attendance-clock-widget">
+          <div className="clock-item">
+            <span className="clock-label">Current Date</span>
+            <span className="clock-value">
+              {currentTime.toLocaleDateString("en-US", {
+                weekday: "short",
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              })}
+            </span>
+          </div>
 
-      <p>
-        <strong>Time:</strong> {currentTime.toLocaleTimeString()}
-      </p>
+          <div className="clock-divider" />
 
-      <hr />
-      <CheckInCard
-        attendance={todayAttendance}
-        setTodayAttendance={setTodayAttendance}
-        loadAttendanceData={loadAttendanceData}
-    />
-      <hr />
+          <div className="clock-item">
+            <span className="clock-label">Live Time</span>
+            <span className="clock-value">
+              {currentTime.toLocaleTimeString()}
+            </span>
+          </div>
+        </div>
+      </div>
 
-      <TodayAttendanceCard
-        attendance={todayAttendance}
-      />
+      {/* ── ADMIN VIEW ──────────────────────────────────────────────────── */}
+      {isAdmin && (
+        <AdminAttendanceMonitor
+          records={adminRecords}
+          loading={adminLoading}
+          error={adminError}
+          onRefresh={loadAdminAttendance}
+        />
+      )}
 
-      <hr />
+      {/* ── EMPLOYEE & HR VIEW (Check-in + personal attendance) ──────────── */}
+      {(isEmployee || isHR) && (
+        <div className="attendance-grid-layout">
+          <div className="col-span-6">
+            <div className="attendance-section-box">
+              <CheckInCard
+                attendance={todayAttendance}
+                setTodayAttendance={setTodayAttendance}
+                loadAttendanceData={loadAttendanceData}
+              />
+            </div>
+          </div>
 
-      <AttendanceCalendar
-        calendarAttendance={calendarAttendance}
-      />
+          <div className="col-span-6">
+            <div className="attendance-section-box">
+              <TodayAttendanceCard attendance={todayAttendance} />
+            </div>
+          </div>
 
-      <hr />
+          <div className="col-span-12">
+            <div className="attendance-section-box">
+              <AttendanceCalendar
+                calendarAttendance={calendarAttendance}
+                approvedLeaves={approvedLeaves}
+              />
+            </div>
+          </div>
 
-      <AttendanceHistory
-        history={attendanceHistory}
-      />
+          <div className="col-span-12">
+            <div className="attendance-section-box">
+              <AttendanceHistory history={attendanceHistory} />
+            </div>
+          </div>
 
-      <hr />
-
-      <MonthlyAttendance
-        monthlyAttendance={monthlyAttendance}
-      />
+          <div className="col-span-12">
+            <div className="attendance-section-box">
+              <MonthlyAttendance monthlyAttendance={monthlyAttendance} />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

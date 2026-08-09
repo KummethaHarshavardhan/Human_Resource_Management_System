@@ -1,237 +1,79 @@
+import { FiClock, FiCheckCircle, FiAlertCircle, FiInfo } from "react-icons/fi";
+
 function TodayAttendanceCard({ attendance }) {
-
-
   const formatDateTime = (date) => {
-
-    if (!date) return "--";
-
-    return new Date(date).toLocaleString();
-
+    if (!date) return "—";
+    return new Date(date).toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
   };
-
-
 
   const formatWorkingHours = (hours) => {
-
-    if (hours === undefined || hours === null) {
-      return "--";
-    }
-
-
+    if (hours === undefined || hours === null) return "—";
     const totalMinutes = Math.round(hours * 60);
-
-
-    const hrs = Math.floor(totalMinutes / 60);
-
-
+    const hrs  = Math.floor(totalMinutes / 60);
     const mins = totalMinutes % 60;
-
-
-    return `${hrs} hrs ${mins} mins`;
-
+    return `${hrs}h ${mins}m`;
   };
 
-
-
-
-
-  const getStatusStyle = (status) => {
-
-
-    switch(status) {
-
-
-      case "Present":
-
-        return {
-          backgroundColor: "green",
-          color: "white",
-        };
-
-
-
-      case "Late":
-
-        return {
-          backgroundColor: "orange",
-          color: "white",
-        };
-
-
-
-      case "Half Day":
-
-        return {
-          backgroundColor: "gold",
-          color: "black",
-        };
-
-
-
-      case "Early Checkout":
-
-        return {
-          backgroundColor: "purple",
-          color: "white",
-        };
-
-
-
-      default:
-
-        return {
-          backgroundColor: "gray",
-          color: "white",
-        };
-
+  const getStatusBadgeClass = (status) => {
+    switch (status) {
+      case "Present":       return "att-badge att-badge-present";
+      case "Late":          return "att-badge att-badge-late";
+      case "Half Day":       return "att-badge att-badge-halfday";
+      case "Early Checkout": return "att-badge att-badge-early";
+      default:               return "att-badge att-badge-default";
     }
-
   };
-
-
-
-
-
-
 
   return (
+    <div className="today-att-card">
+      <h2 className="today-att-title">Today's Attendance</h2>
 
-    <div
-      className="attendance-card"
-      style={{
-        background:"#fff",
-        padding:"20px",
-        borderRadius:"10px",
-        boxShadow:"0 2px 8px rgba(0,0,0,0.1)"
-      }}
-    >
-
-
-      <h2>
-        Today's Attendance
-      </h2>
-
-
-
-
-
-      <div className="attendance-details">
-
-
-
-        <div className="attendance-item">
-
-          <strong>Status</strong>
-
-
-          <span
-
-            style={{
-              ...getStatusStyle(attendance?.status),
-
-              padding:"6px 12px",
-
-              borderRadius:"15px",
-
-              fontWeight:"bold",
-
-              display:"inline-block",
-
-              marginLeft:"10px"
-            }}
-
-          >
-
-            {attendance?.status || "--"}
-
-          </span>
-
-
+      <div className="today-att-grid">
+        <div className="today-att-item">
+          <span className="today-att-label">Status</span>
+          <div>
+            <span className={getStatusBadgeClass(attendance?.status)}>
+              {attendance?.status || "Not Checked In"}
+            </span>
+          </div>
         </div>
 
-
-
-
-
-
-
-        <div className="attendance-item">
-
-          <strong>Check In</strong>
-
-          <span>
+        <div className="today-att-item">
+          <span className="today-att-label">Check In</span>
+          <span className="today-att-value">
             {formatDateTime(attendance?.checkIn)}
           </span>
-
         </div>
 
-
-
-
-
-
-
-        <div className="attendance-item">
-
-          <strong>Check Out</strong>
-
-          <span>
+        <div className="today-att-item">
+          <span className="today-att-label">Check Out</span>
+          <span className="today-att-value">
             {formatDateTime(attendance?.checkOut)}
           </span>
-
         </div>
 
-
-
-
-
-
-
-
-        <div className="attendance-item">
-
-          <strong>Working Hours</strong>
-
-
-          <span>
+        <div className="today-att-item">
+          <span className="today-att-label">Working Hours</span>
+          <span className="today-att-value">
             {formatWorkingHours(attendance?.workingHours)}
           </span>
-
-
         </div>
-
-
-
-
-
-
-
-
-        <div className="attendance-item">
-
-          <strong>Remarks</strong>
-
-
-          <span>
-            {attendance?.remarks || "--"}
-          </span>
-
-
-        </div>
-
-
-
-
-
       </div>
 
-
-
+      {attendance?.remarks && (
+        <div className="today-att-item" style={{ marginTop: 4 }}>
+          <span className="today-att-label">Remarks</span>
+          <span className="today-att-value" style={{ fontWeight: 500, fontSize: "0.85rem" }}>
+            {attendance.remarks}
+          </span>
+        </div>
+      )}
     </div>
-
   );
-
 }
-
 
 export default TodayAttendanceCard;
