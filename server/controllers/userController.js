@@ -10,6 +10,26 @@ import { OAuth2Client } from "google-auth-library";
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
+export const passkey=async(req,res)=>{
+    try{
+        const key='27#ITSPAXIOUS-INNOVATIONS'
+        const {passkey}=req.body;
+        if(key!=passkey){
+            return res.status(400).json({
+                success:false,
+                message:"Passkey Code is Worng"
+            });
+        }
+        return res.status(201).json({
+            success:true,
+            message:"passkey is Correct"
+        });
+    }
+    catch(err){
+        return res.status(404).json({success:false,message:'server Issue'})
+    }
+};
+
 
 export const EmpRegister = async (req, res) => {
     try {
@@ -105,30 +125,22 @@ export const googleLogin = async (req, res) => {
         const ticket = await client.verifyIdToken({
             idToken: token,
             audience: process.env.GOOGLE_CLIENT_ID
-
         });
         const payload = ticket.getPayload();
-        const { email, name, sub } = payload;
-        let user = await Employees.findOne({ email });
+        const { email } = payload;
+
+        const user = await Employees.findOne({ email });
         if (!user) {
-            const randomPassword = await bcrypt.hash(sub, 10);
-            user = await Employees.create({
-                name,
-                email,
-                password: randomPassword,
-                googleId: sub,
-                role: "Employee"
+            return res.status(404).json({
+                success: false,
+                message: `Sorry, no account found for ${email}. Please register first.`
             });
         }
-        const jwtToken = jwt.sign({
-            id: user._id,
-            email: user.email,
-            role: user.role
-        },
+
+        const jwtToken = jwt.sign(
+            { id: user._id, email: user.email, role: user.role },
             process.env.JWT_SECRET,
-            {
-                expiresIn: "1d"
-            }
+            { expiresIn: "1d" }
         );
         return res.status(200).json({
             success: true,
@@ -139,13 +151,9 @@ export const googleLogin = async (req, res) => {
     }
     catch (err) {
         console.log(err);
-        return res.status(500).json({
-            success: false,
-            message: "Google Login Failed"
-        });
+        return res.status(500).json({ success: false, message: "Google Login Failed" });
     }
 };
-
 
 
 export const EmpOtp = async (req, res) => {
@@ -194,6 +202,7 @@ export const EmpOtp = async (req, res) => {
     }
 
 };
+
 
 
 export const verifyOtp = async (req, res) => {
@@ -284,11 +293,11 @@ export const getUserProfile = async (req, res) => {
 
 export const updateUserProfile = async (req, res) => {
     try {
-        const { name, phone, department } = req.body;
+        const { name, phone, department, role } = req.body;
 
         const updatedUser = await Employees.findByIdAndUpdate(
             req.user.id,
-            { name, phone, department },
+            { name, phone, department, role },
             { new: true, runValidators: true }
         ).select("-password");
 
@@ -306,3 +315,4 @@ export const updateUserProfile = async (req, res) => {
 
     }
 };
+

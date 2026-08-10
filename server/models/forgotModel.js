@@ -20,9 +20,11 @@ const UserSchema = new mongoose.Schema(
     },
     newPassword:{
         type:String,
+        minlength:6,
     },
     confirmPassword:{
         type:String,
+        minlength:6,
     }
   },
   {

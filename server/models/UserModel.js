@@ -27,7 +27,7 @@ const UserSchema = new mongoose.Schema(
         },
 
         phone: {
-            type: Number
+            type: Number,
         },
 
         department: {
