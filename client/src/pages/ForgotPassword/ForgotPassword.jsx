@@ -207,7 +207,7 @@ function ForgotPassword() {
       <div className="login-right">
         <div className="login-form-box">
 
-          <div className="theme-icon">☾</div>
+      
 
           {step === 'email' && (
             <>

@@ -133,9 +133,6 @@ function ResetPassword() {
 
         <div className="login-form-box">
 
-          <div className="theme-icon">
-            ☾
-          </div>
 
           <h2>Reset Password</h2>
 

@@ -11,7 +11,7 @@ function Profile() {
   const [profile, setProfile] = useState(null);
   const [form, setForm] = useState({
     name: "",
-    email: "",
+    email:"",
     phone: "",
     department: "",
   });
@@ -81,32 +81,27 @@ function Profile() {
 
   const handleSave = async () => {
     setSaving(true);
-    setError("");
-    setSuccess("");
+    setError('');
+    setSuccess('');
     try {
-      const payload = {
+      const data = await updateProfile({
         name: form.name,
         phone: form.phone,
-      };
-      if (canEditDepartment) {
-        payload.department = form.department;
-      }
-      const data = await updateProfile(payload);
-      const updated = data.user || profile;
-      setProfile(updated);
-      setForm({
-        name: updated.name || "",
-        email: updated.email || "",
-        phone: updated.phone || "",
-        department: updated.department || "",
+        department: form.department,
+        role: form.role
       });
-      setSuccess("Profile updated successfully!");
+      setProfile(data.user);
+      setForm({
+        name: data.user.name,
+        phone: data.user.phone || '',
+        department: data.user.department || '',
+        role: data.user.role || 'Employee'
+      });
+      updateUser(data.user);
+      setSuccess('Profile updated successfully.');
       setIsEditing(false);
-      if (updateUser) {
-        updateUser(updated);
-      }
     } catch (err) {
-      setError(err.message || "Unable to save profile.");
+      setError(err.message || 'Unable to save profile.');
     } finally {
       setSaving(false);
     }
@@ -135,7 +130,7 @@ function Profile() {
   const email = profile.email || "—";
   const role = profile.role || "Employee";
   const dept = profile.department || "Engineering";
-  const phone = profile.phone || "—";
+  const phone = profile.phone || "-";
 
   return (
     <div className="emp-page profile-redesign-wrapper">

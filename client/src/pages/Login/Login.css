@@ -302,26 +302,7 @@ html:has(.login-container) {
   margin-bottom: 4px;
 }
 
-.login-form-box .checkbox-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.845rem;
-  font-weight: 500;
-  color: #475569;
-  cursor: pointer;
-  user-select: none;
-  line-height: 1;
-}
 
-.login-form-box .checkbox-label input[type="checkbox"] {
-  width: 16px;
-  height: 16px;
-  margin: 0;
-  accent-color: #4f46e5;
-  cursor: pointer;
-  flex-shrink: 0;
-}
 
 .link {
   font-size: 0.845rem;

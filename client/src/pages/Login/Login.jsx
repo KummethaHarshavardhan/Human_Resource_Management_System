@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { loginUser, googleLoginUser } from '../../services/api';
 import { useAuth } from "../../context/AuthContext.jsx";
+import Passkey from '../Passkey/Passkey.jsx';
 import logo from '../../assets/infinetra-logo.png';
 import './Login.css';
 
@@ -11,6 +12,8 @@ function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [toast, setToast] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  const [showPasskeyModal, setShowPasskeyModal] = useState(false);
 
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -113,6 +116,23 @@ function Login() {
         'Google Sign-In is still loading. Please try again.'
       );
     }
+  };
+
+  const openPasskeyModal = () => {
+    setShowPasskeyModal(true);
+  };
+
+  const closePasskeyModal = () => {
+    setShowPasskeyModal(false);
+  };
+
+  const handlePasskeySuccess = () => {
+  
+    sessionStorage.setItem('passkeyVerified', 'true');
+
+    setShowPasskeyModal(false);
+    showToast('success', 'Passkey verified');
+    navigate('/register');
   };
 
   const handleLogin = async (e) => {
@@ -254,9 +274,6 @@ function Login() {
 
       <div className="login-right">
         <div className="login-form-box">
-          <div className="mobile-logo-header">
-            <img src={logo} alt="Infinetra Logo" className="mobile-logo" />
-          </div>
 
           <h2>Welcome back</h2>
 
@@ -294,16 +311,6 @@ function Login() {
 
             <div className="form-row">
 
-              <label className="checkbox-label">
-                <input
-                  type="checkbox"
-                  name="remember"
-                  checked={showPassword}
-                  onChange={(e) => setShowPassword(e.target.checked)}
-                />
-
-                Remember Me
-              </label>
 
               <div>
                 <Link
@@ -354,12 +361,13 @@ function Login() {
           <p className="register-text">
             New to Infinetra?{' '}
 
-            <Link
-              to="/register"
-              className="link"
+            <button
+              type="button"
+              className="link link-button"
+              onClick={openPasskeyModal}
             >
               Register now
-            </Link>
+            </button>
           </p>
 
           <p className="powered-by">
@@ -368,6 +376,13 @@ function Login() {
 
         </div>
       </div>
+
+      {showPasskeyModal && (
+        <Passkey
+          onClose={closePasskeyModal}
+          onSuccess={handlePasskeySuccess}
+        />
+      )}
     </div>
   );
 }

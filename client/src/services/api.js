@@ -32,6 +32,17 @@ const requestJson = async (url, options = {}) => {
   }
 };
 
+export const verifyPasskey = async (passkey) => {
+  return requestJson(`${API_URL}/passkey`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ passkey })
+  });
+};
+
+
 export const registerUser = async (userData) => {
   return requestJson(`${API_URL}/newEmp`, {
     method: "POST",

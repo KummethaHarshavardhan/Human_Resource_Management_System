@@ -6,6 +6,30 @@ import transporter from '../config/mail.js';
 import dotenv from 'dotenv';
 dotenv.config()
 
+import { OAuth2Client } from "google-auth-library";
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+export const passkey=async(req,res)=>{
+    try{
+        const key=process.env.KEY;
+        const {passkey}=req.body;
+        if(key!=passkey){
+            return res.status(400).json({
+                success:false,
+                message:"Passkey Code is Worng"
+            });
+        }
+        return res.status(201).json({
+            success:true,
+            message:"passkey is Correct"
+        });
+    }
+    catch(err){
+        return res.status(404).json({success:false,message:'server Issue'})
+    }
+};
+
 
 export const EmpRegister=async(req,res)=>{
     console.log(req.body);
@@ -69,6 +93,43 @@ export const EmpLogin=async(req,res)=>{
     }
 }
 
+export const googleLogin = async (req, res) => {
+    try {
+        const { token } = req.body;
+        const ticket = await client.verifyIdToken({
+            idToken: token,
+            audience: process.env.GOOGLE_CLIENT_ID
+        });
+        const payload = ticket.getPayload();
+        const { email } = payload;
+
+        const user = await Employees.findOne({ email });
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: `Sorry, no account found for ${email}. Please register first.`
+            });
+        }
+
+        const jwtToken = jwt.sign(
+            { id: user._id, email: user.email, role: user.role },
+            process.env.JWT_SECRET,
+            { expiresIn: "1d" }
+        );
+        return res.status(200).json({
+            success: true,
+            message: "Google Login Success",
+            token: jwtToken,
+            user
+        });
+    }
+    catch (err) {
+        console.log(err);
+        return res.status(500).json({ success: false, message: "Google Login Failed" });
+    }
+};
+
+
 export const EmpOtp=async(req ,res)=>{
     try{
         const {email}=req.body;
@@ -78,7 +139,7 @@ export const EmpOtp=async(req ,res)=>{
             return res.status(404).json({success:false,message:"User doesnot have any account"});
         }
 
-        const otp=Math.floor(1000 + Math.random()*9000).toString();
+        const otp=Math.floor(100000 + Math.random()*900000).toString();
 
         await FORGOT.findOneAndUpdate(
             {email},{

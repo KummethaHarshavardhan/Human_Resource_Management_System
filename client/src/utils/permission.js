@@ -17,6 +17,7 @@ const permissions = {
     "employee",
     "attendance",
     "leave",
+    "payroll",
     "reports",
     "settings",
     "users"
