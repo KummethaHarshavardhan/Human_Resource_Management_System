@@ -1,23 +1,22 @@
-
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import './Register.css';
-import logo from '../../assets/infinetra-logo.png';
-import { registerUser } from '../../services/api';
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import "./Register.css";
+import logo from "../../assets/infinetra-logo.png";
+import { registerUser } from "../../services/api";
 
 function Register() {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [department, setDepartment] = useState('');
-  const [role, setRole] = useState('Employee');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [department, setDepartment] = useState("");
+  const [role, setRole] = useState("Employee");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   const [toast, setToast] = useState({
     show: false,
-    type: '',
-    message: ''
+    type: "",
+    message: "",
   });
 
   const [loading, setLoading] = useState(false);
@@ -30,14 +29,14 @@ function Register() {
     setToast({
       show: true,
       type,
-      message
+      message,
     });
 
     setTimeout(() => {
       setToast({
         show: false,
-        type: '',
-        message: ''
+        type: "",
+        message: "",
       });
     }, 3000);
   };
@@ -45,13 +44,29 @@ function Register() {
   const handleRegister = async (e) => {
     e.preventDefault();
 
-    if (!name || !email || !password || !confirmPassword) {
-      showToast('error', 'Please fill in all required fields.');
+    if (
+      !name ||
+      !email ||
+      !phone ||
+      !department ||
+      !password ||
+      !confirmPassword
+    ) {
+      showToast("error", "Please fill in all required fields.");
+      return;
+    }
+
+    // Remove spaces, hyphens, brackets, etc.
+    const cleanedPhone = phone.replace(/\D/g, "");
+
+    // Validate exactly 10 digits
+    if (cleanedPhone.length !== 10) {
+      showToast("error", "Please enter a valid 10-digit phone number.");
       return;
     }
 
     if (password !== confirmPassword) {
-      showToast('error', 'Passwords do not match.');
+      showToast("error", "Passwords do not match.");
       return;
     }
 
@@ -59,58 +74,49 @@ function Register() {
       setLoading(true);
 
       const data = await registerUser({
-        name,
-        email,
+        name: name.trim(),
+        email: email.trim().toLowerCase(),
+        phone: cleanedPhone,
+        department: department.trim(),
         password,
         confirm_password: confirmPassword,
-        phone:Number(phone),
-        department,
-        role
+        role,
       });
 
-      showToast('success', data.message || 'Registration successful');
+      showToast("success", data.message || "Registration successful");
 
       setTimeout(() => {
-        navigate('/login');
+        navigate("/login");
       }, 1500);
     } catch (error) {
-      console.error('Register error:', error);
+      console.error("Register error:", error);
 
       showToast(
-        'error',
-        error.message || 'Registration failed. Please try again.'
+        "error",
+        error.message || "Registration failed. Please try again.",
       );
     } finally {
       setLoading(false);
     }
   };
-
   return (
     <div className="login-container">
-
       {toast.show && (
         <div className={`toast-message ${toast.type}`}>
           <div className="toast-icon">
-            {toast.type === 'success' ? '✓' : '✕'}
+            {toast.type === "success" ? "✓" : "✕"}
           </div>
 
           <div className="toast-content">
-            <strong>
-              {toast.type === 'success' ? 'Success' : 'Error'}
-            </strong>
+            <strong>{toast.type === "success" ? "Success" : "Error"}</strong>
             <span>{toast.message}</span>
           </div>
         </div>
       )}
 
       <div className="login-left">
-
         <div className="brand-section">
-          <img
-            src={logo}
-            alt="Infinetra Logo"
-            className="logo-image"
-          />
+          <img src={logo} alt="Infinetra Logo" className="logo-image" />
 
           <h1>Infinetra HRMS</h1>
 
@@ -121,7 +127,6 @@ function Register() {
         </div>
 
         <div className="feature-cards">
-
           <div className="feature-card">
             <svg
               className="feature-icon"
@@ -140,9 +145,7 @@ function Register() {
 
             <h4>Unified Dashboard</h4>
 
-            <p>
-              Real-time metrics at your fingertips.
-            </p>
+            <p>Real-time metrics at your fingertips.</p>
           </div>
 
           <div className="feature-card">
@@ -163,11 +166,8 @@ function Register() {
 
             <h4>Secure Access</h4>
 
-            <p>
-              Enterprise-grade data protection.
-            </p>
+            <p>Enterprise-grade data protection.</p>
           </div>
-
         </div>
       </div>
 
@@ -179,12 +179,9 @@ function Register() {
 
           <h2>Create account</h2>
 
-          <p className="subtitle">
-            Please enter your details to register.
-          </p>
+          <p className="subtitle">Please enter your details to register.</p>
 
           <form onSubmit={handleRegister}>
-
             <div className="form-group">
               <label>Full Name</label>
               <input
@@ -248,7 +245,7 @@ function Register() {
 
               <div className="password-wrapper">
                 <input
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                   name="password"
                   placeholder="Enter password"
                   value={password}
@@ -261,7 +258,7 @@ function Register() {
                   onClick={() => setShowPassword(!showPassword)}
                   aria-label="Show or hide password"
                 >
-                  {showPassword ? '◉' : '◌'}
+                  {showPassword ? "◉" : "◌"}
                 </button>
               </div>
             </div>
@@ -271,7 +268,7 @@ function Register() {
 
               <div className="password-wrapper">
                 <input
-                  type={showConfirmPassword ? 'text' : 'password'}
+                  type={showConfirmPassword ? "text" : "password"}
                   name="confirmPassword"
                   placeholder="Re-enter password"
                   value={confirmPassword}
@@ -284,38 +281,28 @@ function Register() {
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   aria-label="Show or hide confirm password"
                 >
-                  {showConfirmPassword ? '◉' : '◌'}
+                  {showConfirmPassword ? "◉" : "◌"}
                 </button>
               </div>
             </div>
 
-            <button
-              type="submit"
-              className="btn-primary"
-              disabled={loading}
-            >
-              {loading ? 'Registering...' : 'Register'}
+            <button type="submit" className="btn-primary" disabled={loading}>
+              {loading ? "Registering..." : "Register"}
             </button>
-
           </form>
 
           <p className="register-text">
-            Already have an account?{' '}
+            Already have an account?{" "}
             <Link to="/login" className="link">
               Login
             </Link>
           </p>
 
-          <p className="powered-by">
-            POWERED BY INFINETRA TECH
-          </p>
-
+          <p className="powered-by">POWERED BY INFINETRA TECH</p>
         </div>
       </div>
-
     </div>
   );
 }
 
 export default Register;
-

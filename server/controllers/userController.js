@@ -31,32 +31,103 @@ export const passkey=async(req,res)=>{
 };
 
 
-export const EmpRegister=async(req,res)=>{
-    console.log(req.body);
-    
-    try{
-        const {name,email,password,confirm_password,role}=req.body;
-        if(password!==confirm_password){
-            return res.status(400).json({success:false,message:"password and confirma password does not matched"})
-        }
-        const UserExists=await Employees.findOne({email});
-        if(UserExists){
-            return res.status(409).json({success:false,message:"Email Already Exist Try another One"});
-        }
-        const hashpass=await bcrypt.hash(password,10);
-        const newuser=new Employees({
+export const EmpRegister = async (req, res) => {
+    console.log("REGISTER BODY:", req.body);
+
+    try {
+        const {
             name,
             email,
-            password:hashpass,
+            phone,
+            department,
+            password,
+            confirm_password,
             role
-        });
-        await newuser.save();
-        return res.status(200).json({success:true,message:"Employee Details Store SuccessFully"})
-    }catch(err){
-        return res.status(500).json({success:false,message:`Invalid Request ${err.message}`});
+        } = req.body;
 
+        // Required fields
+        if (
+            !name ||
+            !email ||
+            !phone ||
+            !department ||
+            !password ||
+            !confirm_password
+        ) {
+            return res.status(400).json({
+                success: false,
+                message: "All fields are required"
+            });
+        }
+
+        // Password confirmation
+        if (password !== confirm_password) {
+            return res.status(400).json({
+                success: false,
+                message: "Password and confirm password do not match"
+            });
+        }
+
+        // Clean phone number
+        const cleanedPhone = String(phone).replace(/\D/g, "");
+
+        // Validate phone
+        if (cleanedPhone.length !== 10) {
+            return res.status(400).json({
+                success: false,
+                message: "Please enter a valid 10-digit phone number"
+            });
+        }
+
+        // Check existing email
+        const UserExists = await Employees.findOne({
+            email: email.trim().toLowerCase()
+        });
+
+        if (UserExists) {
+            return res.status(409).json({
+                success: false,
+                message: "Email already exists. Try another one"
+            });
+        }
+
+        // Hash password
+        const hashpass = await bcrypt.hash(password, 10);
+
+        // Create user
+        const newuser = new Employees({
+            name: name.trim(),
+            email: email.trim().toLowerCase(),
+            phone: cleanedPhone,
+            department: department.trim(),
+            password: hashpass,
+            role: role || "Employee"
+        });
+
+        await newuser.save();
+
+        return res.status(201).json({
+            success: true,
+            message: "Employee registered successfully",
+            user: {
+                id: newuser._id,
+                name: newuser.name,
+                email: newuser.email,
+                phone: newuser.phone,
+                department: newuser.department,
+                role: newuser.role
+            }
+        });
+
+    } catch (err) {
+        console.error("REGISTER ERROR:", err);
+
+        return res.status(500).json({
+            success: false,
+            message: `Invalid Request ${err.message}`
+        });
     }
-}
+};
 
 export const EmpLogin=async(req,res)=>{
     try{

@@ -50,9 +50,10 @@ export const createEmployee = async (req, res) => {
         existingUser = await User.create({
           name,
           email,
+          phone,
           password: defaultHash,
-          role: "Employee",
-          department: "General"
+          role,
+          department
         });
       }
       resolvedUserId = existingUser._id;
@@ -241,6 +242,7 @@ export const updateEmployee = async (req, res) => {
       manager_id,
       date_of_joining,
       employment_status,
+      phone,
     } = req.body;
 
     const employee = await Employee.findById(id);
@@ -383,7 +385,7 @@ export const getMyProfile = async (req, res) => {
     const userId = req.user.id;
 
     const employee = await Employee.findOne({ user_id: userId })
-      .populate("user_id", "name email role")
+      .populate("user_id", "name email role phone")
       .populate(
         "department_id",
         "departmentId departmentName description location status"
