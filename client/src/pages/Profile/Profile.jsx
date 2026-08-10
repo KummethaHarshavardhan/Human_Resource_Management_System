@@ -1,14 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext.jsx';
 import { getProfile, updateProfile } from '../../services/api';
 import './Profile.css';
 
 function Profile() {
+  const { updateUser } = useAuth();
   const [profile, setProfile] = useState(null);
   const [form, setForm] = useState({
     name: '',
     phone: '',
-    department: ''
+    department: '',
+    role: ''
   });
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -27,7 +30,8 @@ function Profile() {
         setForm({
           name: data.user.name,
           phone: data.user.phone || '',
-          department: data.user.department || ''
+          department: data.user.department || '',
+          role: data.user.role || 'Employee'
         });
       } catch (err) {
         setError(err.message || 'Unable to load profile.');
@@ -53,7 +57,8 @@ function Profile() {
       setForm({
         name: profile.name,
         phone: profile.phone || '',
-        department: profile.department || ''
+        department: profile.department || '',
+        role: profile.role || 'Employee'
       });
     }
 
@@ -75,17 +80,19 @@ function Profile() {
       const data = await updateProfile({
         name: form.name,
         phone: form.phone,
-        department: form.department
+        department: form.department,
+        role: form.role
       });
       setProfile(data.user);
       setForm({
         name: data.user.name,
         phone: data.user.phone || '',
-        department: data.user.department || ''
+        department: data.user.department || '',
+        role: data.user.role || 'Employee'
       });
+      updateUser(data.user);
       setSuccess('Profile updated successfully.');
       setIsEditing(false);
-      localStorage.setItem('user', JSON.stringify(data.user));
     } catch (err) {
       setError(err.message || 'Unable to save profile.');
     } finally {
@@ -162,17 +169,7 @@ function Profile() {
 
           <div className="detail-row">
             <span>Email :</span>
-            {isEditing ? (
-              <input
-                name="email"
-                type="email"
-                value={form.email}
-                onChange={handleChange}
-                className="profile-input"
-              />
-            ) : (
-              <strong>{profile.email}</strong>
-            )}
+            <strong>{profile.email}</strong>
           </div>
           <div className="detail-row">
             <span>Phone :</span>
@@ -209,7 +206,20 @@ function Profile() {
 
           <div className="detail-row">
             <span>Role :</span>
-            <strong>{profile.role || 'Employee'}</strong>
+            {isEditing ? (
+              <select
+                name="role"
+                value={form.role}
+                onChange={handleChange}
+                className="profile-input"
+              >
+                <option value="Admin">Admin</option>
+                <option value="HR">HR</option>
+                <option value="Employee">Employee</option>
+              </select>
+            ) : (
+              <strong>{profile.role || 'Employee'}</strong>
+            )}
           </div>
 
           {isEditing && (

@@ -6,7 +6,7 @@ export default function Navbar() {
       <div className="navbar-left">
         <div className="navbar-brand">
           <strong>Infinetra HRMS</strong>
-          <small>People & Payroll</small>
+          
         </div>
 
         <nav className="navbar-links">

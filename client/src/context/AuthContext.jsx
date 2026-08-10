@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, useState } from "react";
+import { createContext, useContext, useMemo, useState, useEffect } from "react";
 
 const AuthContext = createContext(null);
 
@@ -53,7 +53,44 @@ export function AuthProvider({ children }) {
 
   };
 
+  const updateUser = (updatedUser) => {
+    setUser(updatedUser);
+    localStorage.setItem("user", JSON.stringify(updatedUser));
+  };
 
+  // Validate token on startup — if token is invalid/expired, clear auth state
+  useEffect(() => {
+    const validateToken = async () => {
+      if (!token) return;
+
+      try {
+        const res = await fetch('/api/profile', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          }
+        });
+
+        if (!res.ok) {
+          // token invalid or expired
+          logout();
+        } else {
+          const data = await res.json();
+          // ensure local user matches server
+          if (data?.user) {
+            setUser(data.user);
+            localStorage.setItem('user', JSON.stringify(data.user));
+          }
+        }
+      } catch (err) {
+        logout();
+      }
+    };
+
+    validateToken();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
 
   const value = useMemo(()=>({
 
@@ -64,7 +101,8 @@ export function AuthProvider({ children }) {
     isAuthenticated: Boolean(token && user),
 
     login,
-    logout
+    logout,
+    updateUser
 
   }),[user,token,loading]);
 

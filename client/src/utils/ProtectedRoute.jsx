@@ -26,9 +26,8 @@ export default function ProtectedRoute({
       .map(role => role.toLowerCase())
       .includes(userRole)
   ) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/profile" replace />;
   }
-
 
   return children;
 }
