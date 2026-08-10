@@ -1,42 +1,48 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext.jsx';
-import { getProfile, updateProfile } from '../../services/api';
-import './Profile.css';
+import React, { useEffect, useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { getProfile, updateProfile } from "../../services/api";
+import { useAuth } from "../../context/AuthContext";
+import { FiEdit2, FiArrowLeft, FiUser, FiMail, FiPhone, FiBriefcase, FiShield, FiCheckCircle } from "react-icons/fi";
+import "../../components/employee/emp.shared.css";
+import "./Profile.css";
 
 function Profile() {
-  const { updateUser } = useAuth();
+  const { user: authUser, updateUser } = useAuth();
   const [profile, setProfile] = useState(null);
   const [form, setForm] = useState({
-    name: '',
-    phone: '',
-    department: '',
-    role: ''
+    name: "",
+    email:"",
+    phone: "",
+    department: "",
   });
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
     const loadProfile = async () => {
       setLoading(true);
-      setError('');
+      setError("");
       try {
         const data = await getProfile();
-        setProfile(data.user);
+        const u = data.user || {};
+        setProfile(u);
         setForm({
-          name: data.user.name,
-          phone: data.user.phone || '',
-          department: data.user.department || '',
-          role: data.user.role || 'Employee'
+          name: u.name || "",
+          email: u.email || "",
+          phone: u.phone || "",
+          department: u.department || "",
         });
+        if (updateUser && u.name) {
+          updateUser(u);
+        }
       } catch (err) {
-        setError(err.message || 'Unable to load profile.');
-        if (err.message === 'Authentication required') {
-          navigate('/login');
+        setError(err.message || "Unable to load profile.");
+        if (err.message === "Authentication required") {
+          navigate("/login");
         }
       } finally {
         setLoading(false);
@@ -46,30 +52,31 @@ function Profile() {
     loadProfile();
   }, [navigate]);
 
+  const canEditDepartment = profile?.role === "Admin" || profile?.role === "HR" || authUser?.role === "Admin" || authUser?.role === "HR";
+
   const handleEdit = () => {
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
     setIsEditing(true);
   };
 
   const handleCancel = () => {
     if (profile) {
       setForm({
-        name: profile.name,
-        phone: profile.phone || '',
-        department: profile.department || '',
-        role: profile.role || 'Employee'
+        name: profile.name || "",
+        email: profile.email || "",
+        phone: profile.phone || "",
+        department: profile.department || "",
       });
     }
-
     setIsEditing(false);
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
   };
 
-  const handleChange = (event) => {
-    const { name, value } = event.target;
-    setForm((prevState) => ({ ...prevState, [name]: value }));
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSave = async () => {
@@ -102,134 +109,219 @@ function Profile() {
 
   if (loading) {
     return (
-      <div className="profile-page">
-        <div className="profile-loader">Loading profile...</div>
+      <div className="emp-page">
+        <div className="emp-loading">
+          <span className="emp-spinner" />
+          Loading your profile...
+        </div>
       </div>
     );
   }
 
   if (!profile) {
     return (
-      <div className="profile-page">
-        <div className="profile-loader">Unable to load profile.</div>
+      <div className="emp-page">
+        <div className="emp-alert error">Unable to load profile data.</div>
       </div>
     );
   }
 
+  const name = profile.name || "User";
+  const email = profile.email || "—";
+  const role = profile.role || "Employee";
+  const dept = profile.department || "Engineering";
+  const phone = profile.phone || "-";
+
   return (
-    <div className="profile-page">
-      <div className="profile-header">
-        <div>
-          <h1>Profile</h1>
-          <p>Review and manage your account information.</p>
+    <div className="emp-page profile-redesign-wrapper">
+      <div className="emp-page-header">
+        <div className="emp-page-header-text">
+          <h1>My Profile</h1>
+          <p>Review and manage your account credentials & personal information.</p>
         </div>
 
-        <div className="profile-actions">
-          <Link to="/dashboard" className="profile-link-button">
-            Back to Dashboard
+        <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+          <Link to="/dashboard" className="emp-btn-secondary">
+            <FiArrowLeft size={16} /> Back to Dashboard
           </Link>
           {!isEditing && (
-            <button type="button" className="edit-profile-btn" onClick={handleEdit}>
-              Edit Profile
+            <button type="button" className="emp-btn-primary" onClick={handleEdit} id="edit-profile-btn">
+              <FiEdit2 size={16} /> Edit Profile
             </button>
           )}
         </div>
       </div>
 
-      {error && <div className="profile-alert error">{error}</div>}
-      {success && <div className="profile-alert success">{success}</div>}
+      {error && <div className="emp-alert error">{error}</div>}
+      {success && <div className="emp-alert success">{success}</div>}
 
-      <div className="profile-content">
-        <div className="profile-card profile-summary">
-          <div className="profile-avatar">
-            {profile.name?.split(' ').map((part) => part[0]).join('').toUpperCase()}
+      <div className="profile-layout-grid">
+        <div className="profile-hero-card">
+          <div className="profile-hero-avatar-wrapper">
+            <div className="profile-hero-avatar">
+              {name.charAt(0).toUpperCase()}
+            </div>
+            <span className="profile-status-indicator" title="Active Account">
+              <FiCheckCircle size={14} />
+            </span>
           </div>
-          <h2>{profile.name}</h2>
-          <p className="profile-role">{profile.role || 'Employee'}</p>
-          <p className="profile-email">{profile.email}</p>
+
+          <h2 className="profile-user-name">{name}</h2>
+          <span className="profile-user-role-badge">{role}</span>
+          <p className="profile-user-email">{email}</p>
+
+          <div className="profile-quick-stats">
+            <div className="profile-stat-box">
+              <span className="profile-stat-label">Department</span>
+              <span className="profile-stat-value">{dept}</span>
+            </div>
+            <div className="profile-stat-box">
+              <span className="profile-stat-label">Status</span>
+              <span className="profile-stat-value active">Active</span>
+            </div>
+          </div>
         </div>
 
-        <div className="profile-card profile-details">
-          <h2>Personal Information</h2>
-
-          <div className="detail-row">
-            <span>Name :</span>
-            {isEditing ? (
-              <input
-                name="name"
-                type="text"
-                value={form.name}
-                onChange={handleChange}
-                className="profile-input"
-              />
-            ) : (
-              <strong>{profile.name}</strong>
-            )}
+        <div className="profile-details-card">
+          <div className="profile-card-header">
+            <h2>{isEditing ? "Edit Personal Details" : "Personal Details"}</h2>
+            <span className="profile-card-subtitle">
+              {isEditing ? "Update your contact and department details below." : "View your details registered on Infinetra HRMS."}
+            </span>
           </div>
 
-          <div className="detail-row">
-            <span>Email :</span>
-            <strong>{profile.email}</strong>
-          </div>
-          <div className="detail-row">
-            <span>Phone :</span>
+          {isEditing ? (
+            <form className="profile-edit-form" onSubmit={(e) => e.preventDefault()}>
+              <div className="profile-form-grid">
+                <div className="profile-form-group">
+                  <label className="profile-form-label">
+                    <FiUser size={14} /> Full Name <span>*</span>
+                  </label>
+                  <input
+                    name="name"
+                    type="text"
+                    value={form.name}
+                    onChange={handleChange}
+                    className="profile-form-input"
+                    placeholder="Enter your full name"
+                  />
+                </div>
 
-            {isEditing ? (
-              <input
-                name="phone"
-                type="text"
-                value={form.phone}
-                onChange={handleChange}
-                className="profile-input"
-              />
-            ) : (
-              <strong>{profile.phone}</strong>
-            )}
-          </div>
+                <div className="profile-form-group">
+                  <label className="profile-form-label">
+                    <FiMail size={14} /> Email Address (Read-Only)
+                  </label>
+                  <input
+                    name="email"
+                    type="email"
+                    value={form.email}
+                    disabled
+                    className="profile-form-input disabled"
+                  />
+                </div>
 
+                <div className="profile-form-group">
+                  <label className="profile-form-label">
+                    <FiPhone size={14} /> Phone Number
+                  </label>
+                  <input
+                    name="phone"
+                    type="text"
+                    value={form.phone}
+                    onChange={handleChange}
+                    className="profile-form-input"
+                    placeholder="e.g. +91 9876543210"
+                  />
+                </div>
 
-          <div className="detail-row">
-            <span>Department :</span>
+                <div className="profile-form-group">
+                  <label className="profile-form-label">
+                    <FiBriefcase size={14} /> Department {!canEditDepartment && "(Read-Only)"}
+                  </label>
+                  <input
+                    name="department"
+                    type="text"
+                    value={form.department}
+                    onChange={handleChange}
+                    disabled={!canEditDepartment}
+                    className={`profile-form-input ${!canEditDepartment ? "disabled" : ""}`}
+                    placeholder="e.g. Engineering"
+                  />
+                  {!canEditDepartment && (
+                    <span className="profile-field-hint" style={{ fontSize: "0.75rem", color: "#64748b", marginTop: 4, display: "block" }}>
+                      Department can only be modified by Admin or HR.
+                    </span>
+                  )}
+                </div>
+              </div>
 
-            {isEditing ? (
-              <input
-                name="department"
-                type="text"
-                value={form.department}
-                onChange={handleChange}
-                className="profile-input"
-              />
-            ) : (
-              <strong>{profile.department}</strong>
-            )}
-          </div>
+              <div className="profile-form-actions">
+                <button
+                  type="button"
+                  className="emp-btn-secondary"
+                  onClick={handleCancel}
+                  disabled={saving}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="emp-btn-primary"
+                  onClick={handleSave}
+                  disabled={saving}
+                >
+                  {saving ? (
+                    <>
+                      <span className="emp-spinner" style={{ width: 14, height: 14, borderWidth: 2 }} />
+                      Saving...
+                    </>
+                  ) : (
+                    "Save Changes"
+                  )}
+                </button>
+              </div>
+            </form>
+          ) : (
+            <div className="profile-info-grid">
+              <div className="profile-info-item">
+                <div className="profile-info-icon"><FiUser size={18} /></div>
+                <div className="profile-info-content">
+                  <span className="profile-info-label">Full Name</span>
+                  <strong className="profile-info-value">{name}</strong>
+                </div>
+              </div>
 
-          <div className="detail-row">
-            <span>Role :</span>
-            {isEditing ? (
-              <select
-                name="role"
-                value={form.role}
-                onChange={handleChange}
-                className="profile-input"
-              >
-                <option value="Admin">Admin</option>
-                <option value="HR">HR</option>
-                <option value="Employee">Employee</option>
-              </select>
-            ) : (
-              <strong>{profile.role || 'Employee'}</strong>
-            )}
-          </div>
+              <div className="profile-info-item">
+                <div className="profile-info-icon"><FiMail size={18} /></div>
+                <div className="profile-info-content">
+                  <span className="profile-info-label">Email Address</span>
+                  <strong className="profile-info-value">{email}</strong>
+                </div>
+              </div>
 
-          {isEditing && (
-            <div className="edit-controls">
-              <button type="button" className="btn-secondary" onClick={handleCancel} disabled={saving}>
-                Cancel
-              </button>
-              <button type="button" className="btn-primary" onClick={handleSave} disabled={saving}>
-                {saving ? 'Saving...' : 'Save Changes'}
-              </button>
+              <div className="profile-info-item">
+                <div className="profile-info-icon"><FiPhone size={18} /></div>
+                <div className="profile-info-content">
+                  <span className="profile-info-label">Phone Number</span>
+                  <strong className="profile-info-value">{phone}</strong>
+                </div>
+              </div>
+
+              <div className="profile-info-item">
+                <div className="profile-info-icon"><FiBriefcase size={18} /></div>
+                <div className="profile-info-content">
+                  <span className="profile-info-label">Department</span>
+                  <strong className="profile-info-value">{dept}</strong>
+                </div>
+              </div>
+
+              <div className="profile-info-item">
+                <div className="profile-info-icon"><FiShield size={18} /></div>
+                <div className="profile-info-content">
+                  <span className="profile-info-label">System Role</span>
+                  <strong className="profile-info-value">{role}</strong>
+                </div>
+              </div>
             </div>
           )}
         </div>

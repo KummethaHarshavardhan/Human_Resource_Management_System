@@ -7,7 +7,8 @@ const permissions = {
     "leave",
     "payroll",
     "reports",
-    "settings"
+    "settings",
+    "users"
   ],
 
   hr: [
@@ -16,23 +17,24 @@ const permissions = {
     "employee",
     "attendance",
     "leave",
+    "payroll",
     "reports",
-    "settings"
+    "settings",
+    "users"
   ],
 
   employee: [
     "dashboard",
     "profile",
+    "employee",
     "attendance",
-    "leave"
+    "leave",
+    "settings"
   ]
 };
 
-
 export const canAccessFeature = (role, feature) => {
   if (!role) return false;
-
   const normalizedRole = role.toLowerCase();
-
   return permissions[normalizedRole]?.includes(feature) || false;
 };

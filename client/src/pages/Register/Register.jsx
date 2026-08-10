@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { Link, useNavigate, Navigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import './Register.css';
 import logo from '../../assets/infinetra-logo.png';
 import { registerUser } from '../../services/api';
@@ -62,17 +63,12 @@ function Register() {
         email,
         password,
         confirm_password: confirmPassword,
-        phone: Number(phone),
+        phone:Number(phone),
         department,
         role
       });
 
-      showToast(
-        'success',
-        data.message || 'Registration successful'
-      );
-
-      sessionStorage.removeItem('passkeyVerified');
+      showToast('success', data.message || 'Registration successful');
 
       setTimeout(() => {
         navigate('/login');
@@ -89,13 +85,6 @@ function Register() {
     }
   };
 
-  const isPasskeyVerified =
-    sessionStorage.getItem('passkeyVerified') === 'true';
-
-  if (!isPasskeyVerified) {
-    return <Navigate to="/login" replace />;
-  }
-
   return (
     <div className="login-container">
 
@@ -109,10 +98,7 @@ function Register() {
             <strong>
               {toast.type === 'success' ? 'Success' : 'Error'}
             </strong>
-
-            <span>
-              {toast.message}
-            </span>
+            <span>{toast.message}</span>
           </div>
         </div>
       )}
@@ -120,28 +106,23 @@ function Register() {
       <div className="login-left">
 
         <div className="brand-section">
-
           <img
             src={logo}
             alt="Infinetra Logo"
             className="logo-image"
           />
 
-          <h1>
-            Infinetra HRMS
-          </h1>
+          <h1>Infinetra HRMS</h1>
 
           <p className="brand-description">
             Elevating enterprise productivity through intelligent employee
             management and seamless human resource workflows.
           </p>
-
         </div>
 
         <div className="feature-cards">
 
           <div className="feature-card">
-
             <svg
               className="feature-icon"
               width="22"
@@ -151,51 +132,20 @@ function Register() {
               stroke="currentColor"
               strokeWidth="2"
             >
-              <rect
-                x="3"
-                y="3"
-                width="7"
-                height="7"
-                rx="1"
-              />
-
-              <rect
-                x="14"
-                y="3"
-                width="7"
-                height="7"
-                rx="1"
-              />
-
-              <rect
-                x="3"
-                y="14"
-                width="7"
-                height="7"
-                rx="1"
-              />
-
-              <rect
-                x="14"
-                y="14"
-                width="7"
-                height="7"
-                rx="1"
-              />
+              <rect x="3" y="3" width="7" height="7" rx="1" />
+              <rect x="14" y="3" width="7" height="7" rx="1" />
+              <rect x="3" y="14" width="7" height="7" rx="1" />
+              <rect x="14" y="14" width="7" height="7" rx="1" />
             </svg>
 
-            <h4>
-              Unified Dashboard
-            </h4>
+            <h4>Unified Dashboard</h4>
 
             <p>
               Real-time metrics at your fingertips.
             </p>
-
           </div>
 
           <div className="feature-card">
-
             <svg
               className="feature-icon"
               width="22"
@@ -208,35 +158,26 @@ function Register() {
               strokeLinejoin="round"
             >
               <path d="M12 2L20 6V12C20 17 16.5 20 12 22C7.5 20 4 17 4 12V6L12 2Z" />
-
               <path d="M8.5 12L11 14.5L15.5 10" />
             </svg>
 
-            <h4>
-              Secure Access
-            </h4>
+            <h4>Secure Access</h4>
 
             <p>
               Enterprise-grade data protection.
             </p>
-
           </div>
 
         </div>
-
       </div>
 
       <div className="login-right">
-
         <div className="login-form-box">
-
-          <div className="theme-icon">
-            ☾
+          <div className="mobile-logo-header">
+            <img src={logo} alt="Infinetra Logo" className="mobile-logo" />
           </div>
 
-          <h2>
-            Create account
-          </h2>
+          <h2>Create account</h2>
 
           <p className="subtitle">
             Please enter your details to register.
@@ -245,321 +186,107 @@ function Register() {
           <form onSubmit={handleRegister}>
 
             <div className="form-group">
-
-              <label>
-                Full Name
-              </label>
-
+              <label>Full Name</label>
               <input
                 type="text"
                 name="name"
                 placeholder="Enter your name"
                 value={name}
-                onChange={(e) =>
-                  setName(e.target.value)
-                }
+                onChange={(e) => setName(e.target.value)}
               />
-
             </div>
 
             <div className="form-group">
-
-              <label>
-                Email Address
-              </label>
-
+              <label>Email Address</label>
               <input
                 type="email"
                 name="email"
                 placeholder="name@company.com"
                 value={email}
-                onChange={(e) =>
-                  setEmail(e.target.value)
-                }
+                onChange={(e) => setEmail(e.target.value)}
               />
-
             </div>
 
             <div className="form-group">
-
-              <label>
-                Phone Number
-              </label>
-
+              <label>Phone Number</label>
               <input
                 type="tel"
                 name="phone"
                 placeholder="Enter your phone number"
                 value={phone}
-                onChange={(e) =>
-                  setPhone(e.target.value)
-                }
+                onChange={(e) => setPhone(e.target.value)}
               />
-
             </div>
 
             <div className="form-group">
-
-              <label>
-                Department
-              </label>
-
+              <label>Department</label>
               <input
                 type="text"
                 name="department"
                 placeholder="e.g. Engineering, Sales, HR"
                 value={department}
-                onChange={(e) =>
-                  setDepartment(e.target.value)
-                }
+                onChange={(e) => setDepartment(e.target.value)}
               />
-
             </div>
 
             <div className="form-group">
-
-              <label>
-                Role
-              </label>
+              <label>Role</label>
 
               <select
                 name="role"
                 value={role}
-                onChange={(e) =>
-                  setRole(e.target.value)
-                }
+                onChange={(e) => setRole(e.target.value)}
               >
-                <option value="Employee">
-                  Employee
-                </option>
-
-                <option value="HR">
-                  HR
-                </option>
-
-                <option value="Admin">
-                  Admin
-                </option>
+                <option value="Employee">Employee</option>
+                <option value="HR">HR</option>
+                <option value="Admin">Admin</option>
               </select>
-
             </div>
 
             <div className="form-group">
-
-              <label>
-                Password
-              </label>
+              <label>Password</label>
 
               <div className="password-wrapper">
-
                 <input
-                  type={
-                    showPassword
-                      ? 'text'
-                      : 'password'
-                  }
+                  type={showPassword ? 'text' : 'password'}
                   name="password"
                   placeholder="Enter password"
                   value={password}
-                  onChange={(e) =>
-                    setPassword(e.target.value)
-                  }
+                  onChange={(e) => setPassword(e.target.value)}
                 />
 
                 <button
                   type="button"
                   className="eye-button"
-                  onClick={() =>
-                    setShowPassword(
-                      !showPassword
-                    )
-                  }
-                  aria-label={
-                    showPassword
-                      ? 'Hide password'
-                      : 'Show password'
-                  }
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label="Show or hide password"
                 >
-
-                  {showPassword ? (
-
-                    <svg
-                      className="eye-svg"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                      aria-hidden="true"
-                    >
-
-                      <path
-                        d="M2.5 12C4.1 8.5 7.6 6 12 6C16.4 6 19.9 8.5 21.5 12C19.9 15.5 16.4 18 12 18C7.6 18 4.1 15.5 2.5 12Z"
-                        stroke="currentColor"
-                        strokeWidth="1.8"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-
-                      <circle
-                        cx="12"
-                        cy="12"
-                        r="2.7"
-                        stroke="currentColor"
-                        strokeWidth="1.8"
-                      />
-
-                    </svg>
-
-                  ) : (
-
-                    <svg
-                      className="eye-svg"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                      aria-hidden="true"
-                    >
-
-                      <path
-                        d="M2.5 12C4.1 8.5 7.6 6 12 6C16.4 6 19.9 8.5 21.5 12C19.9 15.5 16.4 18 12 18C7.6 18 4.1 15.5 2.5 12Z"
-                        stroke="currentColor"
-                        strokeWidth="1.8"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-
-                      <circle
-                        cx="12"
-                        cy="12"
-                        r="2.7"
-                        stroke="currentColor"
-                        strokeWidth="1.8"
-                      />
-
-                      <path
-                        d="M4 4L20 20"
-                        stroke="currentColor"
-                        strokeWidth="1.8"
-                        strokeLinecap="round"
-                      />
-
-                    </svg>
-
-                  )}
-
+                  {showPassword ? '◉' : '◌'}
                 </button>
-
               </div>
-
             </div>
 
             <div className="form-group">
-
-              <label>
-                Confirm Password
-              </label>
+              <label>Confirm Password</label>
 
               <div className="password-wrapper">
-
                 <input
-                  type={
-                    showConfirmPassword
-                      ? 'text'
-                      : 'password'
-                  }
+                  type={showConfirmPassword ? 'text' : 'password'}
                   name="confirmPassword"
                   placeholder="Re-enter password"
                   value={confirmPassword}
-                  onChange={(e) =>
-                    setConfirmPassword(
-                      e.target.value
-                    )
-                  }
+                  onChange={(e) => setConfirmPassword(e.target.value)}
                 />
 
                 <button
                   type="button"
                   className="eye-button"
-                  onClick={() =>
-                    setShowConfirmPassword(
-                      !showConfirmPassword
-                    )
-                  }
-                  aria-label={
-                    showConfirmPassword
-                      ? 'Hide confirm password'
-                      : 'Show confirm password'
-                  }
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  aria-label="Show or hide confirm password"
                 >
-
-                  {showConfirmPassword ? (
-
-                    <svg
-                      className="eye-svg"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                      aria-hidden="true"
-                    >
-
-                      <path
-                        d="M2.5 12C4.1 8.5 7.6 6 12 6C16.4 6 19.9 8.5 21.5 12C19.9 15.5 16.4 18 12 18C7.6 18 4.1 15.5 2.5 12Z"
-                        stroke="currentColor"
-                        strokeWidth="1.8"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-
-                      <circle
-                        cx="12"
-                        cy="12"
-                        r="2.7"
-                        stroke="currentColor"
-                        strokeWidth="1.8"
-                      />
-
-                    </svg>
-
-                  ) : (
-
-                    <svg
-                      className="eye-svg"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                      aria-hidden="true"
-                    >
-
-                      <path
-                        d="M2.5 12C4.1 8.5 7.6 6 12 6C16.4 6 19.9 8.5 21.5 12C19.9 15.5 16.4 18 12 18C7.6 18 4.1 15.5 2.5 12Z"
-                        stroke="currentColor"
-                        strokeWidth="1.8"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-
-                      <circle
-                        cx="12"
-                        cy="12"
-                        r="2.7"
-                        stroke="currentColor"
-                        strokeWidth="1.8"
-                      />
-
-                      <path
-                        d="M4 4L20 20"
-                        stroke="currentColor"
-                        strokeWidth="1.8"
-                        strokeLinecap="round"
-                      />
-
-                    </svg>
-
-                  )}
-
+                  {showConfirmPassword ? '◉' : '◌'}
                 </button>
-
               </div>
-
             </div>
 
             <button
@@ -567,24 +294,16 @@ function Register() {
               className="btn-primary"
               disabled={loading}
             >
-              {loading
-                ? 'Registering...'
-                : 'Register'}
+              {loading ? 'Registering...' : 'Register'}
             </button>
 
           </form>
 
           <p className="register-text">
-
             Already have an account?{' '}
-
-            <Link
-              to="/login"
-              className="link"
-            >
+            <Link to="/login" className="link">
               Login
             </Link>
-
           </p>
 
           <p className="powered-by">
@@ -592,7 +311,6 @@ function Register() {
           </p>
 
         </div>
-
       </div>
 
     </div>
@@ -600,3 +318,4 @@ function Register() {
 }
 
 export default Register;
+

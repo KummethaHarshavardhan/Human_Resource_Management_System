@@ -1,10 +1,10 @@
 import Employees from "../models/UserModel.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import FORGOT from "../models/forgotModel.js";
-import transporter from "../config/mail.js";
-import dotenv from "dotenv";
-dotenv.config();
+import FORGOT from '../models/forgotModel.js';
+import transporter from '../config/mail.js';
+import dotenv from 'dotenv';
+dotenv.config()
 
 import { OAuth2Client } from "google-auth-library";
 
@@ -12,7 +12,7 @@ const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 export const passkey=async(req,res)=>{
     try{
-        const key='27#ITSPAXIOUS-INNOVATIONS'
+        const key=process.env.KEY;
         const {passkey}=req.body;
         if(key!=passkey){
             return res.status(400).json({
@@ -31,93 +31,67 @@ export const passkey=async(req,res)=>{
 };
 
 
-export const EmpRegister = async (req, res) => {
-    try {
-        const { name, email, password, confirm_password, role, phone, department } = req.body;
-        if (password !== confirm_password) {
-            return res.status(400).json({
-                success: false,
-                message: "Password and Confirm Password do not match"
-            });
+export const EmpRegister=async(req,res)=>{
+    console.log(req.body);
+    
+    try{
+        const {name,email,password,confirm_password,role}=req.body;
+        if(password!==confirm_password){
+            return res.status(400).json({success:false,message:"password and confirma password does not matched"})
         }
-        const userExists = await Employees.findOne({ email });
-        if (userExists) {
-            return res.status(409).json({
-                success: false,
-                message: "Email already exists"
-            });
+        const UserExists=await Employees.findOne({email});
+        if(UserExists){
+            return res.status(409).json({success:false,message:"Email Already Exist Try another One"});
         }
-        const hashPassword = await bcrypt.hash(password, 10);
-        const newUser = new Employees({
+        const hashpass=await bcrypt.hash(password,10);
+        const newuser=new Employees({
             name,
             email,
-            password: hashPassword,
-            role,
-            phone,
-            department
+            password:hashpass,
+            role
         });
-        await newUser.save();
-        return res.status(201).json({
-            success: true,
-            message: "Employee Registered Successfully"
-        });
-    } catch (err) {
-        return res.status(500).json({
-            success: false,
-            message: err.message
-        });
+        await newuser.save();
+        return res.status(200).json({success:true,message:"Employee Details Store SuccessFully"})
+    }catch(err){
+        return res.status(500).json({success:false,message:`Invalid Request ${err.message}`});
+
     }
-};
+}
 
-
-export const EmpLogin = async (req, res) => {
-    try {
+export const EmpLogin=async(req,res)=>{
+    try{
         const { email, password } = req.body;
+        const empdata=await Employees.findOne({email});
         const user = await Employees.findOne({ email });
         if (!user) {
-            return res.status(401).json({
-                success: false,
-                message: "Invalid Email or Password"
-            });
+            return res.status(400).json({ success: false, message: "Check your Email & Password" });
         }
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
-            return res.status(401).json({
-                success: false,
-                message: "Invalid Email or Password"
-            });
+            return res.status(400).json({ success: false, message: "Check your Email & Password" });
         }
         const token = jwt.sign(
-            {
-                id: user._id,
-                email: user.email,
-                role: user.role
-            },
-            process.env.JWT_SECRET,
-            {
-                expiresIn: process.env.JWT_EXPIRES_IN || "1d"
-            }
+            { id: user._id, email: user.email, role: user.role },
+             process.env.JWT_SECRET,
+            { expiresIn: process.env.JWT_EXPIRES_IN || "1d" }
         );
-        return res.status(200).json({
-            success: true,
-            message: "Login Success",
-            token,
-            user: {
-                id: user._id,
-                name: user.name,
-                email: user.email,
-                role: user.role,
-                phone: user.phone,
-                department: user.department
-            }
-        });
-    } catch (err) {
-        return res.status(500).json({
-            success: false,
-            message: err.message
-        });
+        return res.status(200).cookie("token", token, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === "production",
+                sameSite: "strict",
+                maxAge: 24 * 60 * 60 * 1000, // 1 day
+            })
+            .json({
+                success: true,
+                message: "Employee Logged In",
+                token,
+                user: { id: user._id, name: user.name, email: user.email, role: user.role },
+            });
+    }catch(err){
+        console.log("LOGIN ERROR:", err);
+        return res.status(500).json({success:false,message:"Sorry Invalid Request"});
     }
-};
+}
 
 export const googleLogin = async (req, res) => {
     try {
@@ -156,163 +130,165 @@ export const googleLogin = async (req, res) => {
 };
 
 
-export const EmpOtp = async (req, res) => {
-    try {
-        const { email } = req.body;
-        const user = await Employees.findOne({ email });
-        if (!user) {
-            return res.status(404).json({
-                success: false,
-                message: "User not found"
-            });
+export const EmpOtp=async(req ,res)=>{
+    try{
+        const {email}=req.body;
+        console.log("Email:", email);
+        const userExist=await Employees.findOne({email});
+        if(!userExist){
+            return res.status(404).json({success:false,message:"User doesnot have any account"});
         }
-        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+        const otp=Math.floor(100000 + Math.random()*900000).toString();
+
         await FORGOT.findOneAndUpdate(
-            { email },
-            {
+            {email},{
                 email,
                 otp,
-                otpExpiry: Date.now() + 5 * 60 * 1000
+                otpExpiry:Date.now()+5*60*1000
             },
             {
-                upsert: true,
-                returnDocument: "after"
+                upsert:true,
+                returnDocument:"after"
             }
         );
+        await transporter.verify();
         await transporter.sendMail({
-            from: process.env.EMAIL,
-            to: email,
-            subject: "Password Reset OTP",
-            text: `Your OTP is ${otp}`
+            from:process.env.EMAIL,
+            to:email,
+            subject:"password Reset OTP",
+            text:`Your OTP is ${otp}.It is valid for 5 min`
         });
-        return res.status(200).json({
+        return res.status(200).json({success:true,message:"OTP send Successfully"})
 
-            success: true,
-            message: "OTP Sent"
-
-        });
-
-    }
-    catch (err) {
-        return res.status(500).json({
-            success: false,
-            message: err.message
-
-        });
-    }
-
-};
-
-
-
-export const verifyOtp = async (req, res) => {
-    try {
-        const { email, otp } = req.body;
-        const otpData = await FORGOT.findOne({
-            email,
-            otp
-        });
-        if (!otpData) {
-            return res.status(400).json({
-                success: false,
-                message: "Invalid OTP"
-            });
-        }
-        if (otpData.otpExpiry < Date.now()) {
-            return res.status(400).json({
-                success: false,
-                message: "OTP Expired"
-            });
-        }
-        return res.status(200).json({
-            success: true,
-            message: "OTP Verified"
-        });
-    }
-    catch (err) {
-        return res.status(500).json({
-            success: false,
-            message: err.message
-        });
+    }catch(err){
+        console.log(err)
+        return res.status(500).json({success:false,message:"Invalid Request"})
     }
 };
 
+export const verifyOtp=async(req ,res)=>{
+    try{
+        const { email, otp }=req.body;
+        const otpdata=await FORGOT.findOne({email, otp});
+        if(!otpdata){
+            return res.status(404).json({success:true,message:"Invalid OTP"})
+        }
+        if(otpdata.otpExpiry<Date.now()){
+            return res.status(400).json({success:false,message:'OTP Expired'});
+        }
+        return res.status(200).json({success:true,message:"OTP verified SuccessFully"});
+    
+    }catch(err){
+        return res.status(500).json({success:false,message:"Internal server is error"})
+    }
+};
 
 
 export const resetPassword = async (req, res) => {
     try {
-        const {
-            email,
-            newPassword,
-            confirmPassword
-        } = req.body;
-        if (newPassword !== confirmPassword) {
-            return res.status(400).json({
-                success: false,
-                message: "Passwords do not match"
-            });
+        const { email, newPassword, confirmPassword } = req.body;
+        if (newPassword != confirmPassword) {
+            return res.status(400).json({ success: false, message: "Password Not Match" });
         }
-        const user = await Employees.findOne({
-            email
-        });
-        if (!user) {
-            return res.status(404).json({
-                success: false,
-                message: "User not found"
-            });
-        }
-        user.password = await bcrypt.hash(newPassword, 10);
-        await user.save();
-        await FORGOT.findOneAndDelete({
-            email
-        });
-        return res.status(200).json({
-            success: true,
-            message: "Password Updated"
-        });
-    }
-    catch (err) {
-        return res.status(500).json({
-            success: false,
-            message: err.message
-        });
-    }
-};
-
-export const getUserProfile = async (req, res) => {
-    try {
-        const user = await Employees.findById(req.user.id).select("-password");
+        const user = await Employees.findOne({ email }); // fixed: was undefined "USER"
         if (!user) {
             return res.status(404).json({ success: false, message: "User not found" });
         }
+        const hashPassword = await bcrypt.hash(newPassword, 10);
+        user.password = hashPassword;
+        await user.save();
+        await FORGOT.findOneAndDelete({ email });
+        return res.status(200).json({ success: true, message: "Password changed successfully" });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: "Invalid server error" });
+    }
+};
+
+export const changePassword = async (req, res) => {
+    try {
+        const { currentPassword, newPassword, confirmPassword } = req.body;
+
+        if (!currentPassword || !newPassword || !confirmPassword) {
+            return res.status(400).json({ success: false, message: "All password fields are required" });
+        }
+
+        if (newPassword !== confirmPassword) {
+            return res.status(400).json({ success: false, message: "New password and confirmation do not match" });
+        }
+
+        if (newPassword.length < 8) {
+            return res.status(400).json({ success: false, message: "New password must be at least 8 characters long" });
+        }
+
+        const user = await Employees.findById(req.user.id);
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ success: false, message: "Current password is incorrect" });
+        }
+
+        const hashPassword = await bcrypt.hash(newPassword, 10);
+        user.password = hashPassword;
+        await user.save();
+
+        return res.status(200).json({ success: true, message: "Password changed successfully" });
+    } catch (err) {
+        console.error("Change password error:", err.message);
+        return res.status(500).json({ success: false, message: "Internal server error changing password" });
+    }
+};
+
+export const getProfile = async (req, res) => {
+    try {
+        const user = await Employees.findById(req.user.id).select("-password -confirm_password");
         return res.status(200).json({ success: true, user });
     } catch (err) {
-        return res.status(500).json({ success: false, message: err.message });
+        return res.status(500).json({ success: false, message: "Error fetching profile" });
     }
 };
 
 export const updateUserProfile = async (req, res) => {
     try {
-        const { name, phone, department, role } = req.body;
+        const { name, phone, department } = req.body;
+        const updateFields = {};
 
-        const updatedUser = await Employees.findByIdAndUpdate(
+        if (name !== undefined) {
+            const trimmedName = String(name).trim();
+            if (!trimmedName) {
+                return res.status(400).json({ success: false, message: "Name cannot be empty" });
+            }
+            updateFields.name = trimmedName;
+        }
+
+        if (phone !== undefined) {
+            updateFields.phone = String(phone).trim();
+        }
+
+        // Only Admin and HR roles are permitted to update department
+        if (department !== undefined) {
+            const userRole = req.user.role;
+            if (userRole === "Admin" || userRole === "HR") {
+                updateFields.department = String(department).trim();
+            }
+        }
+
+        const user = await Employees.findByIdAndUpdate(
             req.user.id,
-            { name, phone, department, role },
+            { $set: updateFields },
             { new: true, runValidators: true }
-        ).select("-password");
+        ).select("-password -confirm_password");
 
-        if (!updatedUser) {
+        if (!user) {
             return res.status(404).json({ success: false, message: "User not found" });
         }
 
-        return res.status(200).json({
-            success: true,
-            message: "Profile updated successfully",
-            user: updatedUser,
-        });
+        return res.status(200).json({ success: true, message: "Profile updated successfully", user });
     } catch (err) {
-        return res.status(500).json({ success: false, message: err.message });
-
+        console.error("Update profile error:", err.message);
+        return res.status(500).json({ success: false, message: err.message || "Error updating profile" });
     }
 };
-

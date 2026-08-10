@@ -1,9 +1,19 @@
 import express from 'express';
-import { EmpLogin, googleLogin, EmpOtp, EmpRegister, resetPassword, verifyOtp, getUserProfile, updateUserProfile, passkey } from '../controllers/UserController.js';
+import {
+  EmpLogin,
+  googleLogin,
+  EmpOtp,
+  EmpRegister,
+  resetPassword,
+  verifyOtp,
+  getProfile,
+  updateUserProfile,
+  changePassword,
+  passkey
+} from "../controllers/userController.js";
 import { verifyToken, authorizeRoles as authorize } from '../middlewares/authMiddleware.js';
 
 const route = express.Router();
-
 
 route.post('/passkey',passkey);
 route.post("/newEmp", EmpRegister);
@@ -13,10 +23,12 @@ route.post("/googleLogin", googleLogin);
 route.post("/sendOtp", EmpOtp);
 route.post("/verifyOtp", verifyOtp);
 route.post("/resetpassword", resetPassword);
+route.put("/change-password", verifyToken, changePassword);
 
-
-route.get("/profile", verifyToken, getUserProfile);
+route.get("/profile", verifyToken, getProfile);
 route.put("/profile", verifyToken, updateUserProfile);
+
+// route.get("/users", verifyToken, authorize("Admin", "HR"), getAllUsers);
 
 
 route.get("/admin-only", verifyToken, authorize("Admin"), (req, res) => {

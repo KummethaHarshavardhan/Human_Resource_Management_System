@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './ForgotPassword.css';
@@ -43,10 +44,7 @@ function ForgotPassword() {
     e.preventDefault();
 
     if (!email.trim()) {
-      showPopup(
-        'Please enter your registered email address.',
-        'error'
-      );
+      showPopup('Please enter your registered email address.', 'error');
       return;
     }
 
@@ -55,19 +53,13 @@ function ForgotPassword() {
 
       const data = await sendOtp(email.trim());
 
-      showPopup(
-        data.message || 'OTP sent successfully.',
-        'success'
-      );
-
+      showPopup(data.message || 'OTP sent successfully.', 'success');
       setStep('verify');
+
     } catch (error) {
       console.error('Send OTP error:', error);
+      showPopup(error.message || 'Failed to send OTP.', 'error');
 
-      showPopup(
-        error.message || 'Failed to send OTP.',
-        'error'
-      );
     } finally {
       setLoading(false);
     }
@@ -77,10 +69,7 @@ function ForgotPassword() {
     e.preventDefault();
 
     if (!otp.trim()) {
-      showPopup(
-        'Please enter the OTP.',
-        'error'
-      );
+      showPopup('Please enter the OTP.', 'error');
       return;
     }
 
@@ -92,19 +81,13 @@ function ForgotPassword() {
         otp.trim()
       );
 
-      showPopup(
-        data.message || 'OTP verified successfully.',
-        'success'
-      );
-
+      showPopup(data.message || 'OTP verified successfully.', 'success');
       setStep('reset');
+
     } catch (error) {
       console.error('Verify OTP error:', error);
+      showPopup(error.message || 'OTP verification failed.', 'error');
 
-      showPopup(
-        error.message || 'OTP verification failed.',
-        'error'
-      );
     } finally {
       setLoading(false);
     }
@@ -114,18 +97,12 @@ function ForgotPassword() {
     e.preventDefault();
 
     if (!newPassword || !confirmPassword) {
-      showPopup(
-        'Please enter and confirm your new password.',
-        'error'
-      );
+      showPopup('Please enter and confirm your new password.', 'error');
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      showPopup(
-        'Passwords do not match.',
-        'error'
-      );
+      showPopup('Passwords do not match.', 'error');
       return;
     }
 
@@ -138,23 +115,18 @@ function ForgotPassword() {
         confirmPassword
       });
 
-      showPopup(
-        data.message || 'Password reset successful.',
-        'success'
-      );
-
+      showPopup(data.message || 'Password reset successful.', 'success');
       setStep('success');
+
     } catch (error) {
       console.error('Reset password error:', error);
+      showPopup(error.message || 'Password reset failed.', 'error');
 
-      showPopup(
-        error.message || 'Password reset failed.',
-        'error'
-      );
     } finally {
       setLoading(false);
     }
   };
+
 
   return (
     <div className="login-container">
@@ -172,9 +144,7 @@ function ForgotPassword() {
       )}
 
       <div className="login-left">
-
         <div className="brand-section">
-
           <img
             src={logo}
             alt="Infinetra Logo"
@@ -187,13 +157,11 @@ function ForgotPassword() {
             Elevating enterprise productivity through intelligent employee
             management and seamless human resource workflows.
           </p>
-
         </div>
 
         <div className="feature-cards">
 
           <div className="feature-card">
-
             <svg
               className="feature-icon"
               width="22"
@@ -203,49 +171,17 @@ function ForgotPassword() {
               stroke="currentColor"
               strokeWidth="2"
             >
-              <rect
-                x="3"
-                y="3"
-                width="7"
-                height="7"
-                rx="1"
-              />
-
-              <rect
-                x="14"
-                y="3"
-                width="7"
-                height="7"
-                rx="1"
-              />
-
-              <rect
-                x="3"
-                y="14"
-                width="7"
-                height="7"
-                rx="1"
-              />
-
-              <rect
-                x="14"
-                y="14"
-                width="7"
-                height="7"
-                rx="1"
-              />
+              <rect x="3" y="3" width="7" height="7" rx="1" />
+              <rect x="14" y="3" width="7" height="7" rx="1" />
+              <rect x="3" y="14" width="7" height="7" rx="1" />
+              <rect x="14" y="14" width="7" height="7" rx="1" />
             </svg>
 
             <h4>Unified Dashboard</h4>
-
-            <p>
-              Real-time metrics at your fingertips.
-            </p>
-
+            <p>Real-time metrics at your fingertips.</p>
           </div>
 
           <div className="feature-card">
-
             <svg
               className="feature-icon"
               width="22"
@@ -258,29 +194,20 @@ function ForgotPassword() {
               strokeLinejoin="round"
             >
               <path d="M12 2L20 6V12C20 17 16.5 20 12 22C7.5 20 4 17 4 12V6L12 2Z" />
-
               <path d="M8.5 12L11 14.5L15.5 10" />
             </svg>
 
             <h4>Secure Access</h4>
-
-            <p>
-              Enterprise-grade data protection.
-            </p>
-
+            <p>Enterprise-grade data protection.</p>
           </div>
 
         </div>
-
       </div>
 
       <div className="login-right">
-
         <div className="login-form-box">
 
-          <div className="theme-icon">
-            ☾
-          </div>
+      
 
           {step === 'email' && (
             <>
@@ -291,22 +218,15 @@ function ForgotPassword() {
               </p>
 
               <form onSubmit={handleSendOTP}>
-
                 <div className="form-group">
-
-                  <label>
-                    Email Address
-                  </label>
+                  <label>Email Address</label>
 
                   <input
                     type="email"
                     value={email}
-                    onChange={(e) =>
-                      setEmail(e.target.value)
-                    }
+                    onChange={(e) => setEmail(e.target.value)}
                     placeholder="name@company.com"
                   />
-
                 </div>
 
                 <button
@@ -314,11 +234,8 @@ function ForgotPassword() {
                   className="btn-primary"
                   disabled={loading}
                 >
-                  {loading
-                    ? 'Sending...'
-                    : 'Send OTP'}
+                  {loading ? 'Sending...' : 'Send OTP'}
                 </button>
-
               </form>
             </>
           )}
@@ -332,23 +249,16 @@ function ForgotPassword() {
               </p>
 
               <form onSubmit={handleVerifyOTP}>
-
                 <div className="form-group">
-
-                  <label>
-                    Enter OTP
-                  </label>
+                  <label>Enter OTP</label>
 
                   <input
                     type="text"
                     value={otp}
-                    onChange={(e) =>
-                      setOtp(e.target.value)
-                    }
+                    onChange={(e) => setOtp(e.target.value)}
                     placeholder="Enter 6-digit OTP"
                     maxLength="6"
                   />
-
                 </div>
 
                 <button
@@ -356,11 +266,8 @@ function ForgotPassword() {
                   className="btn-primary"
                   disabled={loading}
                 >
-                  {loading
-                    ? 'Verifying...'
-                    : 'Verify OTP'}
+                  {loading ? 'Verifying...' : 'Verify OTP'}
                 </button>
-
               </form>
             </>
           )}
@@ -376,69 +283,39 @@ function ForgotPassword() {
               <form onSubmit={handleResetPassword}>
 
                 <div className="form-group">
-
-                  <label>
-                    New Password
-                  </label>
+                  <label>New Password</label>
 
                   <div className="password-wrapper">
-
                     <input
-                      type={
-                        showNewPassword
-                          ? 'text'
-                          : 'password'
-                      }
+                      type={showNewPassword ? 'text' : 'password'}
                       value={newPassword}
-                      onChange={(e) =>
-                        setNewPassword(e.target.value)
-                      }
+                      onChange={(e) => setNewPassword(e.target.value)}
                       placeholder="Enter new password"
                     />
 
                     <button
                       type="button"
                       className="eye-button"
-                      onClick={() =>
-                        setShowNewPassword(
-                          !showNewPassword
-                        )
-                      }
+                      onClick={() => setShowNewPassword(!showNewPassword)}
                       aria-label={
                         showNewPassword
                           ? 'Hide password'
                           : 'Show password'
                       }
                     >
-                      {showNewPassword
-                        ? '👁̸'
-                        : '👁'}
+                      {showNewPassword ? '◉' : '◉'}
                     </button>
-
                   </div>
-
                 </div>
 
                 <div className="form-group">
-
-                  <label>
-                    Confirm Password
-                  </label>
+                  <label>Confirm Password</label>
 
                   <div className="password-wrapper">
-
                     <input
-                      type={
-                        showConfirmPassword
-                          ? 'text'
-                          : 'password'
-                      }
+                      type={showConfirmPassword ? 'text' : 'password'}
                       value={confirmPassword}
-                      onChange={(e) =>
-                        setConfirmPassword(
-                          e.target.value
-                        )
-                      }
+                      onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="Confirm new password"
                     />
 
@@ -446,9 +323,7 @@ function ForgotPassword() {
                       type="button"
                       className="eye-button"
                       onClick={() =>
-                        setShowConfirmPassword(
-                          !showConfirmPassword
-                        )
+                        setShowConfirmPassword(!showConfirmPassword)
                       }
                       aria-label={
                         showConfirmPassword
@@ -456,13 +331,9 @@ function ForgotPassword() {
                           : 'Show password'
                       }
                     >
-                      {showConfirmPassword
-                        ? '👁̸'
-                        : '👁'}
+                      {showConfirmPassword ? '◉' : '◉'}
                     </button>
-
                   </div>
-
                 </div>
 
                 <button
@@ -470,9 +341,7 @@ function ForgotPassword() {
                   className="btn-primary"
                   disabled={loading}
                 >
-                  {loading
-                    ? 'Resetting...'
-                    : 'Reset Password'}
+                  {loading ? 'Resetting...' : 'Reset Password'}
                 </button>
 
               </form>
@@ -480,42 +349,31 @@ function ForgotPassword() {
           )}
 
           {step === 'success' && (
-            <div className="success-screen">
+            <>
+              <div className="success-screen">
+                <div className="success-big-icon">✓</div>
 
-              <div className="success-big-icon">
-                ✓
+                <h2>Password Reset Successful</h2>
+
+                <p className="subtitle">
+                  Your password has been updated successfully.
+                </p>
+
+                <button
+                  type="button"
+                  className="btn-primary"
+                  onClick={() => navigate('/login')}
+                >
+                  Back to Login
+                </button>
               </div>
-
-              <h2>
-                Password Reset Successful
-              </h2>
-
-              <p className="subtitle">
-                Your password has been updated successfully.
-              </p>
-
-              <button
-                type="button"
-                className="btn-primary"
-                onClick={() =>
-                  navigate('/login')
-                }
-              >
-                Back to Login
-              </button>
-
-            </div>
+            </>
           )}
 
           <div className="page-footer">
-
-            <Link
-              to="/login"
-              className="link"
-            >
+            <Link to="/login" className="link">
               Back to Login
             </Link>
-
           </div>
 
           <p className="powered-by">
@@ -523,9 +381,7 @@ function ForgotPassword() {
           </p>
 
         </div>
-
       </div>
-
     </div>
   );
 }

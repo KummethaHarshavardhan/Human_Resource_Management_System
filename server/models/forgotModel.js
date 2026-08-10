@@ -2,7 +2,6 @@ import mongoose from "mongoose";
 
 const UserSchema = new mongoose.Schema(
   {
-
     email: {
       type: String,
       required: true,
@@ -18,14 +17,14 @@ const UserSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
-    newPassword:{
-        type:String,
-        minlength:6,
+
+    newPassword: {
+      type: String,
     },
-    confirmPassword:{
-        type:String,
-        minlength:6,
-    }
+
+    confirmPassword: {
+      type: String,
+    },
   },
   {
     timestamps: true,

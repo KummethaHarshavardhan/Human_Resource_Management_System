@@ -31,6 +31,7 @@ const requestJson = async (url, options = {}) => {
     throw new Error("Failed to fetch");
   }
 };
+
 export const verifyPasskey = async (passkey) => {
   return requestJson(`${API_URL}/passkey`, {
     method: "POST",
@@ -40,6 +41,8 @@ export const verifyPasskey = async (passkey) => {
     body: JSON.stringify({ passkey })
   });
 };
+
+
 export const registerUser = async (userData) => {
   return requestJson(`${API_URL}/newEmp`, {
     method: "POST",
@@ -141,5 +144,13 @@ export const resetPassword = async (data) => {
       "Content-Type": "application/json"
     },
     body: JSON.stringify(data)
+  });
+};
+
+export const changePassword = async (passwordData) => {
+  return requestJson(`${API_URL}/change-password`, {
+    method: "PUT",
+    headers: authHeaders(),
+    body: JSON.stringify(passwordData)
   });
 };

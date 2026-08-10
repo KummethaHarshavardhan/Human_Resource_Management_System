@@ -75,4 +75,3 @@ function Passkey({ onClose, onSuccess }) {
 }
 
 export default Passkey;
-
