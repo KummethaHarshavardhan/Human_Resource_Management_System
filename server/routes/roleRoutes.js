@@ -8,6 +8,7 @@ import {
 import {
     createRole,
     getAllRoles,
+    getPublicRoles,
     getRoleById,
     updateRole,
     deleteRole
@@ -28,6 +29,8 @@ router.get(
     verifyToken,
     getAllRoles
 );
+
+router.get("/public/list", getPublicRoles);
 
 router.get(
     "/:id",

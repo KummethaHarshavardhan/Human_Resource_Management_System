@@ -1,6 +1,7 @@
 import {
     createRoleService,
     getAllRolesService,
+    getPublicRolesService,
     getRoleByIdService,
     updateRoleService,
     deleteRoleService
@@ -48,6 +49,22 @@ export const getAllRoles = async (req, res) => {
             data: roles
         });
 
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
+export const getPublicRoles = async (req, res) => {
+    try {
+        const roles = await getPublicRolesService();
+        res.status(200).json({
+            success: true,
+            count: roles.length,
+            data: roles
+        });
     } catch (error) {
         res.status(500).json({
             success: false,

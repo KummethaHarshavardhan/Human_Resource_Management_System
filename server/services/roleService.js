@@ -23,6 +23,13 @@ export const getAllRolesService = async () => {
     return await Role.find().sort({ createdAt: -1 });
 };
 
+// Get Active Roles (public, minimal fields - used by Register page dropdown)
+export const getPublicRolesService = async () => {
+    return await Role.find({ status: "Active" })
+        .select("roleId roleName")
+        .sort({ roleName: 1 });
+};
+
 // Get Role By ID
 export const getRoleByIdService = async (id) => {
     return await Role.findById(id);
