@@ -23,6 +23,13 @@ export const getAllDepartmentsService = async () => {
     return await Department.find().sort({ createdAt: -1 });
 };
 
+// Get Active Departments (public, minimal fields - used by Register page dropdown)
+export const getPublicDepartmentsService = async () => {
+    return await Department.find({ status: "Active" })
+        .select("departmentId departmentName")
+        .sort({ departmentName: 1 });
+};
+
 // Get Department By ID
 export const getDepartmentByIdService = async (id) => {
     return await Department.findById(id);

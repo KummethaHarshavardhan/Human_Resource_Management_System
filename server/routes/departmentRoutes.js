@@ -8,6 +8,9 @@ import {
 import {
   createDepartment,
   getAllDepartments,
+
+  getPublicDepartments,
+
   getDepartmentById,
   updateDepartment,
   deleteDepartment,
@@ -27,6 +30,8 @@ router.get(
     verifyToken,
     getAllDepartments
 );
+
+router.get("/public/list", getPublicDepartments);
 
 router.get(
     "/:id",
