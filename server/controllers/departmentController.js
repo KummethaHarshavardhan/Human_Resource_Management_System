@@ -1,6 +1,9 @@
 import {
   createDepartmentService,
   getAllDepartmentsService,
+
+  getPublicDepartmentsService,
+
   getDepartmentByIdService,
   updateDepartmentService,
   deleteDepartmentService,
@@ -37,6 +40,15 @@ export const getAllDepartments = async (req, res) => {
       success: false,
       message: error.message,
     });
+  }
+};
+
+export const getPublicDepartments = async (req, res) => {
+  try {
+    const departments = await getPublicDepartmentsService();
+    res.status(200).json({ success: true, count: departments.length, data: departments });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
