@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "./Register.css";
 import logo from "../../assets/infinetra-logo.png";
-import { registerUser } from "../../services/api";
+import { registerUser, getPublicDepartments } from "../../services/api";
 
 function Register() {
   const [name, setName] = useState("");
@@ -15,11 +15,33 @@ function Register() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
+  const [toast, setToast] = useState({
+    show: false,
+    type: "",
+    message: "",
+  });
+
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchDepartments = async () => {
+      try {
+        const res = await getPublicDepartments();
+        setDepartments(res?.data || []);
+      } catch (error) {
+        console.error('Failed to load departments:', error);
+      } finally {
+        setDepartmentsLoading(false);
+      }
+    };
+
+    fetchDepartments();
+  }, []);
+
 
   const showToast = (type, message) => {
     setToast({
@@ -97,6 +119,19 @@ function Register() {
   };
   return (
     <div className="login-container">
+      {toast.show && (
+        <div className={`toast-message ${toast.type}`}>
+          <div className="toast-icon">
+            {toast.type === "success" ? "✓" : "✕"}
+          </div>
+
+          <div className="toast-content">
+            <strong>{toast.type === "success" ? "Success" : "Error"}</strong>
+            <span>{toast.message}</span>
+          </div>
+        </div>
+      )}
+
       <div className="login-left">
         <div className="brand-section">
           <img src={logo} alt="Infinetra Logo" className="logo-image" />
@@ -158,7 +193,6 @@ function Register() {
         <div className="login-form-box">
           <div className="mobile-logo-header">
             <img src={logo} alt="Infinetra Logo" className="mobile-logo" />
-            <span className="mobile-brand-name">Infinetra HRMS</span>
           </div>
 
           <h2>Create account</h2>
@@ -247,12 +281,11 @@ function Register() {
 
                 <button
                   type="button"
-                  className="password-toggle-btn"
+                  className="eye-button"
                   onClick={() => setShowPassword(!showPassword)}
                   aria-label="Show or hide password"
-                  title={showPassword ? "Hide password" : "Show password"}
                 >
-                  {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+                  {showPassword ? "◉" : "◌"}
                 </button>
               </div>
             </div>
@@ -271,16 +304,14 @@ function Register() {
 
                 <button
                   type="button"
-                  className="password-toggle-btn"
+                  className="eye-button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   aria-label="Show or hide confirm password"
-                  title={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
                 >
-                  {showConfirmPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+                  {showConfirmPassword ? "◉" : "◌"}
                 </button>
               </div>
             </div>
-
 
             <button type="submit" className="btn-primary" disabled={loading}>
               {loading ? "Registering..." : "Register"}
