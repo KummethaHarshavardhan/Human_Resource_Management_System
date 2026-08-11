@@ -1,14 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "./Register.css";
 import logo from "../../assets/infinetra-logo.png";
-import { registerUser } from "../../services/api";
+import { registerUser, getPublicDepartments } from "../../services/api";
 
 function Register() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [department, setDepartment] = useState("");
+  const [departments, setDepartments] = useState([]);
+  const [departmentsLoading, setDepartmentsLoading] = useState(true);
   const [role, setRole] = useState("Employee");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -24,6 +26,22 @@ function Register() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchDepartments = async () => {
+      try {
+        const res = await getPublicDepartments();
+        setDepartments(res?.data || []);
+      } catch (error) {
+        console.error('Failed to load departments:', error);
+      } finally {
+        setDepartmentsLoading(false);
+      }
+    };
+
+    fetchDepartments();
+  }, []);
+
 
   const showToast = (type, message) => {
     setToast({
@@ -217,13 +235,22 @@ function Register() {
 
             <div className="form-group">
               <label>Department</label>
-              <input
-                type="text"
+              <select
                 name="department"
-                placeholder="e.g. Engineering, Sales, HR"
                 value={department}
                 onChange={(e) => setDepartment(e.target.value)}
-              />
+                disabled={departmentsLoading}
+              >
+                <option value="">
+                  {departmentsLoading ? 'Loading departments...' : 'Select a department'}
+                </option>
+
+                {departments.map((dept) => (
+                  <option key={dept._id} value={dept.departmentName}>
+                    {dept.departmentName}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="form-group">

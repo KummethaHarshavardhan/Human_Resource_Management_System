@@ -45,7 +45,6 @@ export const EmpRegister = async (req, res) => {
             role
         } = req.body;
 
-        // Required fields
         if (
             !name ||
             !email ||
@@ -68,10 +67,8 @@ export const EmpRegister = async (req, res) => {
             });
         }
 
-        // Clean phone number
         const cleanedPhone = String(phone).replace(/\D/g, "");
 
-        // Validate phone
         if (cleanedPhone.length !== 10) {
             return res.status(400).json({
                 success: false,
@@ -79,7 +76,6 @@ export const EmpRegister = async (req, res) => {
             });
         }
 
-        // Check existing email
         const UserExists = await Employees.findOne({
             email: email.trim().toLowerCase()
         });
@@ -91,10 +87,8 @@ export const EmpRegister = async (req, res) => {
             });
         }
 
-        // Hash password
         const hashpass = await bcrypt.hash(password, 10);
 
-        // Create user
         const newuser = new Employees({
             name: name.trim(),
             email: email.trim().toLowerCase(),
@@ -338,8 +332,7 @@ export const updateUserProfile = async (req, res) => {
         if (phone !== undefined) {
             updateFields.phone = String(phone).trim();
         }
-
-        // Only Admin and HR roles are permitted to update department
+        
         if (department !== undefined) {
             const userRole = req.user.role;
             if (userRole === "Admin" || userRole === "HR") {
