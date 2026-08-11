@@ -42,6 +42,12 @@ export const verifyPasskey = async (passkey) => {
   });
 };
 
+export const getPublicDepartments = async () => {
+  return requestJson(`${API_URL}/departments/public/list`, {
+    method: "GET",
+    headers: { "Content-Type": "application/json" }
+  });
+};
 
 export const registerUser = async (userData) => {
   return requestJson(`${API_URL}/newEmp`, {

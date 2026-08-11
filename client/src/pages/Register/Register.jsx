@@ -1,16 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "./Register.css";
 import logo from "../../assets/infinetra-logo.png";
 import { registerUser } from "../../services/api";
-import { useToast } from "../../context/ToastContext.jsx";
-import { FiEye, FiEyeOff } from "react-icons/fi";
 
 function Register() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [department, setDepartment] = useState("");
+  const [departments, setDepartments] = useState([]);
+  const [departmentsLoading, setDepartmentsLoading] = useState(true);
   const [role, setRole] = useState("Employee");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -20,8 +20,22 @@ function Register() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const navigate = useNavigate();
-  const { showToast } = useToast();
 
+  const showToast = (type, message) => {
+    setToast({
+      show: true,
+      type,
+      message,
+    });
+
+    setTimeout(() => {
+      setToast({
+        show: false,
+        type: "",
+        message: "",
+      });
+    }, 3000);
+  };
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -187,13 +201,22 @@ function Register() {
 
             <div className="form-group">
               <label>Department</label>
-              <input
-                type="text"
+              <select
                 name="department"
-                placeholder="e.g. Engineering, Sales, HR"
                 value={department}
                 onChange={(e) => setDepartment(e.target.value)}
-              />
+                disabled={departmentsLoading}
+              >
+                <option value="">
+                  {departmentsLoading ? 'Loading departments...' : 'Select a department'}
+                </option>
+
+                {departments.map((dept) => (
+                  <option key={dept._id} value={dept.departmentName}>
+                    {dept.departmentName}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="form-group">
