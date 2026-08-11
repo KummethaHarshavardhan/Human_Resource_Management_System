@@ -5,7 +5,14 @@
 /* ------------------------------------------
    1. BUTTONS & ACTIONS
    ------------------------------------------ */
-button, .btn, .btn-primary, .btn-secondary, .btn-danger, .btn-outline, .add-user-btn, .action-btn {
+button,
+.btn,
+.btn-primary,
+.btn-secondary,
+.btn-danger,
+.btn-outline,
+.add-user-btn,
+.action-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -22,19 +29,22 @@ button, .btn, .btn-primary, .btn-secondary, .btn-danger, .btn-outline, .add-user
 }
 
 /* Primary Button */
-.btn-primary, .add-user-btn {
+.btn-primary,
+.add-user-btn {
   background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
   color: var(--text-white);
   box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
 }
 
-.btn-primary:hover, .add-user-btn:hover {
+.btn-primary:hover,
+.add-user-btn:hover {
   background: linear-gradient(135deg, var(--primary-700) 0%, var(--primary-800) 100%);
   box-shadow: 0 6px 16px rgba(79, 70, 229, 0.35);
   transform: translateY(-1px);
 }
 
-.btn-primary:active, .add-user-btn:active {
+.btn-primary:active,
+.add-user-btn:active {
   transform: translateY(0);
 }
 
@@ -91,7 +101,8 @@ button, .btn, .btn-primary, .btn-secondary, .btn-danger, .btn-outline, .add-user
   border-color: var(--primary-200);
 }
 
-button:disabled, .btn:disabled {
+button:disabled,
+.btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none !important;
@@ -102,7 +113,11 @@ button:disabled, .btn:disabled {
 /* ------------------------------------------
    2. CARDS & CONTAINERS
    ------------------------------------------ */
-.card, .users-card, .stat-card, .summary-card, .feature-card {
+.card,
+.users-card,
+.stat-card,
+.summary-card,
+.feature-card {
   background-color: var(--bg-card);
   border-radius: var(--radius-lg);
   border: 1px solid var(--slate-200);
@@ -111,7 +126,10 @@ button:disabled, .btn:disabled {
   transition: var(--transition-normal);
 }
 
-.card:hover, .users-card:hover, .stat-card:hover, .summary-card:hover {
+.card:hover,
+.users-card:hover,
+.stat-card:hover,
+.summary-card:hover {
   box-shadow: var(--shadow-md);
   border-color: var(--slate-300);
 }
@@ -142,7 +160,8 @@ button:disabled, .btn:disabled {
   margin-bottom: var(--space-4);
 }
 
-.form-group label, .form-label {
+.form-group label,
+.form-label {
   font-size: var(--font-size-sm);
   font-weight: 600;
   color: var(--slate-700);
@@ -167,12 +186,16 @@ textarea,
   outline: none;
 }
 
-input:focus, select:focus, textarea:focus, .form-control:focus {
+input:focus,
+select:focus,
+textarea:focus,
+.form-control:focus {
   border-color: var(--primary-500);
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
 }
 
-input::placeholder, textarea::placeholder {
+input::placeholder,
+textarea::placeholder {
   color: var(--slate-400);
 }
 
@@ -199,7 +222,41 @@ input::placeholder, textarea::placeholder {
   position: relative;
   display: flex;
   align-items: center;
+  width: 100%;
 }
+
+.password-wrapper input {
+  padding-right: 44px;
+  width: 100%;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: var(--slate-400);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s ease;
+  border-radius: var(--radius-sm);
+  z-index: 2;
+}
+
+.password-toggle-btn:hover {
+  color: var(--primary-600);
+}
+
+[data-theme="dark"] .password-toggle-btn:hover {
+  color: var(--primary-400);
+}
+
 
 
 /* ------------------------------------------
@@ -288,7 +345,8 @@ tr:last-child td {
   color: var(--slate-700);
 }
 
-.pagination button.current, .pagination button.active {
+.pagination button.current,
+.pagination button.active {
   background-color: var(--primary-600);
   color: var(--text-white);
   border-color: var(--primary-600);
@@ -323,7 +381,8 @@ tr:last-child td {
   transition: var(--transition-fast);
 }
 
-.navbar-links a:hover, .navbar-links a.active {
+.navbar-links a:hover,
+.navbar-links a.active {
   color: var(--primary-600);
   background-color: var(--primary-50);
 }
@@ -423,6 +482,3 @@ tr:last-child td {
   color: var(--text-white);
   box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
 }
-
-
-

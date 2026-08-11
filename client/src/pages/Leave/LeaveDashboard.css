@@ -247,10 +247,105 @@
 }
 
 @media (max-width: 768px) {
+  .leave-section-card {
+    padding: 16px 14px;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .apply-leave-container,
+  .leave-apply-form {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
   .leave-form-grid {
     grid-template-columns: 1fr;
+    width: 100%;
+    max-width: 100%;
+    gap: var(--space-3);
+    box-sizing: border-box;
+  }
+
+  .leave-apply-form .form-group {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    position: relative;
+  }
+
+  /* Leave Type native select mobile responsiveness */
+  .leave-apply-form select {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    min-width: 0 !important;
+    font-size: 16px !important; /* Prevents mobile browser auto-zoom */
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+
+  .leave-apply-form select option {
+    max-width: 100%;
+    font-size: 14px;
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  /* Start/End Date native input mobile responsiveness */
+  .leave-apply-form input[type="date"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    min-width: 0 !important;
+    font-size: 16px !important; /* Prevents mobile browser auto-zoom scale */
+    position: relative;
+    min-height: 42px;
+  }
+
+  .leave-apply-form input[type="date"]::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    padding: 4px;
+    margin-right: 2px;
+    opacity: 0.75;
   }
 }
+
+@media (max-width: 480px) {
+  .leave-section-card {
+    padding: 14px 10px;
+    border-radius: var(--radius-md);
+  }
+
+  .leave-sub-header {
+    margin-bottom: var(--space-3);
+    padding-bottom: var(--space-3);
+  }
+
+  .leave-sub-title {
+    font-size: var(--font-size-lg);
+  }
+
+  .leave-sub-subtitle {
+    font-size: var(--font-size-xs);
+  }
+
+  .leave-apply-form select,
+  .leave-apply-form input[type="date"],
+  .leave-apply-form textarea {
+    padding: 9px 11px;
+    font-size: 16px !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .leave-section-card {
+    padding: 12px 8px;
+  }
+}
+
 
 /* ─────────────────────────────────────────
    LEAVE HISTORY LIST
@@ -458,6 +553,7 @@
     flex-direction: column;
     gap: var(--space-3);
   }
+
   .lchi-right {
     align-items: flex-start;
     flex-direction: row;
@@ -486,5 +582,7 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }

@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { applyLeave } from "../../services/leaveService";
+import { useToast } from "../../context/ToastContext";
 import { FiCalendar, FiFileText, FiSend, FiCheckCircle, FiAlertCircle } from "react-icons/fi";
 
 export default function ApplyLeave({ refreshLeaves }) {
+  const { showToast } = useToast();
   const [formData, setFormData] = useState({
     leaveType: "",
     startDate: "",
@@ -23,11 +25,15 @@ export default function ApplyLeave({ refreshLeaves }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.leaveType || !formData.startDate || !formData.endDate || !formData.reason.trim()) {
-      setMessage({ type: "error", text: "Please fill in all required fields." });
+      const msg = "Please fill in all required fields.";
+      setMessage({ type: "error", text: msg });
+      showToast("error", msg);
       return;
     }
     if (new Date(formData.endDate) < new Date(formData.startDate)) {
-      setMessage({ type: "error", text: "End date cannot be before start date." });
+      const msg = "End date cannot be before start date.";
+      setMessage({ type: "error", text: msg });
+      showToast("error", msg);
       return;
     }
 
@@ -36,19 +42,24 @@ export default function ApplyLeave({ refreshLeaves }) {
       setMessage({ type: "", text: "" });
       await applyLeave(formData);
 
-      setMessage({ type: "success", text: "Leave application submitted successfully." });
+      const msg = "Leave application submitted successfully.";
+      setMessage({ type: "success", text: msg });
+      showToast("success", msg);
       setFormData({ leaveType: "", startDate: "", endDate: "", reason: "" });
 
       if (refreshLeaves) refreshLeaves();
     } catch (error) {
+      const errMsg = error.response?.data?.message || error.message || "Failed to apply for leave.";
       setMessage({
         type: "error",
-        text: error.response?.data?.message || error.message || "Failed to apply for leave.",
+        text: errMsg,
       });
+      showToast("error", errMsg);
     } finally {
       setLoading(false);
     }
   };
+
 
   return (
     <div className="apply-leave-container">

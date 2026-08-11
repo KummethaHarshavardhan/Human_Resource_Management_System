@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "../../../context/ToastContext.jsx";
 
 import DepartmentTable from "../../../components/department/DepartmentTable";
 
@@ -12,6 +13,7 @@ import "../department-role.css";
 
 export default function DepartmentList() {
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -49,7 +51,9 @@ export default function DepartmentList() {
     try {
       await deleteDepartment(id);
 
-      setMessage("Department deleted successfully.");
+      const msg = "Department deleted successfully.";
+      setMessage(msg);
+      showToast('success', msg);
 
       loadDepartments();
 
@@ -57,11 +61,14 @@ export default function DepartmentList() {
         setMessage("");
       }, 3000);
     } catch (err) {
-      setMessage(err.message || "Failed to delete department");
+      const errMsg = err.message || "Failed to delete department";
+      setMessage(errMsg);
+      showToast('error', errMsg);
     }
   };
 
   return (
+
     <div className="page">
       <div className="page-header">
         <div>

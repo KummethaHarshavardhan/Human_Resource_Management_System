@@ -3,6 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import "./Register.css";
 import logo from "../../assets/infinetra-logo.png";
 import { registerUser } from "../../services/api";
+import { useToast } from "../../context/ToastContext.jsx";
+import { FiEye, FiEyeOff } from "react-icons/fi";
 
 function Register() {
   const [name, setName] = useState("");
@@ -13,33 +15,13 @@ function Register() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  const [toast, setToast] = useState({
-    show: false,
-    type: "",
-    message: "",
-  });
-
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
-  const showToast = (type, message) => {
-    setToast({
-      show: true,
-      type,
-      message,
-    });
-
-    setTimeout(() => {
-      setToast({
-        show: false,
-        type: "",
-        message: "",
-      });
-    }, 3000);
-  };
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -101,19 +83,6 @@ function Register() {
   };
   return (
     <div className="login-container">
-      {toast.show && (
-        <div className={`toast-message ${toast.type}`}>
-          <div className="toast-icon">
-            {toast.type === "success" ? "✓" : "✕"}
-          </div>
-
-          <div className="toast-content">
-            <strong>{toast.type === "success" ? "Success" : "Error"}</strong>
-            <span>{toast.message}</span>
-          </div>
-        </div>
-      )}
-
       <div className="login-left">
         <div className="brand-section">
           <img src={logo} alt="Infinetra Logo" className="logo-image" />
@@ -175,6 +144,7 @@ function Register() {
         <div className="login-form-box">
           <div className="mobile-logo-header">
             <img src={logo} alt="Infinetra Logo" className="mobile-logo" />
+            <span className="mobile-brand-name">Infinetra HRMS</span>
           </div>
 
           <h2>Create account</h2>
@@ -254,11 +224,12 @@ function Register() {
 
                 <button
                   type="button"
-                  className="eye-button"
+                  className="password-toggle-btn"
                   onClick={() => setShowPassword(!showPassword)}
                   aria-label="Show or hide password"
+                  title={showPassword ? "Hide password" : "Show password"}
                 >
-                  {showPassword ? "◉" : "◌"}
+                  {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
                 </button>
               </div>
             </div>
@@ -277,14 +248,16 @@ function Register() {
 
                 <button
                   type="button"
-                  className="eye-button"
+                  className="password-toggle-btn"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   aria-label="Show or hide confirm password"
+                  title={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
                 >
-                  {showConfirmPassword ? "◉" : "◌"}
+                  {showConfirmPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
                 </button>
               </div>
             </div>
+
 
             <button type="submit" className="btn-primary" disabled={loading}>
               {loading ? "Registering..." : "Register"}

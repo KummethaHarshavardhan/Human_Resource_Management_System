@@ -6,8 +6,11 @@ import { FiEdit2, FiArrowLeft, FiUser, FiMail, FiPhone, FiBriefcase, FiShield, F
 import "../../components/employee/emp.shared.css";
 import "./Profile.css";
 
+import { useToast } from "../../context/ToastContext";
+
 function Profile() {
   const { user: authUser, updateUser } = useAuth();
+  const { showToast } = useToast();
   const [profile, setProfile] = useState(null);
   const [form, setForm] = useState({
     name: "",
@@ -98,14 +101,19 @@ function Profile() {
         role: data.user.role || 'Employee'
       });
       updateUser(data.user);
-      setSuccess('Profile updated successfully.');
+      const msg = 'Profile updated successfully.';
+      setSuccess(msg);
+      showToast('success', msg);
       setIsEditing(false);
     } catch (err) {
-      setError(err.message || 'Unable to save profile.');
+      const errMsg = err.message || 'Unable to save profile.';
+      setError(errMsg);
+      showToast('error', errMsg);
     } finally {
       setSaving(false);
     }
   };
+
 
   if (loading) {
     return (

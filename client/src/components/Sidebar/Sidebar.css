@@ -43,37 +43,7 @@
   border-radius: 4px;
 }
 
-/* Top Hamburger Box inside Sidebar - Clean transparent 3 horizontal lines */
-.sidebar-hamburger-header {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  padding-bottom: 8px;
-}
 
-.sidebar-hamburger-btn {
-  background: transparent !important;
-  border: none !important;
-  color: var(--text-white, #ffffff);
-  padding: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: color 0.2s ease, transform 0.2s ease;
-  outline: none;
-  border-radius: 4px;
-}
-
-.sidebar-hamburger-btn:hover {
-  color: var(--primary-400, #818cf8);
-  transform: scale(1.08);
-}
-
-.sidebar-hamburger-btn:active {
-  transform: scale(0.95);
-}
 
 .sidebar-user-card {
   display: flex;

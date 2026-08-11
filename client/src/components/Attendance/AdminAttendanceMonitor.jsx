@@ -21,10 +21,10 @@ const fmtHours = (h) => {
 };
 
 const STATUS_META = {
-  Present:       { cls: "att-badge att-badge-present",  label: "Present",        icon: <FiCheckCircle size={11}/> },
-  Late:          { cls: "att-badge att-badge-late",     label: "Late",           icon: <FiAlertTriangle size={11}/> },
-  "Half Day":    { cls: "att-badge att-badge-halfday",  label: "Half Day",       icon: <FiClock size={11}/> },
-  "Early Checkout": { cls: "att-badge att-badge-early", label: "Early Checkout", icon: <FiAlertCircle size={11}/> },
+  Present: { cls: "att-badge att-badge-present", label: "Present", icon: <FiCheckCircle size={11} /> },
+  Late: { cls: "att-badge att-badge-late", label: "Late", icon: <FiAlertTriangle size={11} /> },
+  "Half Day": { cls: "att-badge att-badge-halfday", label: "Half Day", icon: <FiClock size={11} /> },
+  "Early Checkout": { cls: "att-badge att-badge-early", label: "Early Checkout", icon: <FiAlertCircle size={11} /> },
 };
 
 const StatusBadge = ({ status }) => {
@@ -39,16 +39,16 @@ const StatusBadge = ({ status }) => {
 // ── Main component ────────────────────────────────────────────────────────────
 
 export default function AdminAttendanceMonitor({ records = [], loading, error, onRefresh }) {
-  const [search, setSearch]     = useState("");
+  const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
 
   // ── Computed stats ──────────────────────────────────────────────────────
   const stats = useMemo(() => {
-    const total    = records.length;
-    const present  = records.filter((r) => r.status === "Present").length;
-    const late     = records.filter((r) => r.status === "Late").length;
-    const halfDay  = records.filter((r) => r.status === "Half Day").length;
-    const early    = records.filter((r) => r.status === "Early Checkout").length;
+    const total = records.length;
+    const present = records.filter((r) => r.status === "Present").length;
+    const late = records.filter((r) => r.status === "Late").length;
+    const halfDay = records.filter((r) => r.status === "Half Day").length;
+    const early = records.filter((r) => r.status === "Early Checkout").length;
     return { total, present, late, halfDay, early };
   }, [records]);
 
@@ -92,8 +92,8 @@ export default function AdminAttendanceMonitor({ records = [], loading, error, o
     doc.text(`Total Records: ${filtered.length}  |  Present: ${stats.present}  |  Late: ${stats.late}  |  Half Day: ${stats.halfDay}  |  Early Checkout: ${stats.early}`, 14, 43);
 
     const rows = filtered.map((r) => [
-      r.employee?.name   || "—",
-      r.employee?.role   || "—",
+      r.employee?.name || "—",
+      r.employee?.role || "—",
       r.employee?.department || "—",
       fmtDate(r.date),
       r.status || "—",
@@ -120,11 +120,11 @@ export default function AdminAttendanceMonitor({ records = [], loading, error, o
       {/* Stats Row */}
       <div className="admin-att-stats-row">
         {[
-          { label: "Total Records",    value: stats.total,   color: "var(--primary-600)" },
-          { label: "Present",          value: stats.present, color: "var(--success)"     },
-          { label: "Late",             value: stats.late,    color: "#f59e0b"             },
-          { label: "Half Day",         value: stats.halfDay, color: "#8b5cf6"             },
-          { label: "Early Checkout",   value: stats.early,   color: "#ef4444"             },
+          { label: "Total Records", value: stats.total, color: "var(--primary-600)" },
+          { label: "Present", value: stats.present, color: "var(--success)" },
+          { label: "Late", value: stats.late, color: "#f59e0b" },
+          { label: "Half Day", value: stats.halfDay, color: "#8b5cf6" },
+          { label: "Early Checkout", value: stats.early, color: "#ef4444" },
         ].map((s) => (
           <div key={s.label} className="admin-att-stat-card">
             <span className="admin-att-stat-value" style={{ color: s.color }}>{s.value}</span>
@@ -136,12 +136,12 @@ export default function AdminAttendanceMonitor({ records = [], loading, error, o
       {/* Toolbar */}
       <div className="admin-att-toolbar">
         <div className="admin-att-search-wrap">
-          <FiSearch size={15} className="admin-att-search-icon" />
+
           <input
             id="admin-att-search"
             type="text"
             className="admin-att-search"
-            placeholder="Search by employee, role, department…"
+            placeholder="🔍 Search by employee, role, department…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />

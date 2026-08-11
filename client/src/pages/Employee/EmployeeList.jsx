@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
+import { useToast } from "../../context/ToastContext.jsx";
 import EmployeeTable from "../../components/employee/EmployeeTable.jsx";
+
 import {
   getAllEmployees,
   deleteEmployee,
@@ -188,25 +190,30 @@ export default function EmployeeList() {
     setCurrentPage(1);
   };
 
+  const { showToast } = useToast();
+
   const handleDeleteConfirm = async () => {
     if (!deleteTarget) return;
     setDeleting(true);
     try {
       await deleteEmployee(deleteTarget._id || deleteTarget.id);
-      setDeleteSuccess(
-        `${deleteTarget.user_id?.name || deleteTarget.name || "Employee"} deleted successfully.`,
-      );
+      const msg = `${deleteTarget.user_id?.name || deleteTarget.name || "Employee"} deleted successfully.`;
+      setDeleteSuccess(msg);
+      showToast('success', msg);
       setDeleteTarget(null);
       await fetchEmployees();
       await fetchStats();
       setTimeout(() => setDeleteSuccess(""), 3500);
     } catch (err) {
-      setError(err.message || "Failed to delete employee");
+      const errMsg = err.message || "Failed to delete employee";
+      setError(errMsg);
+      showToast('error', errMsg);
       setDeleteTarget(null);
     } finally {
       setDeleting(false);
     }
   };
+
 
   const handleView = (emp) => navigate(`/employee/${emp._id || emp.id}`);
   const handleEdit = (emp) => {

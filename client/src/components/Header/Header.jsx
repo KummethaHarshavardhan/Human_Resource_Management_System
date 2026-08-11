@@ -1,15 +1,16 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
+import { FiMenu, FiUser, FiLogOut } from 'react-icons/fi';
+
 import NotificationBell from '../Notifications/NotificationBell.jsx';
-import Button from '../Button/Button.jsx';
 import './Header.css';
 
 /**
  * Enterprise Fixed Welcome Header Component
- * Features clean 3-line hamburger icon (FaBars), fixed positioning, user avatar, profile & logout.
+ * Features top-left hamburger menu, dark/light theme toggle, notifications, profile & logout.
  */
-const Header = () => {
+const Header = ({ onToggleSidebar }) => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
 
@@ -36,6 +37,16 @@ const Header = () => {
   return (
     <header className="app-fixed-header">
       <div className="header-left">
+        <button
+          type="button"
+          className="header-hamburger-btn"
+          onClick={onToggleSidebar}
+          aria-label="Toggle Navigation Menu"
+          title="Toggle Navigation Menu"
+        >
+          <FiMenu size={22} />
+        </button>
+
         <div className="header-user-group">
           <div className="header-user-avatar">{userInitials}</div>
           <div className="header-title-box">
@@ -47,12 +58,30 @@ const Header = () => {
 
       <div className="header-right">
         <NotificationBell />
-        <Button variant="outline" size="sm" onClick={handleProfile} icon="👤">
-          Profile
-        </Button>
-        <Button variant="danger" size="sm" onClick={handleLogout} icon="🚪">
-          Logout
-        </Button>
+
+        {/* Profile Icon Button */}
+        <button
+          type="button"
+          className="header-icon-btn header-profile-btn"
+          onClick={handleProfile}
+          aria-label="Go to Profile"
+          title="Profile"
+        >
+          <FiUser size={19} />
+          <span className="header-btn-label">Profile</span>
+        </button>
+
+        {/* Logout Icon Button */}
+        <button
+          type="button"
+          className="header-icon-btn header-logout-btn"
+          onClick={handleLogout}
+          aria-label="Logout"
+          title="Logout"
+        >
+          <FiLogOut size={19} />
+          <span className="header-btn-label">Logout</span>
+        </button>
       </div>
     </header>
   );

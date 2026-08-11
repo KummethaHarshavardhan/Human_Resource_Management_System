@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiLock, FiEye, FiEyeOff, FiCheck, FiShield } from 'react-icons/fi';
 import { changePassword } from '../../services/api';
+import { useToast } from '../../context/ToastContext.jsx';
 import './ChangePassword.css';
 
 function ChangePassword() {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -28,25 +30,30 @@ function ChangePassword() {
     setStatus({ type: '', message: '' });
 
     if (!currentPassword) {
-      setStatus({ type: 'error', message: 'Please enter your current password.' });
+      const msg = 'Please enter your current password.';
+      setStatus({ type: 'error', message: msg });
+      showToast('error', msg);
       return;
     }
 
     if (!newPassword || !confirmPassword) {
-      setStatus({ type: 'error', message: 'Please fill in both new password fields.' });
+      const msg = 'Please fill in both new password fields.';
+      setStatus({ type: 'error', message: msg });
+      showToast('error', msg);
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setStatus({ type: 'error', message: 'New password and confirmation do not match.' });
+      const msg = 'New password and confirmation do not match.';
+      setStatus({ type: 'error', message: msg });
+      showToast('error', msg);
       return;
     }
 
     if (!hasMinLength || !hasUppercase || !hasNumber || !hasSpecial) {
-      setStatus({
-        type: 'error',
-        message: 'New password does not satisfy all security requirements.',
-      });
+      const msg = 'New password does not satisfy all security requirements.';
+      setStatus({ type: 'error', message: msg });
+      showToast('error', msg);
       return;
     }
 
@@ -57,22 +64,27 @@ function ChangePassword() {
         newPassword,
         confirmPassword,
       });
+      const successMsg = res?.message || 'Password changed successfully.';
       setStatus({
         type: 'success',
-        message: res?.message || 'Your account password has been updated successfully.',
+        message: successMsg,
       });
+      showToast('success', successMsg);
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
     } catch (err) {
+      const errorMsg = err.message || 'Failed to update password. Please check your current password.';
       setStatus({
         type: 'error',
-        message: err.message || 'Failed to update password. Please check your current password.',
+        message: errorMsg,
       });
+      showToast('error', errorMsg);
     } finally {
       setSubmitting(false);
     }
   };
+
 
   const handleCancel = () => {
     navigate('/settings');
