@@ -22,6 +22,8 @@ import {
   FiShield,
 } from "react-icons/fi";
 
+import { normalizeRole } from "../../utils/permission.js";
+
 function ConfirmDialog({ employee, onConfirm, onCancel, loading }) {
   const name = employee?.user_id?.name || employee?.name || "this employee";
   return (
@@ -76,9 +78,11 @@ const PAGE_SIZE = 10;
 export default function EmployeeList() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const userRole = (user?.role || "").toLowerCase();
-  const canEdit = userRole === "admin" || userRole === "hr";
-  const canDelete = userRole === "admin" || userRole === "hr";
+  const normRole = normalizeRole(user?.role);
+  const isAdmin = normRole === "admin";
+  const isHR = normRole === "hr_manager";
+  const canEdit = isAdmin || isHR;
+  const canDelete = isAdmin || isHR;
 
   const [employees, setEmployees] = useState([]);
   const [totalEmployees, setTotalEmployees] = useState(0);
@@ -97,10 +101,10 @@ export default function EmployeeList() {
   const [deleteSuccess, setDeleteSuccess] = useState("");
 
   const [stats, setStats] = useState({
-    total: 1248,
-    active: 1192,
-    onLeave: 34,
-    terminated: 22,
+    total: 0,
+    active: 0,
+    onLeave: 0,
+    terminated: 0,
   });
 
   const searchTimer = useRef(null);
@@ -113,20 +117,20 @@ export default function EmployeeList() {
 
   const fetchStats = useCallback(async () => {
     try {
-      const [allData, activeData] = await Promise.all([
+      const [allData, activeData, inactiveData] = await Promise.all([
         getAllEmployees({ page: 1, limit: 1 }),
         getAllEmployees({ status: "Active", page: 1, limit: 1 }),
+        getAllEmployees({ status: "Inactive", page: 1, limit: 1 }),
       ]);
       const total = allData?.totalEmployees || 0;
       const active = activeData?.totalEmployees || 0;
-      if (total > 0) {
-        setStats({
-          total,
-          active,
-          onLeave: Math.round(total * 0.03),
-          terminated: Math.max(0, total - active - Math.round(total * 0.03)),
-        });
-      }
+      const terminated = inactiveData?.totalEmployees || 0;
+      setStats({
+        total,
+        active,
+        onLeave: 0,
+        terminated,
+      });
     } catch {}
   }, []);
 
@@ -251,23 +255,27 @@ export default function EmployeeList() {
         </div>
 
         <div className="emp-header-actions">
-          <button
-            className="emp-btn-secondary"
-            onClick={() => navigate("/employee/departments")}
-            title="Manage Departments"
-          >
-            <FiLayers />
-            Departments
-          </button>
+          {isAdmin && (
+            <>
+              <button
+                className="emp-btn-secondary"
+                onClick={() => navigate("/employee/departments")}
+                title="Manage Departments"
+              >
+                <FiLayers />
+                Departments
+              </button>
 
-          <button
-            className="emp-btn-secondary"
-            onClick={() => navigate("/employee/roles")}
-            title="Manage Roles"
-          >
-            <FiShield />
-            Roles
-          </button>
+              <button
+                className="emp-btn-secondary"
+                onClick={() => navigate("/employee/roles")}
+                title="Manage Roles"
+              >
+                <FiShield />
+                Roles
+              </button>
+            </>
+          )}
 
           {canEdit && (
             <button
