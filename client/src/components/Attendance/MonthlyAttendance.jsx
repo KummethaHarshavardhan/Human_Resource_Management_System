@@ -187,7 +187,7 @@ function MonthlyAttendance({ monthlyAttendance = [] }) {
         Total Attendance Days: {totalAttendanceDays}
       </div>
 
-      <div className="table-responsive">
+      <div className="table-responsive table-wrapper">
         <table className="table">
           <thead>
             <tr>
@@ -216,6 +216,8 @@ function MonthlyAttendance({ monthlyAttendance = [] }) {
                         padding: "5px 10px",
                         borderRadius: "15px",
                         fontWeight: "bold",
+                        display: "inline-block",
+                        whiteSpace: "nowrap",
                       }}
                     >
                       {attendance.status}

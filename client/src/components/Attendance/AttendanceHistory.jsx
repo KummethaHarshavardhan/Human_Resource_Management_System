@@ -79,12 +79,9 @@ function AttendanceHistory({ history = [] }) {
       <h2>Attendance History</h2>
 
 
-      <div className="table-responsive">
-
+      <div className="table-responsive table-wrapper">
         <table className="table">
-
           <thead>
-
             <tr>
               <th>Date</th>
               <th>Status</th>
@@ -92,52 +89,31 @@ function AttendanceHistory({ history = [] }) {
               <th>Check Out</th>
               <th>Working Hours</th>
             </tr>
-
           </thead>
-
-
-
           <tbody>
-
-
             {history.length === 0 ? (
-
               <tr>
                 <td colSpan="5" className="empty-state">
                   No Attendance Records Found
                 </td>
               </tr>
-
-
             ) : (
-
-
               history.map((attendance) => (
-
                 <tr key={attendance._id}>
-
-
+                  <td>{formatDate(attendance.date)}</td>
                   <td>
-                    {formatDate(attendance.date)}
-                  </td>
-
-
-
-                  <td>
-
                     <span
                       style={{
                         ...getStatusStyle(attendance.status),
-                        padding:"5px 10px",
-                        borderRadius:"15px",
-                        fontWeight:"bold"
+                        padding: "5px 10px",
+                        borderRadius: "15px",
+                        fontWeight: "bold",
+                        display: "inline-block",
+                        whiteSpace: "nowrap",
                       }}
                     >
-
                       {attendance.status}
-
                     </span>
-
                   </td>
 
 

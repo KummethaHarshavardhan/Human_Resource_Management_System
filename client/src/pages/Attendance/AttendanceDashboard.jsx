@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../../context/AuthContext";
+import { normalizeRole } from "../../utils/permission";
 
 import CheckInCard from "../../components/Attendance/CheckInCard";
 import TodayAttendanceCard from "../../components/Attendance/TodayAttendanceCard";
@@ -21,11 +22,13 @@ import "./AttendanceDashboard.css";
 
 function AttendanceDashboard() {
   const { user } = useAuth();
-  const role = user?.role || "";
+  const normRole   = normalizeRole(user?.role);
+  const isAdmin    = normRole === "admin";
+  const isHR       = normRole === "hr_manager";
+  const isEmployee = normRole === "employee";
 
-  const isAdmin    = role === "Admin";
-  const isHR       = role === "HR";
-  const isEmployee = role === "Employee";
+  // HR Manager gets both personal check-in view AND org monitoring
+  const isAdminOrHR = isAdmin || isHR;
 
   const [currentTime, setCurrentTime] = useState(new Date());
 
@@ -83,7 +86,12 @@ function AttendanceDashboard() {
     setAdminError(null);
     try {
       const res = await getAllAttendanceAdmin();
-      setAdminRecords(res?.data || []);
+      const rawRecords = res?.data || [];
+      // Admin monitors HR Managers + Employees (exclude Admin's own records)
+      const filtered = rawRecords.filter(
+        (r) => normalizeRole(r.employee?.role) !== "admin"
+      );
+      setAdminRecords(filtered);
     } catch (error) {
       console.error("Failed to load admin attendance:", error);
       setAdminError(
@@ -96,17 +104,25 @@ function AttendanceDashboard() {
 
   useEffect(() => {
     if (isAdmin) {
+      // Admin strictly monitors org-wide attendance (no personal check-in/out calls)
+      loadAdminAttendance();
+    } else if (isHR) {
+      // HR Manager: personal check-in/history + org monitoring
+      loadAttendanceData();
       loadAdminAttendance();
     } else {
+      // Employee: personal attendance only
       loadAttendanceData();
     }
-  }, [isAdmin, loadAdminAttendance, loadAttendanceData]);
+  }, [isAdmin, isHR, loadAdminAttendance, loadAttendanceData]);
 
   // ── HERO HEADER ─────────────────────────────────────────────────────────
-  const heroTitle    = isAdmin ? "Attendance Monitoring" : "Attendance Dashboard";
+  const heroTitle = isEmployee ? "Attendance Dashboard" : "Attendance Management";
   const heroSubtitle = isAdmin
-    ? "Monitor employee and HR attendance records across the organisation."
-    : "Track check-in times, work duration, monthly logs, and attendance history.";
+    ? "Monitor organization-wide attendance and employee working hours."
+    : isEmployee
+    ? "Track check-in times, work duration, monthly logs, and attendance history."
+    : "Track your personal attendance and monitor organisation-wide attendance records.";
 
   return (
     <div className="attendance-page">
@@ -141,7 +157,7 @@ function AttendanceDashboard() {
         </div>
       </div>
 
-      {/* ── ADMIN VIEW ──────────────────────────────────────────────────── */}
+      {/* ── ADMIN VIEW: ONLY ORGANIZATION-WIDE MONITORING ─────────────────── */}
       {isAdmin && (
         <AdminAttendanceMonitor
           records={adminRecords}
@@ -151,8 +167,8 @@ function AttendanceDashboard() {
         />
       )}
 
-      {/* ── EMPLOYEE & HR VIEW (Check-in + personal attendance) ──────────── */}
-      {(isEmployee || isHR) && (
+      {/* ── HR MANAGER & EMPLOYEE VIEW: PERSONAL ATTENDANCE GRID ─────────── */}
+      {!isAdmin && (
         <div className="attendance-grid-layout">
           <div className="col-span-6">
             <div className="attendance-section-box">
@@ -191,6 +207,16 @@ function AttendanceDashboard() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* ── HR MANAGER ORG MONITORING SECTION ───────────────────────────────── */}
+      {isHR && (
+        <AdminAttendanceMonitor
+          records={adminRecords}
+          loading={adminLoading}
+          error={adminError}
+          onRefresh={loadAdminAttendance}
+        />
       )}
     </div>
   );

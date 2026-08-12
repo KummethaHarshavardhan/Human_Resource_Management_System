@@ -190,7 +190,7 @@ function AttendanceCalendar({ calendarAttendance = [], approvedLeaves = [] }) {
         <span className="legend-item"><span className="legend-dot late" /> Late</span>
         <span className="legend-item"><span className="legend-dot halfday" /> Half Day</span>
         <span className="legend-item"><span className="legend-dot early" /> Early Checkout</span>
-        <span className="legend-item"><span className="legend-dot leave" /> Approved Leave</span>
+        <span className="legend-item"><span className="legend-dot leave" /> Leave</span>
       </div>
     </div>
   );
