@@ -3,11 +3,13 @@ import { useNavigate } from "react-router-dom";
 
 import DepartmentForm from "../../../components/department/DepartmentForm";
 import { addDepartment } from "../../../services/departmentService";
+import { useToast } from "../../../context/ToastContext";
 
 import "../department-role.css";
 
 export default function AddDepartment() {
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   const [loading, setLoading] = useState(false);
 
@@ -17,11 +19,11 @@ export default function AddDepartment() {
 
       await addDepartment(formData);
 
-      alert("Department added successfully.");
+      showToast("success", "Department added successfully.");
 
       navigate("/employee/departments");
     } catch (err) {
-      alert(err.message);
+      showToast("error", err.message || "Failed to add department");
     } finally {
       setLoading(false);
     }

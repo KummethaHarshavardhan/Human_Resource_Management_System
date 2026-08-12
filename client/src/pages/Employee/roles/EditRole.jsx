@@ -7,12 +7,14 @@ import {
   getRoleById,
   updateRole,
 } from "../../../services/roleService";
+import { useToast } from "../../../context/ToastContext";
 
 import "../department-role.css";
 
 export default function EditRole() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   const [role, setRole] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -24,7 +26,7 @@ export default function EditRole() {
         const res = await getRoleById(id);
         setRole(res.data || res);
       } catch (err) {
-        alert(err.message);
+        showToast("error", err.message || "Failed to load role");
       } finally {
         setLoading(false);
       }
@@ -39,11 +41,11 @@ export default function EditRole() {
 
       await updateRole(id, formData);
 
-      alert("Role updated successfully.");
+      showToast("success", "Role updated successfully.");
 
       navigate("/employee/roles");
     } catch (err) {
-      alert(err.message);
+      showToast("error", err.message || "Failed to update role");
     } finally {
       setSaving(false);
     }

@@ -7,12 +7,14 @@ import {
   getDepartmentById,
   updateDepartment,
 } from "../../../services/departmentService";
+import { useToast } from "../../../context/ToastContext";
 
 import "../department-role.css";
 
 export default function EditDepartment() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   const [department, setDepartment] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -24,7 +26,7 @@ export default function EditDepartment() {
         const res = await getDepartmentById(id);
         setDepartment(res.data || res);
       } catch (err) {
-        alert(err.message);
+        showToast("error", err.message || "Failed to load department");
       } finally {
         setLoading(false);
       }
@@ -39,11 +41,11 @@ export default function EditDepartment() {
 
       await updateDepartment(id, formData);
 
-      alert("Department updated successfully.");
+      showToast("success", "Department updated successfully.");
 
       navigate("/employee/departments");
     } catch (err) {
-      alert(err.message);
+      showToast("error", err.message || "Failed to update department");
     } finally {
       setSaving(false);
     }

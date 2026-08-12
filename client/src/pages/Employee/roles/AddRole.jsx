@@ -3,11 +3,13 @@ import { useNavigate } from "react-router-dom";
 
 import RoleForm from "../../../components/role/RoleForm";
 import { addRole } from "../../../services/roleService";
+import { useToast } from "../../../context/ToastContext";
 
 import "../department-role.css";
 
 export default function AddRole() {
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   const [loading, setLoading] = useState(false);
 
@@ -17,11 +19,11 @@ export default function AddRole() {
 
       await addRole(formData);
 
-      alert("Role added successfully.");
+      showToast("success", "Role added successfully.");
 
       navigate("/employee/roles");
     } catch (err) {
-      alert(err.message);
+      showToast("error", err.message || "Failed to add role");
     } finally {
       setLoading(false);
     }
