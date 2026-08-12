@@ -1,5 +1,6 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
+import { normalizeRole } from "./permission.js";
 
 export default function ProtectedRoute({ 
   children, 
@@ -16,17 +17,15 @@ export default function ProtectedRoute({
     return <Navigate to="/login" replace />;
   }
 
-
-  const userRole = user?.role?.toLowerCase();
-
+  const userRole = normalizeRole(user?.role);
 
   if (
     allowedRoles.length > 0 &&
     !allowedRoles
-      .map(role => role.toLowerCase())
+      .map(role => normalizeRole(role))
       .includes(userRole)
   ) {
-    return <Navigate to="/profile" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   return children;

@@ -1,7 +1,7 @@
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { canAccessFeature } from "../../utils/permission.js";
-import { FaBars } from "react-icons/fa";
+
 import "./Sidebar.css";
 
 const menuItems = [
@@ -46,19 +46,6 @@ export default function Sidebar({
   return (
     <aside className={sidebarClasses}>
       <div className="sidebar-top">
-        {/* Top Hamburger Button - Clean 3 horizontal lines */}
-        <div className="sidebar-hamburger-header">
-          <button
-            type="button"
-            className="sidebar-hamburger-btn"
-            onClick={onToggleSidebar}
-            aria-label="Toggle Sidebar"
-            title="Toggle Sidebar Menu"
-          >
-            <FaBars size={26} />
-          </button>
-        </div>
-
         {user && (
           <div className="sidebar-user-card" title={`${user.name} (${user.role})`}>
             <div className="sidebar-user-avatar">

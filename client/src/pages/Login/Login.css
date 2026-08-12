@@ -55,7 +55,7 @@ html:has(.login-container) {
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse 70% 60% at 30% 40%, rgba(99,102,241,0.2) 0%, transparent 70%);
+  background: radial-gradient(ellipse 70% 60% at 30% 40%, rgba(99, 102, 241, 0.2) 0%, transparent 70%);
   pointer-events: none;
 }
 
@@ -73,7 +73,7 @@ html:has(.login-container) {
   object-fit: contain;
   display: block;
   margin: 0 auto 18px auto;
-  filter: drop-shadow(0 8px 20px rgba(99,102,241,0.45));
+  filter: drop-shadow(0 8px 20px rgba(99, 102, 241, 0.45));
 }
 
 .brand-section h1 {
@@ -106,8 +106,8 @@ html:has(.login-container) {
 .feature-card {
   flex: 1;
   padding: 16px 18px;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 14px;
   backdrop-filter: blur(10px);
   text-align: left;
@@ -115,7 +115,7 @@ html:has(.login-container) {
 }
 
 .feature-card:hover {
-  background: rgba(255,255,255,0.09);
+  background: rgba(255, 255, 255, 0.09);
   transform: translateY(-2px);
 }
 
@@ -126,7 +126,7 @@ html:has(.login-container) {
   width: 34px;
   height: 34px;
   border-radius: 9px;
-  background: rgba(99,102,241,0.22);
+  background: rgba(99, 102, 241, 0.22);
   color: #a5b4fc;
   margin-bottom: 10px;
 }
@@ -171,26 +171,42 @@ html:has(.login-container) {
   background: #fff;
   border-radius: 18px;
   border: 1px solid #e2e8f0;
-  box-shadow: 0 16px 40px rgba(15,23,42,0.09);
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.09);
   padding: 36px 36px 32px 36px;
   display: flex;
   flex-direction: column;
   align-items: stretch;
 }
 
-/* Mobile logo – hidden on desktop */
+/* Mobile logo header — shown only on mobile, hidden on desktop */
 .mobile-logo-header {
   display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   text-align: center;
-  margin-bottom: 18px;
+  margin-bottom: 22px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .mobile-logo {
-  width: 56px;
-  height: 56px;
+  width: 52px;
+  height: 52px;
   object-fit: contain;
-  display: inline-block;
-  filter: drop-shadow(0 4px 12px rgba(79,70,229,0.35));
+  display: block;
+  margin: 0 auto 10px auto;
+  border-radius: 14px;
+  filter: drop-shadow(0 4px 14px rgba(79, 70, 229, 0.38));
+}
+
+.mobile-brand-name {
+  display: block;
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #0f172a;
+  line-height: 1.2;
 }
 
 /* ── Heading block ── */
@@ -241,15 +257,15 @@ html:has(.login-container) {
 .login-form-box .form-group input[type="text"] {
   display: block;
   width: 100%;
-  height: 44px;
-  padding: 0 14px;
+  padding: 11px 14px;
   font-size: 0.875rem;
   font-family: inherit;
   color: #0f172a;
-  background: #fff;
+  background: #f0f4ff;
   border: 1.5px solid #cbd5e1;
   border-radius: 10px;
   outline: none;
+  box-sizing: border-box;
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 
@@ -259,8 +275,9 @@ html:has(.login-container) {
 
 .login-form-box .form-group input:focus {
   border-color: #4f46e5;
-  box-shadow: 0 0 0 3px rgba(79,70,229,0.13);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.13);
 }
+
 
 /* ── Password wrapper ── */
 .login-form-box .password-wrapper {
@@ -269,28 +286,47 @@ html:has(.login-container) {
   display: block;
 }
 
-.login-form-box .password-wrapper input {
-  width: 100%;
-  padding-right: 44px !important;
+.login-form-box .password-wrapper input[type="password"],
+.login-form-box .password-wrapper input[type="text"] {
+  width: 100% !important;
+  box-sizing: border-box !important;
+  padding-right: 48px !important;
+}
+
+/* Eye icon — centered using transform, works for any input height */
+.password-toggle-btn {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #94a3b8;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  z-index: 2;
+  line-height: 1;
+  transition: color 0.15s ease;
+}
+
+.password-toggle-btn:hover {
+  color: #4f46e5;
+}
+
+.password-toggle-btn:focus {
+  outline: none;
 }
 
 .eye-icon {
-  position: absolute;
-  top: 50%;
-  right: 14px;
-  transform: translateY(-50%);
-  color: #94a3b8;
-  font-size: 15px;
-  cursor: pointer;
-  background: none;
-  border: none;
-  padding: 0;
-  line-height: 1;
+  display: none;
 }
 
-.eye-icon:hover {
-  color: #475569;
-}
 
 /* ── Checkbox + Forgot row ── */
 .login-form-box .form-row {
@@ -332,13 +368,13 @@ html:has(.login-container) {
   font-weight: 700;
   font-family: inherit;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(79,70,229,0.38);
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.38);
   transition: background 0.2s, box-shadow 0.2s, transform 0.15s;
 }
 
 .login-form-box .btn-primary:hover {
   background: linear-gradient(135deg, #4338ca, #3730a3);
-  box-shadow: 0 6px 20px rgba(79,70,229,0.45);
+  box-shadow: 0 6px 20px rgba(79, 70, 229, 0.45);
   transform: translateY(-1px);
 }
 
@@ -401,7 +437,7 @@ html:has(.login-container) {
 .login-form-box .btn-google:hover {
   background: #f8fafc;
   border-color: #94a3b8;
-  box-shadow: 0 2px 8px rgba(15,23,42,0.07);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.07);
 }
 
 .google-icon {
@@ -440,13 +476,18 @@ html:has(.login-container) {
   gap: 12px;
   border-radius: 12px;
   background: #fff;
-  box-shadow: 0 10px 28px rgba(15,23,42,0.15);
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.15);
   z-index: 9999;
-  animation: slideInUp 0.3s cubic-bezier(0.16,1,0.3,1);
+  animation: slideInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.login-toast.success { border-left: 4px solid #10b981; }
-.login-toast.error   { border-left: 4px solid #ef4444; }
+.login-toast.success {
+  border-left: 4px solid #10b981;
+}
+
+.login-toast.error {
+  border-left: 4px solid #ef4444;
+}
 
 .toast-icon {
   width: 30px;
@@ -461,8 +502,13 @@ html:has(.login-container) {
   font-weight: 700;
 }
 
-.login-toast.success .toast-icon { background: #10b981; }
-.login-toast.error   .toast-icon { background: #ef4444; }
+.login-toast.success .toast-icon {
+  background: #10b981;
+}
+
+.login-toast.error .toast-icon {
+  background: #ef4444;
+}
 
 .toast-content {
   display: flex;
@@ -511,7 +557,7 @@ html:has(.login-container) {
   }
 
   .mobile-logo-header {
-    display: block;
+    display: flex;
   }
 }
 

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
+import { useToast } from "../../context/ToastContext.jsx";
 import EmployeeForm from "../../components/employee/EmployeeForm.jsx";
 import { createEmployee, getAllEmployees } from "../../services/employeeService.js";
 import { getAllDepartments } from "../../services/profileService.js";
@@ -23,6 +24,7 @@ async function fetchUsers() {
 
 export default function AddEmployee() {
   const { user } = useAuth();
+  const { showToast } = useToast();
   const navigate = useNavigate();
   const role = user?.role || "";
 
@@ -55,10 +57,14 @@ export default function AddEmployee() {
     setSuccess("");
     try{
       await createEmployee(formData);
-      setSuccess("Employee created successfully!");
+      const msg = "Employee created successfully!";
+      setSuccess(msg);
+      showToast('success', msg);
       setTimeout(() => navigate("/employee"), 1400);
     }catch(err) {
-      setError(err.message || "Failed to create employee");
+      const errMsg = err.message || "Failed to create employee";
+      setError(errMsg);
+      showToast('error', errMsg);
     }finally {
       setLoading(false);
     }

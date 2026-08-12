@@ -49,7 +49,7 @@ import LeaveDashboard from "./pages/Leave/LeaveDashboard";
 
 function ProtectedLayout() {
   const { isAuthenticated } = useAuth();
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   if (!isAuthenticated) {
@@ -81,11 +81,12 @@ function ProtectedLayout() {
       />
 
       <div className="app-main-wrapper">
-        <Header />
+        <Header onToggleSidebar={handleToggleSidebar} />
         <main className="app-main-content">
           <Outlet />
         </main>
       </div>
+
     </div>
   );
 }

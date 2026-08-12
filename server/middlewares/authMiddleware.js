@@ -27,9 +27,29 @@ export const verifyToken = (req, res, next) => {
 
 export const protect = verifyToken;
 
+export const normalizeRole = (role) => {
+  if (!role) return "";
+  const r = String(role).trim().toLowerCase();
+  if (r === "admin") return "admin";
+  if (
+    r === "hr" ||
+    r === "hr manager" ||
+    r === "hr_manager" ||
+    r === "human resources" ||
+    r === "human_resources"
+  ) {
+    return "hr_manager";
+  }
+  if (r === "employee") return "employee";
+  return r;
+};
+
 export const authorizeRoles = (...roles) => {
   return (req, res, next) => {
-    if (!roles.includes(req.user.role)) {
+    const userRole = normalizeRole(req.user?.role);
+    const allowedRoles = roles.map((r) => normalizeRole(r));
+
+    if (!allowedRoles.includes(userRole)) {
       return res.status(403).json({
         success: false,
         message: "Access denied",

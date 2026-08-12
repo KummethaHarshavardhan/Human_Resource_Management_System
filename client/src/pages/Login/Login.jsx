@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { loginUser, googleLoginUser } from '../../services/api';
 import { useAuth } from "../../context/AuthContext.jsx";
+import { useToast } from "../../context/ToastContext.jsx";
+import { FiEye, FiEyeOff } from 'react-icons/fi';
 import Passkey from '../Passkey/Passkey.jsx';
 import logo from '../../assets/infinetra-logo.png';
 import './Login.css';
@@ -10,22 +12,15 @@ function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [toast, setToast] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const [showPasskeyModal, setShowPasskeyModal] = useState(false);
 
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { showToast } = useToast();
   const googleButtonRef = useRef(null);
 
-  const showToast = (type, message) => {
-    setToast({ type, message });
-
-    setTimeout(() => {
-      setToast(null);
-    }, 3000);
-  };
 
   useEffect(() => {
     const scriptId = 'google-identity-script';
@@ -187,22 +182,6 @@ function Login() {
 
   return (
     <div className="login-container">
-
-      {toast && (
-        <div className={`login-toast ${toast.type}`}>
-          <div className="toast-icon">
-            {toast.type === 'success' ? '✓' : '✕'}
-          </div>
-
-          <div className="toast-content">
-            <strong>
-              {toast.type === 'success' ? 'Success' : 'Error'}
-            </strong>
-            <span>{toast.message}</span>
-          </div>
-        </div>
-      )}
-
       <div className="login-left">
         <div className="brand-section">
 
@@ -275,6 +254,12 @@ function Login() {
       <div className="login-right">
         <div className="login-form-box">
 
+          {/* Mobile-only logo header */}
+          <div className="mobile-logo-header">
+            <img src={logo} alt="Infinetra Logo" className="mobile-logo" />
+            <span className="mobile-brand-name">Infinetra HRMS</span>
+          </div>
+
           <h2>Welcome back</h2>
 
           <p className="subtitle">
@@ -306,8 +291,19 @@ function Login() {
                   onChange={(e) => setPassword(e.target.value)}
                 />
 
+                <button
+                  type="button"
+                  className="password-toggle-btn"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  title={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+                </button>
+
               </div>
             </div>
+
 
             <div className="form-row">
 

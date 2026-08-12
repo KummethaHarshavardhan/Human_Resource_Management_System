@@ -16,20 +16,55 @@
   justify-content: space-between;
   padding: 0 28px;
   box-shadow: 0 4px 20px rgba(15, 23, 42, 0.18);
-  transition: left 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: left 0.28s cubic-bezier(0.4, 0, 0.2, 1), background 0.25s ease;
   box-sizing: border-box;
 }
 
-/* Header left: avatar + welcome text — no hamburger */
+[data-theme="dark"] .app-fixed-header {
+  background: linear-gradient(135deg, #080c16 0%, #111827 60%, #1e1b4b 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Header left: Hamburger + avatar + welcome text */
 .header-left {
   display: flex;
   align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+
+/* Hamburger button inside top header */
+.header-hamburger-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md, 10px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.header-hamburger-btn:hover {
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+  transform: scale(1.04);
+}
+
+.header-hamburger-btn:active {
+  transform: scale(0.96);
 }
 
 .header-user-group {
   display: flex;
   align-items: center;
   gap: 14px;
+  min-width: 0;
 }
 
 .header-user-avatar {
@@ -52,6 +87,7 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-width: 0;
 }
 
 .header-welcome-title {
@@ -61,6 +97,9 @@
   color: #ffffff;
   letter-spacing: -0.01em;
   line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .header-role-badge {
@@ -76,11 +115,64 @@
   width: fit-content;
 }
 
-/* Header right: Profile + Logout */
+/* Header right: Theme Toggle + Notifications + Profile + Logout */
 .header-right {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+
+
+/* Profile & Logout icon buttons */
+.header-icon-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 14px;
+  height: 38px;
+  border-radius: var(--radius-md, 10px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+  color: #f1f5f9;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: var(--transition-fast);
+  white-space: nowrap;
+}
+
+.header-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+  transform: scale(1.04);
+}
+
+.header-icon-btn:active {
+  transform: scale(0.96);
+}
+
+.header-profile-btn:hover {
+  border-color: rgba(99, 102, 241, 0.5);
+  background: rgba(99, 102, 241, 0.18);
+}
+
+.header-logout-btn {
+  border-color: rgba(239, 68, 68, 0.25);
+  background: rgba(239, 68, 68, 0.1);
+  color: #fca5a5;
+}
+
+.header-logout-btn:hover {
+  background: rgba(239, 68, 68, 0.25);
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #ffffff;
+}
+
+.header-btn-label {
+  font-size: 0.85rem;
+  font-weight: 600;
 }
 
 /* Adjust left position when sidebar collapses */
@@ -88,26 +180,82 @@
   left: 80px;
 }
 
-/* Tablet / Mobile */
+/* ==========================================
+   TABLET (1024px and below) — sidebar slides out as drawer
+   ========================================== */
 @media (max-width: 1024px) {
   .app-fixed-header {
-    left: 0;
-    padding: 0 16px;
+    left: 0 !important;
+    padding: 0 14px;
   }
 
   .header-welcome-title {
-    font-size: 1rem;
+    font-size: 0.95rem;
+    max-width: 160px;
   }
 }
 
+/* ==========================================
+   MOBILE (640px and below)
+   ========================================== */
 @media (max-width: 640px) {
-  .header-role-badge {
-    display: none;
+  .app-fixed-header {
+    padding: 0 10px;
+    height: 64px;
+  }
+
+  .header-left {
+    gap: 8px;
   }
 
   .header-user-avatar {
     width: 36px;
     height: 36px;
-    font-size: 14px;
+    font-size: 13px;
+  }
+
+  .header-welcome-title {
+    font-size: 0.82rem;
+    max-width: 110px;
+  }
+
+  .header-role-badge {
+    display: none;
+  }
+
+  .header-right {
+    gap: 6px;
+  }
+
+  /* Hide text label — show icon only on small screens */
+  .header-btn-label {
+    display: none;
+  }
+
+  .header-icon-btn {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    justify-content: center;
+    border-radius: var(--radius-full, 9999px);
+  }
+
+  .header-theme-toggle-btn {
+    width: 36px;
+    height: 36px;
+  }
+
+  .header-hamburger-btn {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+/* ==========================================
+   VERY SMALL (400px and below)
+   ========================================== */
+@media (max-width: 400px) {
+  .header-user-group {
+    display: none;
   }
 }

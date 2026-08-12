@@ -334,8 +334,8 @@ export const updateUserProfile = async (req, res) => {
         }
         
         if (department !== undefined) {
-            const userRole = req.user.role;
-            if (userRole === "Admin" || userRole === "HR") {
+            const userRole = String(req.user?.role || "").toLowerCase();
+            if (userRole === "admin" || userRole === "hr" || userRole === "hr manager" || userRole === "hr_manager") {
                 updateFields.department = String(department).trim();
             }
         }

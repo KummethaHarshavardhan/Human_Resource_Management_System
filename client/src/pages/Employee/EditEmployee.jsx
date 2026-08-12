@@ -12,9 +12,12 @@ import "../../components/employee/emp.shared.css";
 import "../../components/employee/EmployeeForm.css";
 import { FiArrowLeft, FiEye } from "react-icons/fi";
 
+import { useToast } from "../../context/ToastContext.jsx";
+
 export default function EditEmployee() {
   const { id } = useParams();
   const { user } = useAuth();
+  const { showToast } = useToast();
   const navigate = useNavigate();
 
   const [employee, setEmployee] = useState(null);
@@ -59,9 +62,7 @@ export default function EditEmployee() {
         (typeof employee.manager_id === "object" && employee.manager_id?._id) ||
         employee.manager_id ||
         "",
-      date_of_joining: employee.date_of_joining
-        ? new Date(employee.date_of_joining).toISOString().slice(0, 10)
-        : "",
+      hire_date: employee.hire_date ? employee.hire_date.slice(0, 10) : "",
       employment_status: employee.employment_status || "Active",
     };
   }, [employee]);
@@ -72,10 +73,14 @@ export default function EditEmployee() {
     setSuccess("");
     try {
       await updateEmployee(id, formData);
-      setSuccess("Employee updated successfully!");
+      const msg = "Employee updated successfully!";
+      setSuccess(msg);
+      showToast('success', msg);
       setTimeout(() => navigate(`/employee/${id}`), 1400);
     } catch (err) {
-      setError(err.message || "Failed to update employee");
+      const errMsg = err.message || "Failed to update employee";
+      setError(errMsg);
+      showToast('error', errMsg);
     } finally {
       setSaving(false);
     }
