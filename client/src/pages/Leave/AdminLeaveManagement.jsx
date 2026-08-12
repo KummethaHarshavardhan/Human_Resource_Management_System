@@ -166,12 +166,11 @@ export default function AdminLeaveManagement({ leaves = [], refreshLeaves }) {
       {/* ── Toolbar ────────────────────────────────────────────────────── */}
       <div className="alm-toolbar">
         <div className="alm-search-wrap">
-          <FiSearch size={15} className="alm-search-icon" />
           <input
             id="alm-search"
             type="text"
             className="alm-search-input"
-            placeholder="Search by name, email, role or leave type…"
+            placeholder="🔍 Search by name, email, role or leave type…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             aria-label="Search leave requests"

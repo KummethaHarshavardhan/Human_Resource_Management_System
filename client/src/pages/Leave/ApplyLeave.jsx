@@ -70,12 +70,7 @@ export default function ApplyLeave({ refreshLeaves }) {
         <p className="leave-sub-subtitle">Submit a new leave request for approval.</p>
       </div>
 
-      {message.text && (
-        <div className={`status-message ${message.type}`}>
-          {message.type === "success" ? <FiCheckCircle size={15} /> : <FiAlertCircle size={15} />}
-          {message.text}
-        </div>
-      )}
+
 
       <form className="leave-apply-form" onSubmit={handleSubmit}>
         <div className="leave-form-grid">
