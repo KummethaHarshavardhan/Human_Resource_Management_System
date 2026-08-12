@@ -49,6 +49,13 @@ export const getPublicDepartments = async () => {
   });
 };
 
+export const getPublicRoles = async () => {
+  return requestJson(`${API_URL}/roles/public/list`, {
+    method: "GET",
+    headers: { "Content-Type": "application/json" }
+  });
+};
+
 export const registerUser = async (userData) => {
   return requestJson(`${API_URL}/newEmp`, {
     method: "POST",
