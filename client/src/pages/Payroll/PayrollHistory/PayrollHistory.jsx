@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../../context/AuthContext';
 import { getAllPayrolls, markPayrollAsPaid } from '../../../services/payrollService';
+import { normalizeRole } from '../../../utils/permission';
 import PayrollFilter from '../../../components/Payroll/PayrollFilter';
 import SearchBar from '../../../components/Payroll/SearchBar';
 import PayrollTable from '../../../components/Payroll/PayrollTable';
@@ -14,6 +16,8 @@ import './PayrollHistory.css';
 
 export default function PayrollHistory() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isAdmin = normalizeRole(user?.role) === 'admin';
   const [payrolls, setPayrolls] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -126,7 +130,7 @@ export default function PayrollHistory() {
         <SearchBar
           value={searchTerm}
           onChange={(val) => { setSearchTerm(val); setCurrentPage(1); }}
-          placeholder="Search by Employee Code or Name..."
+          placeholder="🔍 Search by Employee Code or Name..."
         />
         <PayrollFilter
           selectedMonth={monthFilter}
@@ -156,7 +160,7 @@ export default function PayrollHistory() {
             <PayrollTable
               payrolls={paginatedPayrolls}
               onView={(id) => navigate(`/payroll/${id}`)}
-              onMarkPaid={handleMarkPaid}
+              onMarkPaid={isAdmin ? handleMarkPaid : undefined}
               isActionLoading={actionLoading}
             />
             <Pagination

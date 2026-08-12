@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../../context/AuthContext';
 import { getAllSalaries, deactivateSalary } from '../../../services/payrollService';
+import { normalizeRole } from '../../../utils/permission';
 import SearchBar from '../../../components/Payroll/SearchBar';
 import SalaryCard from '../../../components/Payroll/SalaryCard';
 import StatusBadge from '../../../components/Payroll/StatusBadge';
@@ -15,6 +17,8 @@ import './SalaryList.css';
 
 export default function SalaryList() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isAdmin = normalizeRole(user?.role) === 'admin';
   const [salaries, setSalaries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -96,11 +100,14 @@ export default function SalaryList() {
             Configure, view, and update base employee salary structures.
           </p>
         </div>
-        <div className="payroll-header-actions">
-          <button className="pr-btn pr-btn-primary" onClick={() => navigate('/payroll/salaries/add')}>
-            + Create New Salary
-          </button>
-        </div>
+        {/* Admin-only: Create New Salary button */}
+        {isAdmin && (
+          <div className="payroll-header-actions">
+            <button className="pr-btn pr-btn-primary" onClick={() => navigate('/payroll/salaries/add')}>
+              + Create New Salary
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Filter and Controls Toolbar */}
@@ -108,7 +115,7 @@ export default function SalaryList() {
         <SearchBar
           value={searchTerm}
           onChange={setSearchTerm}
-          placeholder="Search by Employee Code or Name..."
+          placeholder="🔍 Search by Employee Code or Name..."
         />
         <div className="view-toggle">
           <button
@@ -131,8 +138,8 @@ export default function SalaryList() {
         <EmptyState
           title="No Salary Records Found"
           message={searchTerm ? 'No salary record matches your search query.' : 'No salary structures have been created yet.'}
-          actionText="+ Create Salary Structure"
-          onAction={() => navigate('/payroll/salaries/add')}
+          actionText={isAdmin ? '+ Create Salary Structure' : undefined}
+          onAction={isAdmin ? () => navigate('/payroll/salaries/add') : undefined}
         />
       ) : viewMode === 'grid' ? (
         <>
@@ -142,8 +149,8 @@ export default function SalaryList() {
                 key={salary._id}
                 salary={salary}
                 onView={(id) => navigate(`/payroll/salaries/${id}`)}
-                onEdit={(id) => navigate(`/payroll/salaries/${id}/edit`)}
-                onDeactivate={(id) => setDeactivateId(id)}
+                onEdit={isAdmin ? (id) => navigate(`/payroll/salaries/${id}/edit`) : undefined}
+                onDeactivate={isAdmin ? (id) => setDeactivateId(id) : undefined}
               />
             ))}
           </div>
@@ -209,13 +216,15 @@ export default function SalaryList() {
                           >
                             View
                           </button>
-                          <button
-                            className="pr-btn pr-btn-secondary pr-btn-sm"
-                            onClick={() => navigate(`/payroll/salaries/${item._id}/edit`)}
-                          >
-                            Edit
-                          </button>
-                          {item.isActive && (
+                          {isAdmin && (
+                            <button
+                              className="pr-btn pr-btn-secondary pr-btn-sm"
+                              onClick={() => navigate(`/payroll/salaries/${item._id}/edit`)}
+                            >
+                              Edit
+                            </button>
+                          )}
+                          {isAdmin && item.isActive && (
                             <button
                               className="pr-btn pr-btn-danger pr-btn-sm"
                               onClick={() => setDeactivateId(item._id)}

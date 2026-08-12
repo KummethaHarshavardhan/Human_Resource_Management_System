@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../../context/AuthContext';
 import { getAllPayrolls, generatePayroll, markPayrollAsPaid, getAllSalaries } from '../../../services/payrollService';
 import { getAllEmployees } from '../../../services/employeeService';
 import SummaryCard from '../../../components/Payroll/SummaryCard';
@@ -9,11 +10,14 @@ import ErrorState from '../../../components/Payroll/ErrorState';
 import EmptyState from '../../../components/Payroll/EmptyState';
 import formatCurrency, { formatCompactCurrency } from '../../../utils/formatCurrency';
 import { MONTH_NAMES, YEARS_LIST, getEmployeeOptionLabel } from '../../../utils/payrollConstants';
+import { normalizeRole } from '../../../utils/permission';
 import '../../../components/Payroll/payrollTheme.css';
 import './PayrollDashboard.css';
 
 export default function PayrollDashboard() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isAdmin = normalizeRole(user?.role) === 'admin';
   const [payrolls, setPayrolls] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [salaries, setSalaries] = useState([]);
@@ -145,18 +149,21 @@ export default function PayrollDashboard() {
             Overview of salary runs, payouts, and monthly payroll generation.
           </p>
         </div>
-        <div className="payroll-header-actions">
-          <button className="pr-btn pr-btn-secondary" onClick={() => navigate('/payroll/salaries')}>
-            Manage Salary Structures
-          </button>
-          <button
-            className="pr-btn pr-btn-primary"
-            onClick={() => setShowGenModal(true)}
-            title={!hasActiveSalaries ? 'No active salary structures exist' : ''}
-          >
-            + Generate Payroll
-          </button>
-        </div>
+        {/* Admin-only action buttons */}
+        {isAdmin && (
+          <div className="payroll-header-actions">
+            <button className="pr-btn pr-btn-secondary" onClick={() => navigate('/payroll/salaries')}>
+              Manage Salary Structures
+            </button>
+            <button
+              className="pr-btn pr-btn-primary"
+              onClick={() => setShowGenModal(true)}
+              title={!hasActiveSalaries ? 'No active salary structures exist' : ''}
+            >
+              + Generate Payroll
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Real Summary Metrics Cards */}
@@ -208,14 +215,14 @@ export default function PayrollDashboard() {
           <EmptyState
             title="No Payroll Data Available"
             message="No payroll has been generated for any period yet."
-            actionText="+ Generate First Payroll"
-            onAction={() => setShowGenModal(true)}
+            actionText={isAdmin ? '+ Generate First Payroll' : undefined}
+            onAction={isAdmin ? () => setShowGenModal(true) : undefined}
           />
         ) : (
           <PayrollTable
             payrolls={payrolls.slice(0, 5)}
             onView={(id) => navigate(`/payroll/${id}`)}
-            onMarkPaid={handleMarkPaid}
+            onMarkPaid={isAdmin ? handleMarkPaid : undefined}
           />
         )}
       </div>
