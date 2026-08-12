@@ -10,17 +10,47 @@ import {
   downloadPayrollPDF,
 } from '../controllers/payrollController.js';
 import { validateGeneratePayroll } from '../validations/payrollValidation.js';
-
-// TEMP: auth middleware removed until Team 1 delivers authMiddleware.js
-// Add back: import { protect, authorizeRoles } from '../middlewares/authMiddleware.js';
+import { verifyToken, authorizeRoles } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
-router.post('/generate', validateGeneratePayroll, generatePayroll);
-router.get('/', getAllPayrolls);
-router.get('/employee/:employeeId', getPayrollsByEmployee);
-router.get('/:id/download', downloadPayrollPDF);  // PDF download — must be before /:id
-router.get('/:id', getPayrollById);
-router.patch('/:id/mark-paid', markPayrollAsPaid);
+// ── Admin-only write operations ─────────────────────────────────────────────
+router.post('/generate',
+  verifyToken,
+  authorizeRoles('Admin'),
+  validateGeneratePayroll,
+  generatePayroll
+);
+
+router.patch('/:id/mark-paid',
+  verifyToken,
+  authorizeRoles('Admin'),
+  markPayrollAsPaid
+);
+
+// ── Admin + HR Manager read operations ──────────────────────────────────────
+router.get('/',
+  verifyToken,
+  authorizeRoles('Admin', 'HR'),
+  getAllPayrolls
+);
+
+router.get('/employee/:employeeId',
+  verifyToken,
+  authorizeRoles('Admin', 'HR'),
+  getPayrollsByEmployee
+);
+
+router.get('/:id/download',
+  verifyToken,
+  authorizeRoles('Admin', 'HR'),
+  downloadPayrollPDF
+);
+
+router.get('/:id',
+  verifyToken,
+  authorizeRoles('Admin', 'HR'),
+  getPayrollById
+);
 
 export default router;
