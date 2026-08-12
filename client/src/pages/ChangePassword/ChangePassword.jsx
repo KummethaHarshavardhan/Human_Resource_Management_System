@@ -112,11 +112,7 @@ function ChangePassword() {
             Choose a strong password that you do not use for any other service.
           </p>
 
-          {status.message && (
-            <div className={`status-message ${status.type}`} style={{ marginBottom: '20px' }}>
-              {status.message}
-            </div>
-          )}
+
 
           <form onSubmit={handleSubmit}>
             <div className="password-group">

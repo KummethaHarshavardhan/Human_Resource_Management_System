@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "./Register.css";
 import logo from "../../assets/infinetra-logo.png";
-import { registerUser, getPublicDepartments } from "../../services/api";
+import { registerUser, getPublicDepartments, getPublicRoles } from "../../services/api";
 
 function Register() {
   const [name, setName] = useState("");
@@ -12,6 +12,9 @@ function Register() {
   const [departments, setDepartments] = useState([]);
   const [departmentsLoading, setDepartmentsLoading] = useState(true);
   const [role, setRole] = useState("Employee");
+  const [roles, setRoles] = useState([]);
+  const [rolesLoading, setRolesLoading] = useState(true);
+  const [rolesError, setRolesError] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
@@ -28,18 +31,65 @@ function Register() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchDepartments = async () => {
+    const fetchData = async () => {
       try {
-        const res = await getPublicDepartments();
-        setDepartments(res?.data || []);
-      } catch (error) {
-        console.error('Failed to load departments:', error);
-      } finally {
+        const [deptRes, roleRes] = await Promise.allSettled([
+          getPublicDepartments(),
+          getPublicRoles(),
+        ]);
+
+        if (deptRes.status === "fulfilled") {
+          setDepartments(deptRes.value?.data || []);
+        } else {
+          console.error("Failed to load departments:", deptRes.reason);
+        }
         setDepartmentsLoading(false);
+
+        if (roleRes.status === "fulfilled") {
+          let fetchedRoles = roleRes.value?.data || [];
+          if (!Array.isArray(fetchedRoles)) fetchedRoles = [];
+
+          const defaultRoleNames = ["Admin", "HR Manager", "Employee"];
+          defaultRoleNames.forEach((defName) => {
+            const hasRole = fetchedRoles.some(
+              (r) => (r.roleName || "").toLowerCase() === defName.toLowerCase() ||
+                     (r.roleName || "").toLowerCase() === defName.toLowerCase().replace(" ", "_")
+            );
+            if (!hasRole) {
+              fetchedRoles.push({ _id: defName, roleName: defName });
+            }
+          });
+
+          setRoles(fetchedRoles);
+          if (fetchedRoles.length > 0) {
+            const empRole = fetchedRoles.find(
+              (r) => (r.roleName || "").toLowerCase() === "employee"
+            );
+            if (empRole) {
+              setRole(empRole.roleName);
+            } else {
+              setRole(fetchedRoles[0].roleName);
+            }
+          }
+        } else {
+          console.error("Failed to load roles:", roleRes.reason);
+          setRolesError(roleRes.reason?.message || "Failed to load roles");
+          setRoles([
+            { _id: "Admin", roleName: "Admin" },
+            { _id: "HR Manager", roleName: "HR Manager" },
+            { _id: "Employee", roleName: "Employee" }
+          ]);
+          setRole("Employee");
+        }
+        setRolesLoading(false);
+      } catch (error) {
+        console.error("Failed to load register options:", error);
+        setDepartmentsLoading(false);
+        setRolesLoading(false);
       }
     };
 
-    fetchDepartments();
+    fetchData();
   }, []);
 
 
@@ -67,6 +117,7 @@ function Register() {
       !email ||
       !phone ||
       !department ||
+      !role ||
       !password ||
       !confirmPassword
     ) {
@@ -260,11 +311,22 @@ function Register() {
                 name="role"
                 value={role}
                 onChange={(e) => setRole(e.target.value)}
+                disabled={rolesLoading}
               >
-                <option value="Employee">Employee</option>
-                <option value="HR">HR</option>
-                <option value="Admin">Admin</option>
+                <option value="">
+                  {rolesLoading ? "Loading roles..." : "Select a role"}
+                </option>
+                {roles.map((r) => (
+                  <option key={r._id || r.roleId || r.roleName} value={r.roleName}>
+                    {r.roleName}
+                  </option>
+                ))}
               </select>
+              {rolesError && (
+                <span className="error-text" style={{ fontSize: "12px", color: "#dc2626", marginTop: "4px", display: "block" }}>
+                  {rolesError}
+                </span>
+              )}
             </div>
 
             <div className="form-group">
