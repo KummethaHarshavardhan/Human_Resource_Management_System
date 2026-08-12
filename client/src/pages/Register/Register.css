@@ -432,8 +432,8 @@ html:has(.login-container) {
   position: fixed;
   top: 18px;
   right: 18px;
-  min-width: 300px;
-  max-width: 400px;
+  max-width: calc(100vw - 32px);
+  width: auto;
   padding: 13px 16px;
   display: flex;
   align-items: center;
@@ -443,6 +443,7 @@ html:has(.login-container) {
   box-shadow: 0 10px 28px rgba(15, 23, 42, 0.15);
   z-index: 9999;
   animation: slideInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
 }
 
 .toast-message.success {
@@ -457,6 +458,7 @@ html:has(.login-container) {
   width: 30px;
   height: 30px;
   min-width: 30px;
+  flex-shrink: 0;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -478,6 +480,8 @@ html:has(.login-container) {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-width: 0;
+  flex: 1 1 auto;
 }
 
 .toast-content strong {
@@ -489,7 +493,11 @@ html:has(.login-container) {
 .toast-content span {
   font-size: 0.8rem;
   color: #64748b;
+  white-space: normal;
+  word-break: normal;
+  overflow-wrap: anywhere;
 }
+
 
 @keyframes slideInUp {
   from {

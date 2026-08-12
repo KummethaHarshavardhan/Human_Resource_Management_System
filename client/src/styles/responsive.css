@@ -2,6 +2,18 @@
    HRMS DESIGN SYSTEM - RESPONSIVE BREAKPOINTS
    ========================================== */
 
+/* Universal Responsive Helpers */
+img, video, canvas, svg {
+  max-width: 100%;
+}
+
+.table-wrapper {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 /* Large Desktop (<= 1200px) */
 @media (max-width: 1200px) {
   .grid-cols-4 {
@@ -18,7 +30,6 @@
   .app-main-content {
     padding: 84px var(--space-4) var(--space-4);
   }
-
 
   .login-left {
     display: none;
@@ -42,11 +53,14 @@
   .page-header {
     flex-direction: column;
     align-items: flex-start;
+    gap: var(--space-3);
   }
 
   .page-actions {
     width: 100%;
     justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: var(--space-2);
   }
 
   .grid-cols-2,
@@ -70,6 +84,7 @@
   .users-toolbar {
     flex-direction: column;
     align-items: stretch;
+    gap: var(--space-3);
   }
 
   .search-box {
@@ -79,11 +94,16 @@
   .table-footer {
     flex-direction: column;
     gap: var(--space-3);
+    align-items: stretch;
   }
 }
 
 /* Small Mobile (<= 480px) */
 @media (max-width: 480px) {
+  .app-main-content {
+    padding: 80px 12px 16px 12px;
+  }
+
   .app-main {
     padding: var(--space-3);
   }
@@ -91,13 +111,27 @@
   .card,
   .users-card,
   .stat-card,
-  .summary-card {
+  .summary-card,
+  .feature-card {
     padding: var(--space-4);
   }
 
-  .btn,
-  button,
+  .btn-mobile-full,
   .add-user-btn {
     width: 100%;
+  }
+}
+
+/* Extra Small Mobile (<= 360px) */
+@media (max-width: 360px) {
+  .app-main-content {
+    padding: 72px 8px 12px 8px;
+  }
+
+  .card,
+  .users-card,
+  .stat-card,
+  .summary-card {
+    padding: 12px;
   }
 }

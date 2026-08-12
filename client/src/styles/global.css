@@ -79,6 +79,7 @@ a:hover {
   max-width: 1600px;
   width: 100%;
   margin: 0 auto;
+  box-sizing: border-box;
 }
 
 /* Semi-transparent Mobile Drawer Overlay */
@@ -97,6 +98,10 @@ a:hover {
 @media (max-width: 1024px) {
   .app-main-wrapper {
     margin-left: 0 !important;
+  }
+
+  .app-main-content {
+    padding: 84px var(--space-4) var(--space-4);
   }
 }
 
