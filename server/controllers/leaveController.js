@@ -19,53 +19,57 @@ export const applyLeave = async (req, res) => {
       employee: req.user.id,
     });
 
-    // Notify Admin/HR users about the new leave application
-    try {
-      const approvers = await User.find({
-        role: { $in: ["Admin", "HR"] },
-        _id: { $ne: req.user.id }, // don't notify yourself
-      }).select("_id email name");
-
-      const applicant = await User.findById(req.user.id).select("name email");
-      const applicantName = applicant?.name || "An employee";
-      const leaveType = req.body.leaveType || "Leave";
-      const startDate = req.body.startDate ? new Date(req.body.startDate).toLocaleDateString("en-IN") : "";
-      const endDate = req.body.endDate ? new Date(req.body.endDate).toLocaleDateString("en-IN") : "";
-
-      for (const approver of approvers) {
-        await createNotification({
-          recipient: approver._id,
-          type: "leave_applied",
-          message: `${applicantName} has applied for ${leaveType} leave (${startDate} – ${endDate}). Review is required.`,
-          relatedLeave: leave._id,
-        });
-
-        // Email notification to approver
-        await sendLeaveEmail({
-          to: approver.email,
-          subject: `New Leave Request — ${applicantName}`,
-          html: `
-            <h3>New Leave Application</h3>
-            <p><strong>${applicantName}</strong> has submitted a <strong>${leaveType} leave</strong> request.</p>
-            <ul>
-              <li><strong>From:</strong> ${startDate}</li>
-              <li><strong>To:</strong> ${endDate}</li>
-              <li><strong>Reason:</strong> ${req.body.reason || "—"}</li>
-            </ul>
-            <p>Please log in to the HRMS to review this request.</p>
-          `,
-        });
-      }
-    } catch (notifErr) {
-      // Non-fatal: don't block the apply response if notification fails
-      console.error("Leave apply notification error:", notifErr.message);
-    }
-
-    return res.status(201).json({
+    // Return successful response immediately after DB operation
+    res.status(201).json({
       success: true,
       message: "Leave applied successfully",
       leave,
     });
+
+    // Notify Admin/HR users asynchronously in background without blocking response
+    setImmediate(async () => {
+      try {
+        const approvers = await User.find({
+          role: { $in: ["Admin", "HR", "HR Manager", "hr_manager", "hr", "Human Resources"] },
+          _id: { $ne: req.user.id },
+        }).select("_id email name");
+
+        const applicant = await User.findById(req.user.id).select("name email");
+        const applicantName = applicant?.name || "An employee";
+        const leaveType = req.body.leaveType || "Leave";
+        const startDate = req.body.startDate ? new Date(req.body.startDate).toLocaleDateString("en-IN") : "";
+        const endDate = req.body.endDate ? new Date(req.body.endDate).toLocaleDateString("en-IN") : "";
+
+        await Promise.all(
+          approvers.map(async (approver) => {
+            await createNotification({
+              recipient: approver._id,
+              type: "leave_applied",
+              message: `${applicantName} has applied for ${leaveType} leave (${startDate} – ${endDate}). Review is required.`,
+              relatedLeave: leave._id,
+            });
+
+            await sendLeaveEmail({
+              to: approver.email,
+              subject: `New Leave Request — ${applicantName}`,
+              html: `
+                <h3>New Leave Application</h3>
+                <p><strong>${applicantName}</strong> has submitted a <strong>${leaveType} leave</strong> request.</p>
+                <ul>
+                  <li><strong>From:</strong> ${startDate}</li>
+                  <li><strong>To:</strong> ${endDate}</li>
+                  <li><strong>Reason:</strong> ${req.body.reason || "—"}</li>
+                </ul>
+                <p>Please log in to the HRMS to review this request.</p>
+              `,
+            });
+          })
+        );
+      } catch (notifErr) {
+        console.error("Async leave apply notification error:", notifErr.message);
+      }
+    });
+    return;
   } catch (err) {
     return res.status(500).json({
       success: false,
