@@ -1,3 +1,20 @@
+export const normalizeRole = (role) => {
+  if (!role) return "";
+  const r = String(role).trim().toLowerCase();
+  if (r === "admin") return "admin";
+  if (
+    r === "hr" ||
+    r === "hr manager" ||
+    r === "hr_manager" ||
+    r === "human resources" ||
+    r === "human_resources"
+  ) {
+    return "hr_manager";
+  }
+  if (r === "employee") return "employee";
+  return r;
+};
+
 const permissions = {
   admin: [
     "dashboard",
@@ -11,7 +28,7 @@ const permissions = {
     "users"
   ],
 
-  hr: [
+  hr_manager: [
     "dashboard",
     "profile",
     "employee",
@@ -19,14 +36,12 @@ const permissions = {
     "leave",
     "payroll",
     "reports",
-    "settings",
-    "users"
+    "settings"
   ],
 
   employee: [
     "dashboard",
     "profile",
-    "employee",
     "attendance",
     "leave",
     "settings"
@@ -35,6 +50,6 @@ const permissions = {
 
 export const canAccessFeature = (role, feature) => {
   if (!role) return false;
-  const normalizedRole = role.toLowerCase();
+  const normalizedRole = normalizeRole(role);
   return permissions[normalizedRole]?.includes(feature) || false;
 };
