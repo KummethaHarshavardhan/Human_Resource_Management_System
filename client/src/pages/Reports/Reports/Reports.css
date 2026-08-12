@@ -41,6 +41,8 @@
   border-radius: var(--radius-md);
   border: 1px solid var(--slate-200);
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
   box-shadow: var(--shadow-sm);
 }
 
