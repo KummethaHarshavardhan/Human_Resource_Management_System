@@ -142,8 +142,7 @@ export default function EditEmployee() {
         </div>
       </div>
 
-      {error && <div className="emp-alert error">{error}</div>}
-      {success && <div className="emp-alert success">{success}</div>}
+
 
       <div className="emp-form-page">
         <EmployeeForm
