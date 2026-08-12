@@ -119,14 +119,30 @@
 
 @media (max-width: 768px) {
   .attendance-hero-card {
-    padding: var(--space-5);
+    padding: var(--space-4) var(--space-4);
     flex-direction: column;
     align-items: flex-start;
+    gap: var(--space-4);
   }
 
   .attendance-clock-widget {
     width: 100%;
     justify-content: space-between;
+  }
+
+  .attendance-hero-info h1 {
+    font-size: var(--font-size-xl);
+  }
+}
+
+@media (max-width: 480px) {
+  .attendance-clock-widget {
+    gap: var(--space-3);
+    padding: var(--space-2) var(--space-3);
+  }
+
+  .clock-value {
+    font-size: var(--font-size-base);
   }
 }
 
@@ -505,6 +521,12 @@
 @media (max-width: 480px) {
   .admin-att-stats-row {
     grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 360px) {
+  .admin-att-stats-row {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -1028,5 +1050,117 @@
   .att-cal-status-pill {
     font-size: 9px;
     padding: 1px 4px;
+  }
+}
+
+/* ==========================================
+   ATTENDANCE TABLE — Responsive Scroll
+   (Attendance History & Monthly Attendance)
+   ========================================== */
+
+/* Scrollable wrapper — mirrors Leave Calendar's .table-wrapper */
+.table-responsive.table-wrapper {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  /* Prevent the wrapper itself from stretching the parent card */
+  display: block;
+}
+
+/* Give the table a sensible minimum so cells stay readable */
+.table-responsive.table-wrapper .table {
+  width: 100%;
+  min-width: 540px;          /* enough for 5-col Attendance History */
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+}
+
+.table-responsive.table-wrapper .table thead {
+  background: var(--slate-50);
+  border-bottom: 2px solid var(--slate-200);
+}
+
+.table-responsive.table-wrapper .table th {
+  padding: var(--space-3) var(--space-4);
+  text-align: left;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--slate-500);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.table-responsive.table-wrapper .table tbody tr {
+  border-bottom: 1px solid var(--slate-100);
+  transition: background 0.12s;
+}
+
+.table-responsive.table-wrapper .table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.table-responsive.table-wrapper .table tbody tr:hover {
+  background: var(--slate-50);
+}
+
+.table-responsive.table-wrapper .table td {
+  padding: var(--space-3) var(--space-4);
+  color: var(--slate-700);
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+/* Empty-state cell should be allowed to wrap / center */
+.table-responsive.table-wrapper .table .empty-state {
+  white-space: normal;
+  text-align: center;
+  padding: var(--space-10) var(--space-4);
+  color: var(--slate-400);
+  font-size: var(--font-size-sm);
+}
+
+/* ── Slim custom scrollbar inside table wrapper ── */
+.table-responsive.table-wrapper::-webkit-scrollbar {
+  height: 6px;
+}
+
+.table-responsive.table-wrapper::-webkit-scrollbar-track {
+  background: var(--slate-100);
+  border-radius: 4px;
+}
+
+.table-responsive.table-wrapper::-webkit-scrollbar-thumb {
+  background: var(--slate-300);
+  border-radius: 4px;
+}
+
+.table-responsive.table-wrapper::-webkit-scrollbar-thumb:hover {
+  background: var(--slate-400);
+}
+
+/* ── Mobile overrides ── */
+@media (max-width: 768px) {
+  /* Clamp the section card so it never exceeds viewport width */
+  .attendance-section-box {
+    max-width: 100%;
+    overflow: hidden;       /* clip; the inner wrapper scrolls independently */
+    padding: var(--space-4);
+  }
+}
+
+@media (max-width: 480px) {
+  .attendance-section-box {
+    padding: var(--space-3);
+  }
+
+  .table-responsive.table-wrapper .table {
+    font-size: var(--font-size-xs);
+  }
+
+  .table-responsive.table-wrapper .table th,
+  .table-responsive.table-wrapper .table td {
+    padding: var(--space-2) var(--space-3);
   }
 }

@@ -30,6 +30,7 @@
 
 .payroll-table {
   width: 100%;
+  min-width: 850px;
   border-collapse: separate;
   border-spacing: 0;
   font-size: 13.5px;

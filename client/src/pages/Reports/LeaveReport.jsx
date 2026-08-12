@@ -55,29 +55,31 @@ const LeaveReport = () => {
         <p>{rejectedLeaves}</p>
       </div>
 
-      <table>
-        <thead>
-          <tr>
-            <th>Employee</th>
-            <th>Leave Type</th>
-            <th>Start Date</th>
-            <th>End Date</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          {leaves.map((leave) => (
-            <tr key={leave.id || leave._id}>
-              <td>{leave.employeeName || "Employee"}</td>
-              <td>{leave.leaveType}</td>
-              <td>{leave.startDate}</td>
-              <td>{leave.endDate}</td>
-              <td>{leave.status}</td>
+      <div className="table-wrapper">
+        <table className="table">
+          <thead>
+            <tr>
+              <th>Employee</th>
+              <th>Leave Type</th>
+              <th>Start Date</th>
+              <th>End Date</th>
+              <th>Status</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+
+          <tbody>
+            {leaves.map((leave) => (
+              <tr key={leave.id || leave._id}>
+                <td>{leave.employeeName || "Employee"}</td>
+                <td>{leave.leaveType}</td>
+                <td>{leave.startDate}</td>
+                <td>{leave.endDate}</td>
+                <td>{leave.status}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };
