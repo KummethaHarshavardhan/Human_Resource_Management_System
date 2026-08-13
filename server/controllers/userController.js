@@ -66,6 +66,14 @@ export const EmpRegister = async (req, res) => {
                 message: "Password and confirm password do not match"
             });
         }
+        const passwordRegex = /^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*]).{8,}$/;
+
+        if (!passwordRegex.test(password)) {
+             return res.status(400).json({
+               success: false,
+               message: "Password must contain at least 8 characters, one uppercase letter, one number, and one special character"
+             });
+        }
 
         const cleanedPhone = String(phone).replace(/\D/g, "");
 
@@ -102,7 +110,7 @@ export const EmpRegister = async (req, res) => {
 
         return res.status(201).json({
             success: true,
-            message: "Employee registered successfully",
+            message: "Registered successfully",
             user: {
                 id: newuser._id,
                 name: newuser.name,
