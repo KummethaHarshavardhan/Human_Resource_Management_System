@@ -5,12 +5,12 @@
 /* Lock body scroll ONLY when register/login page is active */
 body:has(.login-container) {
   overflow: hidden !important;
-  height: 100vh !important;
+  height: 90vh !important;
 }
 
 html:has(.login-container) {
   overflow: hidden !important;
-  height: 100vh !important;
+  height: 90vh !important;
 }
 
 .login-container * {
@@ -25,7 +25,7 @@ html:has(.login-container) {
   right: 0 !important;
   bottom: 0 !important;
   width: 100vw !important;
-  height: 100vh !important;
+  height: 90vh !important;
   display: flex !important;
   overflow: hidden !important;
   background-color: #f8fafc;
@@ -166,6 +166,7 @@ html:has(.login-container) {
   /* Thin scrollbar */
   scrollbar-width: thin;
   scrollbar-color: #cbd5e1 transparent;
+
 }
 
 .login-right::-webkit-scrollbar {
@@ -190,6 +191,7 @@ html:has(.login-container) {
   border: 1px solid #e2e8f0;
   box-shadow: 0 16px 40px rgba(15, 23, 42, 0.09);
   padding: 26px 32px 24px 32px;
+  margin-top: 100px;
   /* compact vertical padding */
   display: flex;
   flex-direction: column;
@@ -235,7 +237,7 @@ html:has(.login-container) {
   color: #0f172a;
   letter-spacing: -0.025em;
   line-height: 1.2;
-  margin: 0 0 4px 0;
+  margin: 20px;
   text-align: left;
 }
 

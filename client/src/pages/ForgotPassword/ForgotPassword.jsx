@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './ForgotPassword.css';
 import logo from '../../assets/infinetra-logo.png';
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 import {
   sendOtp,
@@ -303,7 +304,7 @@ function ForgotPassword() {
                           : 'Show password'
                       }
                     >
-                      {showNewPassword ? '◉' : '◉'}
+                      {showNewPassword ? <FaEye /> : <FaEyeSlash />}
                     </button>
                   </div>
                 </div>
@@ -331,7 +332,7 @@ function ForgotPassword() {
                           : 'Show password'
                       }
                     >
-                      {showConfirmPassword ? '◉' : '◉'}
+                      {showConfirmPassword ? <FaEye /> : <FaEyeSlash />}
                     </button>
                   </div>
                 </div>
