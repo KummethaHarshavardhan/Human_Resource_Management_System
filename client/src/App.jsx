@@ -30,11 +30,11 @@ import ReportsRoutes from "./routes/ReportsRoutes";
 import Settings from "./pages/Settings/Settings";
 import Users from "./pages/Users/Users";
 
-import EmployeeList from "./pages/employee/EmployeeList";
-import AddEmployee from "./pages/employee/AddEmployee";
-import EditEmployee from "./pages/employee/EditEmployee";
-import EmployeeDetails from "./pages/employee/EmployeeDetails";
-import EmployeeProfile from "./pages/employee/EmployeeProfile";
+import EmployeeList from "./pages/Employee/EmployeeList";
+import AddEmployee from "./pages/Employee/AddEmployee";
+import EditEmployee from "./pages/Employee/EditEmployee";
+import EmployeeDetails from "./pages/Employee/EmployeeDetails";
+import EmployeeProfile from "./pages/Employee/EmployeeProfile";
 
 import DepartmentList from "./pages/Employee/departments/DepartmentList";
 import AddDepartment from "./pages/Employee/departments/AddDepartment";
