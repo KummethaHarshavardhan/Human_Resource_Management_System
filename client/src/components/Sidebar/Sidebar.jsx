@@ -1,13 +1,13 @@
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
-import { canAccessFeature } from "../../utils/permission.js";
+import { canAccessFeature, normalizeRole } from "../../utils/permission.js";
 
 import "./Sidebar.css";
 
 const menuItems = [
   { label: "Dashboard", to: "/dashboard", feature: "dashboard", icon: "🏠" },
   { label: "Profile", to: "/profile", feature: "profile", icon: "👤" },
-  { label: "Directory", to: "/employee", feature: "employee", icon: "📁" },
+  { label: "Directory", to: "/directory", feature: "employee", icon: "📁" },
   { label: "Attendance", to: "/attendance-dashboard", feature: "attendance", icon: "⏰" },
   { label: "Leave Management", to: "/leave", feature: "leave", icon: "📅" },
   { label: "Payroll", to: "/payroll", feature: "payroll", icon: "💰" },
@@ -24,6 +24,14 @@ export default function Sidebar({
 }) {
   const { user, logout } = useAuth();
   const role = user?.role || "";
+
+  const displayRole = (() => {
+    const norm = normalizeRole(role);
+    if (norm === "admin") return "Admin";
+    if (norm === "hr_manager") return "HR Manager";
+    if (norm === "employee") return "Employee";
+    return role;
+  })();
 
   const visibleItems = menuItems.filter((item) =>
     canAccessFeature(role, item.feature)
@@ -47,7 +55,7 @@ export default function Sidebar({
     <aside className={sidebarClasses}>
       <div className="sidebar-top">
         {user && (
-          <div className="sidebar-user-card" title={`${user.name} (${user.role})`}>
+          <div className="sidebar-user-card" title={`${user.name} (${displayRole})`}>
             <div className="sidebar-user-avatar">
               {user.name?.charAt(0).toUpperCase() || "U"}
             </div>
@@ -55,7 +63,7 @@ export default function Sidebar({
             {!isCollapsed && (
               <div className="sidebar-user-details">
                 <div className="sidebar-user-name">{user.name}</div>
-                <div className="sidebar-user-role">{user.role}</div>
+                <div className="sidebar-user-role">{displayRole}</div>
               </div>
             )}
           </div>

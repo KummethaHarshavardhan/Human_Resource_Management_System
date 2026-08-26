@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
 import {
   FiUser, FiLock, FiBell, FiSliders, FiShield,
   FiSave, FiCheckCircle, FiAlertCircle, FiLoader,
@@ -10,15 +11,8 @@ import { getProfile, updateProfile } from '../../services/api';
 import './Settings.css';
 
 /* -----------------------------------------------------------------------
-   SETTINGS PAGE
-   - Profile section: fetches real data via GET /api/profile → saves via
-     PUT /api/profile (the endpoint we just enabled in the backend).
-   - Notifications & General sections: no backend support exists.
-     Values are persisted to localStorage (UI-only preferences), and the
-     page clearly explains this. We do NOT pretend these translate the app.
-   - Security tab: routes to ChangePassword page (already implemented).
+   localStorage helpers for UI-only preferences
 ----------------------------------------------------------------------- */
-
 const UI_PREFS_KEY = 'hrms_ui_prefs';
 
 const loadUIPrefs = () => {
@@ -39,6 +33,7 @@ const saveUIPrefs = (prefs) => {
 export default function Settings() {
   const navigate = useNavigate();
   const { user, updateUser } = useAuth();
+  const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState('profile');
   const canEditDepartment = user?.role === 'Admin' || user?.role === 'HR';
 
@@ -51,7 +46,6 @@ export default function Settings() {
   });
   const [profileLoading, setProfileLoading] = useState(true);
   const [profileSaving, setProfileSaving] = useState(false);
-  const [profileMsg, setProfileMsg] = useState({ type: '', text: '' });
 
   // ── Notification Preferences (UI-only, localStorage) ───────────────
   const savedPrefs = loadUIPrefs();
@@ -61,15 +55,6 @@ export default function Settings() {
     smsAlerts: savedPrefs.smsAlerts ?? false,
   });
   const [notifSaving, setNotifSaving] = useState(false);
-  const [notifMsg, setNotifMsg] = useState({ type: '', text: '' });
-
-  // ── General Preferences (UI-only, localStorage) ─────────────────────
-  const [generalPrefs, setGeneralPrefs] = useState({
-    dateFormat: savedPrefs.dateFormat || 'DD/MM/YYYY',
-    language: savedPrefs.language || 'English (US)',
-  });
-  const [generalSaving, setGeneralSaving] = useState(false);
-  const [generalMsg, setGeneralMsg] = useState({ type: '', text: '' });
 
   // ── Load profile on mount ──────────────────────────────────────────
   useEffect(() => {
@@ -88,7 +73,7 @@ export default function Settings() {
           updateUser(u);
         }
       } catch (err) {
-        setProfileMsg({ type: 'error', text: err.message || 'Failed to load profile.' });
+        showToast('error', err.message || 'Failed to load profile.');
       } finally {
         setProfileLoading(false);
       }
@@ -99,11 +84,10 @@ export default function Settings() {
   // ── Profile save ───────────────────────────────────────────────────
   const handleSaveProfile = async () => {
     if (!profileForm.name.trim()) {
-      setProfileMsg({ type: 'error', text: 'Name cannot be empty.' });
+      showToast('error', 'Name cannot be empty.');
       return;
     }
     setProfileSaving(true);
-    setProfileMsg({ type: '', text: '' });
     try {
       const payload = {
         name: profileForm.name,
@@ -125,9 +109,9 @@ export default function Settings() {
         updateUser(updated);
       }
 
-      setProfileMsg({ type: 'success', text: 'Profile updated successfully.' });
+      showToast('success', 'Profile updated successfully.');
     } catch (err) {
-      setProfileMsg({ type: 'error', text: err.message || 'Failed to save profile.' });
+      showToast('error', err.message || 'Failed to save profile.');
     } finally {
       setProfileSaving(false);
     }
@@ -136,32 +120,16 @@ export default function Settings() {
   // ── Notification prefs save (localStorage) ─────────────────────────
   const handleSaveNotifications = () => {
     setNotifSaving(true);
-    setNotifMsg({ type: '', text: '' });
     setTimeout(() => {
       saveUIPrefs({ ...loadUIPrefs(), ...notifPrefs });
       setNotifSaving(false);
-      setNotifMsg({ type: 'success', text: 'Notification preferences saved locally.' });
-    }, 400);
-  };
-
-  // ── General prefs save (localStorage) ─────────────────────────────
-  const handleSaveGeneral = () => {
-    setGeneralSaving(true);
-    setGeneralMsg({ type: '', text: '' });
-    setTimeout(() => {
-      saveUIPrefs({ ...loadUIPrefs(), ...generalPrefs });
-      setGeneralSaving(false);
-      setGeneralMsg({
-        type: 'success',
-        text: `Preferences saved. ${generalPrefs.language !== 'English (US)' ? 'Note: Full localization is not yet available in this build.' : 'Date format preference saved.'}`,
-      });
+      showToast('success', 'Notification preferences saved locally.');
     }, 400);
   };
 
   const tabs = [
     { id: 'profile', label: 'Profile', icon: FiUser },
     { id: 'notifications', label: 'Notifications', icon: FiBell },
-    { id: 'general', label: 'General', icon: FiSliders },
     { id: 'security', label: 'Security', icon: FiShield },
   ];
 
@@ -199,12 +167,6 @@ export default function Settings() {
             <span className="settings-backend-badge">Saved to Server</span>
           </div>
 
-          {profileMsg.text && (
-            <div className={`status-message ${profileMsg.type}`}>
-              {profileMsg.type === 'success' ? <FiCheckCircle size={15} /> : <FiAlertCircle size={15} />}
-              {profileMsg.text}
-            </div>
-          )}
 
           {profileLoading ? (
             <div className="settings-loading-state">
@@ -301,13 +263,6 @@ export default function Settings() {
             These preferences are saved in your browser. They control UI notifications only — server-side email delivery is managed by your administrator.
           </div>
 
-          {notifMsg.text && (
-            <div className={`status-message ${notifMsg.type}`}>
-              {notifMsg.type === 'success' ? <FiCheckCircle size={15} /> : <FiAlertCircle size={15} />}
-              {notifMsg.text}
-            </div>
-          )}
-
           <div className="settings-item-row">
             <div className="settings-item-info">
               <h4>Email Notifications</h4>
@@ -361,66 +316,6 @@ export default function Settings() {
         </div>
       )}
 
-      {/* ── GENERAL TAB ─────────────────────────────────────────────── */}
-      {activeTab === 'general' && (
-        <div className="settings-section-card">
-          <div className="card-header">
-            <h3 className="card-title"><FiSliders size={18} /> General Preferences</h3>
-            <span className="settings-local-badge">Saved Locally</span>
-          </div>
-
-          <div className="settings-info-banner">
-            <FiAlertCircle size={15} />
-            These are UI-level preferences stored in your browser. Language selection does not translate the application — full localization is not available in this version.
-          </div>
-
-          {generalMsg.text && (
-            <div className={`status-message ${generalMsg.type}`}>
-              {generalMsg.type === 'success' ? <FiCheckCircle size={15} /> : <FiAlertCircle size={15} />}
-              {generalMsg.text}
-            </div>
-          )}
-
-          <div className="settings-item-row">
-            <div className="settings-item-info">
-              <h4>Date Format</h4>
-              <p>Controls how dates are displayed in tables and reports across this browser.</p>
-            </div>
-            <select
-              className="settings-select"
-              value={generalPrefs.dateFormat}
-              onChange={(e) => setGeneralPrefs((p) => ({ ...p, dateFormat: e.target.value }))}
-            >
-              <option value="DD/MM/YYYY">DD/MM/YYYY</option>
-              <option value="MM/DD/YYYY">MM/DD/YYYY</option>
-              <option value="YYYY-MM-DD">YYYY-MM-DD (ISO)</option>
-            </select>
-          </div>
-
-          <div className="settings-item-row">
-            <div className="settings-item-info">
-              <h4>Display Language</h4>
-              <p>Preference recorded only. Full localization is not yet available in this build.</p>
-            </div>
-            <select
-              className="settings-select"
-              value={generalPrefs.language}
-              onChange={(e) => setGeneralPrefs((p) => ({ ...p, language: e.target.value }))}
-            >
-              <option value="English (US)">English (US)</option>
-              <option value="English (UK)">English (UK)</option>
-              <option value="Hindi">Hindi (हिंदी) — UI not translated</option>
-            </select>
-          </div>
-
-          <div className="settings-form-actions">
-            <button className="btn-primary" onClick={handleSaveGeneral} disabled={generalSaving}>
-              {generalSaving ? <><div className="settings-spinner-sm" /> Saving...</> : <><FiSave size={15} /> Save Preferences</>}
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* ── SECURITY TAB ─────────────────────────────────────────────── */}
       {activeTab === 'security' && (
         <div className="settings-section-card">
@@ -449,14 +344,6 @@ export default function Settings() {
             <button className="btn-outline" onClick={() => navigate('/profile')}>
               <FiUser size={14} /> View Profile
             </button>
-          </div>
-
-          <div className="settings-item-row">
-            <div className="settings-item-info">
-              <h4>Two-Factor Authentication</h4>
-              <p>2FA via OTP is used during the password reset flow. Full login-time 2FA is not yet enabled in this build.</p>
-            </div>
-            <span className="badge badge-warning">Coming Soon</span>
           </div>
         </div>
       )}

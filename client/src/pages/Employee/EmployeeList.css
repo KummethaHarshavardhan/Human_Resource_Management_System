@@ -126,6 +126,9 @@
   justify-content: center;
 }
 
+/* ===========================
+   HEADER ACTIONS
+=========================== */
 
 .emp-header-actions {
   display: flex;
@@ -134,6 +137,7 @@
   flex-wrap: wrap;
 }
 
+/* Departments & Roles Buttons */
 
 .emp-btn-secondary {
   display: flex;
@@ -162,6 +166,7 @@
   border-color: #6d28d9;
 }
 
+/* Add Employee Button */
 
 .emp-btn-primary {
   display: flex;
@@ -171,6 +176,7 @@
 }
 
 
+/* Mobile */
 
 @media (max-width:768px){
 
@@ -190,6 +196,9 @@
 
 }
 
+/* ===========================
+   HEADER LAYOUT
+=========================== */
 
 .emp-page-header {
   display: flex;
@@ -208,13 +217,34 @@
   color: #64748b;
 }
 
+/* Right Side Buttons */
 
 .emp-header-actions {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-wrap: wrap;
 }
 
 .emp-header-actions button {
   white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+  .emp-confirm-box {
+    padding: 20px 16px;
+    max-width: calc(100vw - 32px);
+  }
+
+  .emp-header-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .emp-btn-secondary,
+  .emp-btn-primary {
+    width: 100%;
+    flex: 1 1 100%;
+    justify-content: center;
+  }
 }

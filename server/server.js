@@ -6,6 +6,7 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 
 import connectDB from "./config/db.js";
+import { backfillEmployeeCodes, syncUsersToEmployees } from "./controllers/EmployeeController.js";
 
 import route from "./routes/UserRoute.js";
 import departmentRoutes from "./routes/departmentRoutes.js";
@@ -35,7 +36,17 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-connectDB();
+connectDB().then(async () => {
+    await syncUsersToEmployees();
+    await backfillEmployeeCodes();
+});
+
+app.get("/", (req, res) => {
+    res.json({
+        success: true,
+        message: "HRMS API Server is Running",
+    });
+});
 
 app.use("/api", route);
 app.use("/api/departments", departmentRoutes);
@@ -55,20 +66,6 @@ app.use("/api/notifications", notificationRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
-
-app.get("/", (req, res) => {
-    res.json({
-        success: true,
-        message: "HRMS API Server is Running",
-    });
-});
-
-app.use((req, res) => {
-    res.status(404).json({
-        success: false,
-        message: "Route Not Found",
-    });
-});
 
 const PORT = process.env.PORT || 5000;
 

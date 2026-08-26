@@ -109,16 +109,15 @@ The HRMS aims to provide a centralized platform for managing employees and HR-re
 ```
 Human_Resource_Management_System/
 │
-├── client/
-│
-├── server/
-│
+├── client/                     # React 18 frontend with responsive enterprise UI
+├── server/                     # Node.js & Express.js REST API with MongoDB
 ├── docs/
-│
+│   └── WORKFLOW_DOCUMENTATION.md # Comprehensive Architecture & Workflow Guide
 ├── README.md
-│
 └── .gitignore
 ```
+
+For complete architectural details, API specifications, and role-based workflows, refer to the [HRMS Workflow Documentation](docs/WORKFLOW_DOCUMENTATION.md).
 
 ---
 

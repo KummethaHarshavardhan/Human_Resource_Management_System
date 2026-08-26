@@ -273,4 +273,54 @@
   gap: 12px;
   padding-top: 16px;
   border-top: 1px solid #f1f5f9;
+  flex-wrap: wrap;
+}
+
+/* ── Responsive ──────────────────────────────────── */
+@media (max-width: 480px) {
+  .profile-redesign-wrapper {
+    padding-bottom: 16px;
+  }
+
+  .profile-details-card {
+    padding: 20px 16px;
+  }
+
+  .profile-form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .profile-form-actions button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .profile-hero-card {
+    padding: 24px 16px;
+  }
+
+  .profile-hero-avatar {
+    width: 80px;
+    height: 80px;
+    font-size: 30px;
+  }
+
+  .profile-user-name {
+    font-size: 18px;
+  }
+
+  .profile-card-header h2 {
+    font-size: 17px;
+  }
+}
+
+@media (max-width: 360px) {
+  .profile-details-card {
+    padding: 14px 10px;
+  }
+
+  .profile-info-icon {
+    width: 36px;
+    height: 36px;
+  }
 }

@@ -233,7 +233,9 @@
   color: var(--slate-800);
   margin: 0;
   line-height: 1.4;
-  word-break: break-word;
+  white-space: normal;
+  word-break: normal;
+  overflow-wrap: anywhere;
 }
 
 .notif-item.unread .notif-item-msg {
@@ -251,6 +253,7 @@
   cursor: pointer;
   padding: 4px;
   margin-top: 2px;
+  flex-shrink: 0;
 }
 
 .notif-unread-dot {
@@ -269,12 +272,12 @@
 
   .notif-dropdown {
     position: fixed;
-    /* 64px = header height on mobile */
-    top: 70px;
+    top: 68px;
     right: 12px;
     left: 12px;
     width: auto;
     max-width: calc(100vw - 24px);
+    max-height: calc(100vh - 80px);
     z-index: 9999;
   }
-}
+}

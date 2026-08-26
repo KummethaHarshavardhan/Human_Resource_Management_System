@@ -2,6 +2,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAllEmployees } from '../../services/employeeService';
 import { getDepartments } from '../../services/departmentService';
+import { getRoles } from '../../services/roleService';
+import { normalizeRole } from '../../utils/permission';
 import { FiUsers, FiUserCheck, FiShield, FiUserPlus, FiMoreVertical, FiSearch } from 'react-icons/fi';
 import './Users.css';
 
@@ -9,8 +11,10 @@ function Users() {
   const navigate = useNavigate();
   const [usersList, setUsersList]       = useState([]);
   const [departments, setDepartments]   = useState([]);
+  const [roles, setRoles]               = useState([]);
   const [loading, setLoading]           = useState(true);
   const [deptLoading, setDeptLoading]   = useState(true);
+  const [rolesLoading, setRolesLoading] = useState(true);
   const [search, setSearch]             = useState('');
   const [deptFilter, setDeptFilter]     = useState('All Departments');
   const [roleFilter, setRoleFilter]     = useState('All Roles');
@@ -73,6 +77,28 @@ function Users() {
     fetchDepts();
   }, []);
 
+  // ── Fetch real roles from backend (Roles Management) ────────────────────
+  useEffect(() => {
+    const fetchRolesData = async () => {
+      setRolesLoading(true);
+      try {
+        const res = await getRoles();
+        const list = Array.isArray(res) ? res : res?.data || [];
+        const roleNames = list
+          .filter((r) => !r.status || r.status === 'Active')
+          .map((r) => r.roleName || r.name || r)
+          .filter(Boolean);
+        setRoles(roleNames);
+      } catch (err) {
+        console.warn('Could not load roles:', err.message);
+        setRoles([]);
+      } finally {
+        setRolesLoading(false);
+      }
+    };
+    fetchRolesData();
+  }, []);
+
   // ── If API departments are empty, derive from loaded user list ───────────
   const departmentOptions = useMemo(() => {
     if (departments.length > 0) return departments;
@@ -82,6 +108,25 @@ function Users() {
     );
     return fromUsers;
   }, [departments, usersList]);
+
+  // ── If API roles are empty, derive from loaded user list ───────────
+  const roleOptions = useMemo(() => {
+    let list = roles;
+    if (list.length === 0) {
+      list = [...new Set(usersList.map((u) => u.role).filter(Boolean))];
+    }
+    // Deduplicate case-insensitively while preserving original casing
+    const seen = new Set();
+    const result = [];
+    for (const r of list) {
+      const lower = r.toLowerCase();
+      if (!seen.has(lower)) {
+        seen.add(lower);
+        result.push(r);
+      }
+    }
+    return result.sort((a, b) => a.localeCompare(b));
+  }, [roles, usersList]);
 
   // ── Filtered users ───────────────────────────────────────────────────────
   const filteredUsers = useMemo(() => {
@@ -101,7 +146,7 @@ function Users() {
 
   const totalCount    = usersList.length;
   const activeCount   = usersList.filter((u) => u.status.toLowerCase() === 'active').length;
-  const adminHrCount  = usersList.filter((u) => ['admin', 'hr'].includes(u.role.toLowerCase())).length;
+  const adminHrCount  = usersList.filter((u) => ['admin', 'hr_manager'].includes(normalizeRole(u.role))).length;
 
   return (
     <div className="users-page">
@@ -177,11 +222,12 @@ function Users() {
           value={roleFilter}
           onChange={(e) => setRoleFilter(e.target.value)}
           aria-label="Filter by role"
+          disabled={rolesLoading && roleOptions.length === 0}
         >
           <option value="All Roles">All Roles</option>
-          <option value="Admin">Admin</option>
-          <option value="HR">HR</option>
-          <option value="Employee">Employee</option>
+          {roleOptions.map((r) => (
+            <option key={r} value={r}>{r}</option>
+          ))}
         </select>
       </div>
 
@@ -222,9 +268,10 @@ function Users() {
                     .toUpperCase()
                     .slice(0, 2);
 
+                  const norm = normalizeRole(u.role);
                   let roleBadgeClass = 'badge-info';
-                  if (u.role.toLowerCase() === 'admin') roleBadgeClass = 'badge-success';
-                  if (u.role.toLowerCase() === 'hr')    roleBadgeClass = 'badge-warning';
+                  if (norm === 'admin') roleBadgeClass = 'badge-success';
+                  if (norm === 'hr_manager') roleBadgeClass = 'badge-warning';
 
                   return (
                     <tr key={u.id}>

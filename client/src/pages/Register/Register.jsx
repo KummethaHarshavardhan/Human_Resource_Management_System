@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import "./Register.css";
 import logo from "../../assets/infinetra-logo.png";
 import { registerUser, getPublicDepartments, getPublicRoles } from "../../services/api";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 function Register() {
   const [name, setName] = useState("");
@@ -347,7 +348,7 @@ function Register() {
                   onClick={() => setShowPassword(!showPassword)}
                   aria-label="Show or hide password"
                 >
-                  {showPassword ? "◉" : "◌"}
+                  {showPassword ? <FaEye /> : <FaEyeSlash />}
                 </button>
               </div>
             </div>
@@ -370,7 +371,7 @@ function Register() {
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   aria-label="Show or hide confirm password"
                 >
-                  {showConfirmPassword ? "◉" : "◌"}
+                  {showConfirmPassword ? <FaEye /> : <FaEyeSlash />}
                 </button>
               </div>
             </div>

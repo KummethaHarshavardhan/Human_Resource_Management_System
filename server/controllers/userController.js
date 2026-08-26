@@ -1,4 +1,7 @@
 import Employees from "../models/UserModel.js";
+import Employee from "../models/Employee.js";
+import Department from "../models/Department.js";
+import { generateNextEmployeeCode } from "./EmployeeController.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import FORGOT from '../models/forgotModel.js';
@@ -66,6 +69,14 @@ export const EmpRegister = async (req, res) => {
                 message: "Password and confirm password do not match"
             });
         }
+        const passwordRegex = /^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*]).{8,}$/;
+
+        if (!passwordRegex.test(password)) {
+             return res.status(400).json({
+               success: false,
+               message: "Password must contain at least 8 characters, one uppercase letter, one number, and one special character"
+             });
+        }
 
         const cleanedPhone = String(phone).replace(/\D/g, "");
 
@@ -95,14 +106,45 @@ export const EmpRegister = async (req, res) => {
             phone: cleanedPhone,
             department: department.trim(),
             password: hashpass,
-            role: role || "Employee"
+            role: "Employee" // Public registration always creates Employee accounts
         });
 
         await newuser.save();
 
+        // Automatically create linked Employee record with unique employee code
+        try {
+            let deptDoc = await Department.findOne({
+                departmentName: { $regex: new RegExp(`^${department.trim()}$`, "i") }
+            });
+            if (!deptDoc) {
+                deptDoc = await Department.findOne({});
+                if (!deptDoc) {
+                    deptDoc = await Department.create({
+                        departmentId: "DEP001",
+                        departmentName: department.trim() || "General",
+                        description: "General Department",
+                        status: "Active"
+                    });
+                }
+            }
+
+            const employee_code = await generateNextEmployeeCode();
+            await Employee.create({
+                user_id: newuser._id,
+                employee_code,
+                department_id: deptDoc._id,
+                designation: "Employee",
+                manager_id: null,
+                date_of_joining: new Date(),
+                employment_status: "Active",
+            });
+        } catch (empSyncErr) {
+            console.error("Auto-creating Employee document on register failed:", empSyncErr.message);
+        }
+
         return res.status(201).json({
             success: true,
-            message: "Employee registered successfully",
+            message: "Registered successfully",
             user: {
                 id: newuser._id,
                 name: newuser.name,
@@ -354,5 +396,22 @@ export const updateUserProfile = async (req, res) => {
     } catch (err) {
         console.error("Update profile error:", err.message);
         return res.status(500).json({ success: false, message: err.message || "Error updating profile" });
+    }
+};
+
+export const getAllUsers = async (req, res) => {
+    try {
+        const users = await Employees.find().select("-password -confirm_password").sort({ createdAt: -1 });
+        return res.status(200).json({
+            success: true,
+            users,
+        });
+    } catch (err) {
+        console.error("GET ALL USERS ERROR:", err);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to fetch users",
+            error: err.message,
+        });
     }
 };

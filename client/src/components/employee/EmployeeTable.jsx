@@ -149,11 +149,26 @@ export default function EmployeeTable({
   canDelete = true,
   loading = false,
 }) {
+<<<<<<< HEAD
   const [sortBy, setSortBy] = useState("name_asc");
 
   const defaultDepts = ["All Departments"];
   const dynamicDepts = departments.map((d) => d.departmentName).filter(Boolean);
   const deptTabs = Array.from(new Set([...defaultDepts, ...dynamicDepts]));
+=======
+  // Generate department filter tabs dynamically from real database departments ONLY
+  const dynamicDepts = (departments || [])
+    .map((d) => (typeof d === "string" ? d : d?.departmentName || d?.name || d?.department_name))
+    .filter(Boolean);
+
+  const empDepts = (employees || [])
+    .map((e) => (typeof e?.department_id === "object" ? e?.department_id?.departmentName : e?.department))
+    .filter(Boolean);
+
+  const realDepts = Array.from(new Set([...dynamicDepts, ...empDepts]));
+  const deptTabs = ["All Departments", ...realDepts];
+
+>>>>>>> origin/team2-reeshika
 
   const displayedEmployees = sortEmployees(employees, sortBy);
 

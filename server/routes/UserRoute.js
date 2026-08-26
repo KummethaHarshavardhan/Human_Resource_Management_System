@@ -9,7 +9,8 @@ import {
   getProfile,
   updateUserProfile,
   changePassword,
-  passkey
+  passkey,
+  getAllUsers
 } from "../controllers/userController.js";
 import { verifyToken, authorizeRoles as authorize } from '../middlewares/authMiddleware.js';
 
@@ -28,7 +29,7 @@ route.put("/change-password", verifyToken, changePassword);
 route.get("/profile", verifyToken, getProfile);
 route.put("/profile", verifyToken, updateUserProfile);
 
-// route.get("/users", verifyToken, authorize("Admin", "HR"), getAllUsers);
+route.get("/users", verifyToken, authorize("Admin", "HR"), getAllUsers);
 
 
 route.get("/admin-only", verifyToken, authorize("Admin"), (req, res) => {

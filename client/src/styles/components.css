@@ -253,10 +253,6 @@ textarea::placeholder {
   color: var(--primary-600);
 }
 
-[data-theme="dark"] .password-toggle-btn:hover {
-  color: var(--primary-400);
-}
-
 
 
 /* ------------------------------------------

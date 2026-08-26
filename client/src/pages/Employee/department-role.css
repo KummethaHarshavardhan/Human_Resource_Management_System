@@ -206,46 +206,8 @@
     flex-shrink:0;
 }
 
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-}
-
-html,
-body,
-#root{
-    width:100%;
-    min-height:100%;
-}
-
-body{
-    font-family:Inter,Segoe UI,sans-serif;
-    background:#f5f7fb;
-    color:#1e293b;
-    overflow-x:hidden;
-}
-
-a{
-    text-decoration:none;
-    color:inherit;
-}
-
-button{
-    font-family:inherit;
-}
-
-input,
-textarea,
-select,
-button{
-    font:inherit;
-}
-
-img{
-    max-width:100%;
-    display:block;
-}
+/* NOTE: Global resets below are intentionally kept minimal
+   to avoid overriding the main global.css */
 
 table{
     border-collapse:collapse;
@@ -408,11 +370,35 @@ table{
 
 .table-card{
     overflow-x:auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .table{
-    min-width:700px;
+    min-width:600px;
 }
 
 }
 
+@media(max-width:480px){
+
+.page{
+    padding:14px;
+}
+
+.form-card{
+    padding:16px;
+}
+
+.table{
+    min-width:500px;
+}
+
+}
+
+@media(max-width:360px){
+
+.page{
+    padding:10px;
+}
+
+}

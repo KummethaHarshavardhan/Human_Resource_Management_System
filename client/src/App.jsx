@@ -30,11 +30,11 @@ import ReportsRoutes from "./routes/ReportsRoutes";
 import Settings from "./pages/Settings/Settings";
 import Users from "./pages/Users/Users";
 
-import EmployeeList from "./pages/employee/EmployeeList";
-import AddEmployee from "./pages/employee/AddEmployee";
-import EditEmployee from "./pages/employee/EditEmployee";
-import EmployeeDetails from "./pages/employee/EmployeeDetails";
-import EmployeeProfile from "./pages/employee/EmployeeProfile";
+import EmployeeList from "./pages/Employee/EmployeeList";
+import AddEmployee from "./pages/Employee/AddEmployee";
+import EditEmployee from "./pages/Employee/EditEmployee";
+import EmployeeDetails from "./pages/Employee/EmployeeDetails";
+import EmployeeProfile from "./pages/Employee/EmployeeProfile";
 
 import DepartmentList from "./pages/Employee/departments/DepartmentList";
 import AddDepartment from "./pages/Employee/departments/AddDepartment";
@@ -145,68 +145,194 @@ function AppRoutes() {
       >
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/profile" element={<Profile />} />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute allowedRoles={["Admin", "HR Manager", "Employee"]}>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
 
-        <Route path="/employee" element={<EmployeeList />} />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute allowedRoles={["Admin", "HR Manager", "Employee"]}>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/directory"
+          element={
+            <ProtectedRoute allowedRoles={["Admin", "HR Manager"]}>
+              <EmployeeList />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/employee"
+          element={
+            <ProtectedRoute allowedRoles={["Admin", "HR Manager"]}>
+              <EmployeeList />
+            </ProtectedRoute>
+          }
+        />
 
         <Route
           path="/employee/add"
           element={
-            <ProtectedRoute allowedRoles={["Admin", "HR"]}>
+            <ProtectedRoute allowedRoles={["Admin", "HR Manager"]}>
               <AddEmployee />
             </ProtectedRoute>
           }
         />
 
-        <Route path="/employee/profile" element={<EmployeeProfile />} />
-        <Route path="/employee/:id" element={<EmployeeDetails />} />
+        <Route
+          path="/employee/profile"
+          element={
+            <ProtectedRoute allowedRoles={["Admin", "HR Manager", "Employee"]}>
+              <EmployeeProfile />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/employee/:id"
+          element={
+            <ProtectedRoute allowedRoles={["Admin", "HR Manager"]}>
+              <EmployeeDetails />
+            </ProtectedRoute>
+          }
+        />
 
         <Route
           path="/employee/:id/edit"
           element={
-            <ProtectedRoute allowedRoles={["Admin", "HR"]}>
+            <ProtectedRoute allowedRoles={["Admin", "HR Manager"]}>
               <EditEmployee />
             </ProtectedRoute>
           }
         />
 
-        <Route path="/employee/departments" element={<DepartmentList />} />
-        <Route path="/employee/departments/add" element={<AddDepartment />} />
         <Route
-          path="/employee/departments/edit/:id"
-          element={<EditDepartment />}
+          path="/employee/departments"
+          element={
+            <ProtectedRoute allowedRoles={["Admin"]}>
+              <DepartmentList />
+            </ProtectedRoute>
+          }
         />
 
-        <Route path="/employee/roles" element={<RoleList />} />
-        <Route path="/employee/roles/add" element={<AddRole />} />
-        <Route path="/employee/roles/edit/:id" element={<EditRole />} />
+        <Route
+          path="/employee/departments/add"
+          element={
+            <ProtectedRoute allowedRoles={["Admin"]}>
+              <AddDepartment />
+            </ProtectedRoute>
+          }
+        />
 
+        <Route
+          path="/employee/departments/edit/:id"
+          element={
+            <ProtectedRoute allowedRoles={["Admin"]}>
+              <EditDepartment />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/employee/roles"
+          element={
+            <ProtectedRoute allowedRoles={["Admin"]}>
+              <RoleList />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/employee/roles/add"
+          element={
+            <ProtectedRoute allowedRoles={["Admin"]}>
+              <AddRole />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/employee/roles/edit/:id"
+          element={
+            <ProtectedRoute allowedRoles={["Admin"]}>
+              <EditRole />
+            </ProtectedRoute>
+          }
+        />
 
         <Route
           path="/attendance-dashboard"
           element={
-            <ProtectedRoute allowedRoles={["Employee", "HR", "Admin"]}>
+            <ProtectedRoute allowedRoles={["Admin", "HR Manager", "Employee"]}>
               <AttendanceDashboard />
             </ProtectedRoute>
           }
         />
 
-
         <Route
           path="/leave"
           element={
-            <ProtectedRoute allowedRoles={["Employee", "HR", "Admin"]}>
+            <ProtectedRoute allowedRoles={["Admin", "HR Manager", "Employee"]}>
               <LeaveDashboard />
             </ProtectedRoute>
           }
         />
 
-        <Route path="/payroll/*" element={<PayrollRoutes />} />
-        <Route path="/reports/*" element={<ReportsRoutes />} />
-        <Route path="/settings" element={<Settings />} />
-        <Route path="/users" element={<Users />} />
-        <Route path="/change-password" element={<ChangePassword />} />
+        <Route
+          path="/payroll/*"
+          element={
+            <ProtectedRoute allowedRoles={["Admin", "HR Manager"]}>
+              <PayrollRoutes />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/reports/*"
+          element={
+            <ProtectedRoute allowedRoles={["Admin", "HR Manager"]}>
+              <ReportsRoutes />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute allowedRoles={["Admin", "HR Manager", "Employee"]}>
+              <Settings />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/users"
+          element={
+            <ProtectedRoute allowedRoles={["Admin"]}>
+              <Users />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/change-password"
+          element={
+            <ProtectedRoute allowedRoles={["Admin", "HR Manager", "Employee"]}>
+              <ChangePassword />
+            </ProtectedRoute>
+          }
+        />
       </Route>
 
       <Route

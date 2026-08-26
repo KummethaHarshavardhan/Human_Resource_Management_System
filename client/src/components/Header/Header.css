@@ -20,11 +20,6 @@
   box-sizing: border-box;
 }
 
-[data-theme="dark"] .app-fixed-header {
-  background: linear-gradient(135deg, #080c16 0%, #111827 60%, #1e1b4b 100%);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-}
-
 /* Header left: Hamburger + avatar + welcome text */
 .header-left {
   display: flex;
@@ -191,7 +186,7 @@
 
   .header-welcome-title {
     font-size: 0.95rem;
-    max-width: 160px;
+    max-width: 180px;
   }
 }
 
@@ -227,7 +222,6 @@
     gap: 6px;
   }
 
-  /* Hide text label — show icon only on small screens */
   .header-btn-label {
     display: none;
   }
@@ -238,24 +232,33 @@
     padding: 0;
     justify-content: center;
     border-radius: var(--radius-full, 9999px);
-  }
-
-  .header-theme-toggle-btn {
-    width: 36px;
-    height: 36px;
+    flex-shrink: 0;
   }
 
   .header-hamburger-btn {
     width: 36px;
     height: 36px;
+    flex-shrink: 0;
   }
 }
 
 /* ==========================================
-   VERY SMALL (400px and below)
+   VERY SMALL (360px and below)
    ========================================== */
-@media (max-width: 400px) {
-  .header-user-group {
+@media (max-width: 360px) {
+  .app-fixed-header {
+    padding: 0 8px;
+  }
+
+  .header-title-box {
     display: none;
+  }
+
+  .header-left {
+    gap: 6px;
+  }
+
+  .header-right {
+    gap: 4px;
   }
 }

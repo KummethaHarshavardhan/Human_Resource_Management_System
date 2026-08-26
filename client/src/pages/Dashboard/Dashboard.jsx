@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { useNavigate } from 'react-router-dom';
+import { normalizeRole } from '../../utils/permission.js';
 
 // Import existing API service functions
 import { getAllEmployees } from '../../services/employeeService.js';
 import { getDepartments } from '../../services/departmentService.js';
 import { getTodayAttendance, getAttendanceHistory } from '../../services/attendanceService.js';
-import { getLeaveHistory } from '../../services/leaveService.js';
-import { getMyLeaveBalance } from '../../services/leaveBalanceService.js';
+import { getLeaveHistory, getAdminAllLeaves } from '../../services/leaveService.js';
 
 // Import reusable components
 import Button from '../../components/Button/Button.jsx';
@@ -42,55 +42,59 @@ function formatWorkingHours(hours) {
 
 function Dashboard() {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
+
+  // ── Normalized Role flags ───────────────────────────────────────────────────
+  const normRole   = normalizeRole(user?.role);
+  const isAdmin    = normRole === 'admin';
+  const isHR       = normRole === 'hr_manager';
+  const isEmployee = normRole === 'employee';
+  const isAdminOrHR = isAdmin || isHR;
 
   // Loading & Error States
   const [loading, setLoading] = useState(true);
   const [apiError, setApiError] = useState('');
 
-  // Real Data States
+  // Real Data States — org-wide (Admin/HR)
   const [employees, setEmployees] = useState([]);
-  const [employeeCount, setEmployeeCount] = useState(null);
-  
+  const [employeeCount, setEmployeeCount] = useState(0);
   const [departments, setDepartments] = useState([]);
-  const [departmentCount, setDepartmentCount] = useState(null);
+  const [departmentCount, setDepartmentCount] = useState(0);
+  const [adminLeaves, setAdminLeaves] = useState([]);
+  const [employeesOnLeaveCount, setEmployeesOnLeaveCount] = useState(0);
 
+  // Real Data States — personal (all roles)
   const [todayAttendance, setTodayAttendance] = useState(null);
   const [attendanceHistory, setAttendanceHistory] = useState([]);
-
   const [leaveHistory, setLeaveHistory] = useState([]);
-  const [pendingLeaveCount, setPendingLeaveCount] = useState(null);
-  const [leaveBalance, setLeaveBalance] = useState(null);
+  const [pendingLeaveCount, setPendingLeaveCount] = useState(0);
 
   const [isAnnounceModalOpen, setIsAnnounceModalOpen] = useState(false);
 
-  const handleProfile = () => {
-    navigate('/profile');
-  };
+  const handleProfile = () => { navigate('/profile'); };
 
   // Quick Navigation handlers
-  const handleNavEmployee = () => navigate('/employee');
+  const handleNavDirectory  = () => navigate('/directory');
   const handleNavAttendance = () => navigate('/attendance-dashboard');
-  const handleNavLeave = () => navigate('/leave');
-  const handleNavPayroll = () => navigate('/payroll');
-  const handleNavReports = () => navigate('/reports');
+  const handleNavLeave      = () => navigate('/leave');
+  const handleNavPayroll    = () => navigate('/payroll');
+  const handleNavReports    = () => navigate('/reports');
+  const handleNavSettings   = () => navigate('/settings');
 
   // Create department map for mapping employee.departmentId -> Department Name
   const departmentMap = useMemo(() => {
     const map = {};
     if (Array.isArray(departments)) {
       departments.forEach((d) => {
-        const id = d._id || d.id;
+        const id   = d._id || d.id;
         const name = d.departmentName || d.name || d.department_name;
-        if (id && name) {
-          map[id] = name;
-        }
+        if (id && name) map[id] = name;
       });
     }
     return map;
   }, [departments]);
 
-  // Fetch real data from existing backend APIs
+  // ── Fetch real data from existing backend APIs ───────────────────────────────
   useEffect(() => {
     let isMounted = true;
 
@@ -99,43 +103,77 @@ function Dashboard() {
       setApiError('');
 
       try {
-        // Fetch Departments Data first for mapping
-        try {
-          const deptRes = await getDepartments();
-          if (isMounted) {
-            const deptList = Array.isArray(deptRes)
-              ? deptRes
-              : deptRes?.departments || deptRes?.data || [];
-            setDepartments(deptList);
-            setDepartmentCount(deptList.length);
+        // ── Org-wide data — only load for Admin / HR ──────────────────────
+        if (isAdminOrHR) {
+          try {
+            const deptRes = await getDepartments();
+            if (isMounted) {
+              const deptList = Array.isArray(deptRes)
+                ? deptRes
+                : deptRes?.departments || deptRes?.data || [];
+              setDepartments(deptList);
+              setDepartmentCount(deptList.length);
+            }
+          } catch (err) {
+            console.warn('Departments API warning:', err.message);
           }
-        } catch (err) {
-          console.warn('Departments API warning:', err.message);
+
+          try {
+            const empRes = await getAllEmployees({ limit: 100 });
+            if (isMounted) {
+              const empList = Array.isArray(empRes)
+                ? empRes
+                : empRes?.employees || empRes?.data || [];
+              const count = empRes?.totalCount || empRes?.totalEmployees || empRes?.total || empList.length;
+              setEmployees(empList);
+              setEmployeeCount(count || 0);
+            }
+          } catch (err) {
+            console.warn('Employees API warning:', err.message);
+          }
+
+          try {
+            const allLeavesRes = await getAdminAllLeaves();
+            if (isMounted) {
+              const allLeavesList = Array.isArray(allLeavesRes)
+                ? allLeavesRes
+                : allLeavesRes?.leaves || allLeavesRes?.data || [];
+              setAdminLeaves(allLeavesList);
+              const pending = allLeavesList.filter(
+                (l) => l.status?.toLowerCase() === 'pending'
+              ).length;
+              setPendingLeaveCount(pending);
+
+              // Calculate employees currently on approved leave
+              const today = new Date();
+              today.setHours(0, 0, 0, 0);
+              const onLeave = allLeavesList.filter((l) => {
+                if (l.status?.toLowerCase() !== 'approved') return false;
+                const start = l.startDate ? new Date(l.startDate) : null;
+                const end = l.endDate ? new Date(l.endDate) : null;
+                if (!start || !end) return false;
+                start.setHours(0, 0, 0, 0);
+                end.setHours(23, 59, 59, 999);
+                return today >= start && today <= end;
+              }).length;
+              setEmployeesOnLeaveCount(onLeave);
+            }
+          } catch (err) {
+            console.warn('Admin leaves API warning:', err.message);
+          }
         }
 
-        // Fetch Employees Data
-        try {
-          const empRes = await getAllEmployees({ limit: 100 });
-          if (isMounted) {
-            const empList = Array.isArray(empRes)
-              ? empRes
-              : empRes?.employees || empRes?.data || [];
-            const count = empRes?.totalCount || empRes?.total || empList.length;
-            setEmployees(empList);
-            setEmployeeCount(count);
-          }
-        } catch (err) {
-          console.warn('Employees API warning:', err.message);
-        }
-
-        // Fetch Attendance Data
+        // ── Personal attendance — all roles ───────────────────────────────
         try {
           const attToday = await getTodayAttendance();
-          const attHist = await getAttendanceHistory();
+          const attHist  = await getAttendanceHistory();
           if (isMounted) {
             const todayData = attToday?.attendance || attToday?.data || attToday;
-            setTodayAttendance(todayData && (todayData._id || todayData.checkIn || todayData.checkInTime || todayData.status) ? todayData : null);
-
+            setTodayAttendance(
+              todayData && (todayData._id || todayData.checkIn || todayData.checkInTime || todayData.status)
+                ? todayData
+                : null
+            );
             const histList = Array.isArray(attHist)
               ? attHist
               : attHist?.history || attHist?.attendance || attHist?.data || [];
@@ -145,53 +183,37 @@ function Dashboard() {
           console.warn('Attendance API warning:', err.message);
         }
 
-        // Fetch Leave Data
-        try {
-          const leaveRes = await getLeaveHistory();
-          if (isMounted) {
-            const leaveList = Array.isArray(leaveRes)
-              ? leaveRes
-              : leaveRes?.history || leaveRes?.leaves || leaveRes?.data || [];
-            setLeaveHistory(leaveList);
-            const pending = leaveList.filter(
-              (l) => l.status?.toLowerCase() === 'pending'
-            ).length;
-            setPendingLeaveCount(pending);
+        // ── Personal leave data — for Employee role ───────────────────────
+        if (isEmployee) {
+          try {
+            const leaveRes = await getLeaveHistory();
+            if (isMounted) {
+              const leaveList = Array.isArray(leaveRes)
+                ? leaveRes
+                : leaveRes?.history || leaveRes?.leaves || leaveRes?.data || [];
+              setLeaveHistory(leaveList);
+              const pending = leaveList.filter(
+                (l) => l.status?.toLowerCase() === 'pending'
+              ).length;
+              setPendingLeaveCount(pending);
+            }
+          } catch (err) {
+            console.warn('Leave API warning:', err.message);
           }
-        } catch (err) {
-          console.warn('Leave API warning:', err.message);
         }
 
-        // Fetch Leave Balance Data
-        try {
-          const balanceRes = await getMyLeaveBalance();
-          if (isMounted) {
-            setLeaveBalance(balanceRes?.leaveBalance || balanceRes?.data || balanceRes);
-          }
-        } catch (err) {
-          console.warn('Leave balance API warning:', err.message);
-        }
       } catch (err) {
-        if (isMounted) {
-          setApiError(err.message || 'Error loading dashboard data');
-        }
+        if (isMounted) setApiError(err.message || 'Error loading dashboard data');
       } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
+        if (isMounted) setLoading(false);
       }
     }
 
     fetchDashboardData();
+    return () => { isMounted = false; };
+  }, [isAdminOrHR, isEmployee]);
 
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  // Columns for Workforce Directory Overview Table
-  // width prop is required so both the sticky thead table and the scrollable tbody table
-  // have identical column widths and headers stay aligned
+  // Columns for Workforce Directory Overview Table (Admin/HR)
   const employeeColumns = [
     {
       key: 'name',
@@ -205,7 +227,6 @@ function Dashboard() {
           '-';
         const empEmail = row.user_id?.email || row.email || '-';
         const initials = empName !== '-' ? empName.slice(0, 2).toUpperCase() : 'E';
-
         return (
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div className="activity-avatar" style={{ width: '32px', height: '32px', fontSize: '12px' }}>
@@ -260,7 +281,7 @@ function Dashboard() {
     }
   ];
 
-  const checkInTimeStr = formatTime(todayAttendance?.checkIn || todayAttendance?.checkInTime);
+  const checkInTimeStr  = formatTime(todayAttendance?.checkIn || todayAttendance?.checkInTime);
   const checkOutTimeStr = formatTime(todayAttendance?.checkOut || todayAttendance?.checkOutTime);
   const workingHoursStr = formatWorkingHours(todayAttendance?.workingHours);
 
@@ -275,29 +296,37 @@ function Dashboard() {
         </div>
       )}
 
-      {/* 1. Statistics Summary Grid */}
-      <div className="stats-grid">
-        <div className="stat-card-custom">
-          <div className="stat-icon-wrapper stat-icon-blue">👥</div>
-          <div className="stat-details">
-            <p>Total Employees</p>
-            {loading ? (
-              <Loader.Spinner size="sm" />
-            ) : employeeCount !== null ? (
-              <h2>{employeeCount}</h2>
-            ) : (
-              <span style={{ fontSize: '13px', color: '#94a3b8' }}>-</span>
-            )}
-            <span className="stat-trend stat-trend-up">
-              {employeeCount !== null ? `✓ ${employees.length} records loaded` : 'Real-time API'}
-            </span>
-          </div>
-        </div>
+      {/* ══════════════════════════════════════════════════════════════════════
+          1. STATISTICS SUMMARY GRID
+          HR Manager: Today's Attendance, Pending Leaves, Total Employees, Employees On Leave
+          Admin: Total Employees, Today's Attendance, Pending Leaves, Total Departments
+          Employee: Today's Attendance, My Pending Leaves
+         ══════════════════════════════════════════════════════════════════════ */}
+      <div className={`stats-grid ${isEmployee ? 'stats-grid--employee' : ''}`}>
 
+        {/* ── Admin Top Stat Card 1: Total Employees ── */}
+        {isAdmin && (
+          <div className="stat-card-custom">
+            <div className="stat-icon-wrapper stat-icon-blue">👥</div>
+            <div className="stat-details">
+              <p>Total Employees</p>
+              {loading ? (
+                <Loader.Spinner size="sm" />
+              ) : (
+                <h2>{employeeCount}</h2>
+              )}
+              <span className="stat-trend stat-trend-up">
+                ✓ {employees.length} records loaded
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* ── HR Manager Top Stat Card 1 & Admin/Employee: Today's Attendance ── */}
         <div className="stat-card-custom">
           <div className="stat-icon-wrapper stat-icon-green">🕒</div>
           <div className="stat-details">
-            <p>Today's Attendance Status</p>
+            <p>Today's Attendance</p>
             {loading ? (
               <Loader.Spinner size="sm" />
             ) : todayAttendance ? (
@@ -306,7 +335,7 @@ function Dashboard() {
               </h2>
             ) : (
               <span style={{ fontSize: '13px', color: '#64748b', fontWeight: 600 }}>
-                No attendance recorded today
+                Not recorded
               </span>
             )}
             <span className="stat-trend stat-trend-up">
@@ -315,122 +344,235 @@ function Dashboard() {
           </div>
         </div>
 
+        {/* ── Pending Leave Requests / My Pending Leaves ── */}
         <div className="stat-card-custom">
           <div className="stat-icon-wrapper stat-icon-amber">🏖️</div>
           <div className="stat-details">
-            <p>Pending Leave Requests</p>
+            <p>{isEmployee ? 'My Pending Leaves' : 'Pending Leave Requests'}</p>
             {loading ? (
               <Loader.Spinner size="sm" />
-            ) : pendingLeaveCount !== null ? (
-              <h2>{pendingLeaveCount}</h2>
             ) : (
-              <span style={{ fontSize: '13px', color: '#94a3b8' }}>-</span>
+              <h2>{pendingLeaveCount}</h2>
             )}
             <span className="stat-trend stat-trend-neutral">
-              {leaveHistory ? `Total ${leaveHistory.length} applications` : 'Leave API'}
+              {isEmployee
+                ? `${leaveHistory.length} total application${leaveHistory.length !== 1 ? 's' : ''}`
+                : `${adminLeaves.length} total application${adminLeaves.length !== 1 ? 's' : ''}`}
             </span>
           </div>
         </div>
 
-        <div className="stat-card-custom">
-          <div className="stat-icon-wrapper stat-icon-purple">🏢</div>
-          <div className="stat-details">
-            <p>Total Departments</p>
-            {loading ? (
-              <Loader.Spinner size="sm" />
-            ) : departmentCount !== null ? (
-              <h2>{departmentCount}</h2>
-            ) : (
-              <span style={{ fontSize: '13px', color: '#94a3b8' }}>-</span>
-            )}
-            <span className="stat-trend stat-trend-up">
-              {departmentCount !== null ? `✓ ${departments.length} active units` : 'Department API'}
-            </span>
+        {/* ── HR Manager Card 3: Total Employees ── */}
+        {isHR && (
+          <div className="stat-card-custom">
+            <div className="stat-icon-wrapper stat-icon-blue">👥</div>
+            <div className="stat-details">
+              <p>Total Employees</p>
+              {loading ? (
+                <Loader.Spinner size="sm" />
+              ) : (
+                <h2>{employeeCount}</h2>
+              )}
+              <span className="stat-trend stat-trend-up">
+                ✓ {employees.length} records loaded
+              </span>
+            </div>
           </div>
-        </div>
+        )}
+
+        {/* ── HR Manager Card 4: Employees On Leave ── */}
+        {isHR && (
+          <div className="stat-card-custom">
+            <div className="stat-icon-wrapper stat-icon-purple">🌴</div>
+            <div className="stat-details">
+              <p>Employees On Leave</p>
+              {loading ? (
+                <Loader.Spinner size="sm" />
+              ) : (
+                <h2>{employeesOnLeaveCount}</h2>
+              )}
+              <span className="stat-trend stat-trend-neutral">
+                Approved active leave
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* ── Admin Card 4: Total Departments ── */}
+        {isAdmin && (
+          <div className="stat-card-custom">
+            <div className="stat-icon-wrapper stat-icon-purple">🏢</div>
+            <div className="stat-details">
+              <p>Total Departments</p>
+              {loading ? (
+                <Loader.Spinner size="sm" />
+              ) : (
+                <h2>{departmentCount}</h2>
+              )}
+              <span className="stat-trend stat-trend-up">
+                ✓ {departments.length} active units
+              </span>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* 2. Main Dashboard Content Grid */}
+      {/* ══════════════════════════════════════════════════════════════════════
+          2. MAIN DASHBOARD CONTENT GRID
+          ══════════════════════════════════════════════════════════════════════ */}
       <div className="dashboard-grid">
-        {/* Left Column: Quick Actions & Real Workforce Table */}
-        <div className="dashboard-main-column">
-          {/* Quick Actions Grid */}
-          <Card title="⚡ Quick HR Actions" subtitle="Fast access to essential workforce modules">
-            <div className="quick-actions-grid">
-              <button type="button" className="quick-action-item" onClick={handleNavEmployee}>
-                <span className="quick-action-icon">📁</span>
-                <span className="quick-action-text">
-                  <span className="quick-action-title">Directory</span>
-                  <span className="quick-action-desc">View employees</span>
-                </span>
-              </button>
 
+        {/* ── Left Column ────────────────────────────────────────────────────── */}
+        <div className="dashboard-main-column">
+
+          {/* Quick Actions — filtered per role */}
+          <Card
+            title={isEmployee ? '⚡ Quick Actions' : '⚡ Quick HR Actions'}
+            subtitle={isEmployee ? 'Fast access to your workspace' : 'Fast access to essential workforce modules'}
+          >
+            <div className={`quick-actions-grid ${isEmployee ? 'quick-actions-grid--employee' : ''}`}>
+
+              {/* Directory — Admin & HR Manager */}
+              {isAdminOrHR && (
+                <button type="button" className="quick-action-item" onClick={handleNavDirectory}>
+                  <span className="quick-action-icon">📁</span>
+                  <span className="quick-action-text">
+                    <span className="quick-action-title">Directory</span>
+                    <span className="quick-action-desc">View/manage employees</span>
+                  </span>
+                </button>
+              )}
+
+              {/* Attendance — all roles */}
               <button type="button" className="quick-action-item" onClick={handleNavAttendance}>
                 <span className="quick-action-icon">⏰</span>
                 <span className="quick-action-text">
                   <span className="quick-action-title">Attendance</span>
-                  <span className="quick-action-desc">Check-in & history</span>
+                  <span className="quick-action-desc">
+                    {isEmployee ? 'My check-in & history' : 'Check attendance & history'}
+                  </span>
                 </span>
               </button>
 
+              {/* Leave — all roles */}
               <button type="button" className="quick-action-item" onClick={handleNavLeave}>
                 <span className="quick-action-icon">📅</span>
                 <span className="quick-action-text">
-                  <span className="quick-action-title">Leave Management</span>
-                  <span className="quick-action-desc">Review requests</span>
+                  <span className="quick-action-title">
+                    {isEmployee ? 'My Leave' : 'Leave Management'}
+                  </span>
+                  <span className="quick-action-desc">
+                    {isEmployee ? 'Apply & track leave' : 'Review/approve leave requests'}
+                  </span>
                 </span>
               </button>
 
-              <button type="button" className="quick-action-item" onClick={handleNavPayroll}>
-                <span className="quick-action-icon">💰</span>
-                <span className="quick-action-text">
-                  <span className="quick-action-title">Payroll</span>
-                  <span className="quick-action-desc">Salary & slips</span>
-                </span>
-              </button>
+              {/* Payroll — Admin & HR Manager ONLY — Employee must NOT see this */}
+              {isAdminOrHR && (
+                <button type="button" className="quick-action-item" onClick={handleNavPayroll}>
+                  <span className="quick-action-icon">💰</span>
+                  <span className="quick-action-text">
+                    <span className="quick-action-title">Payroll</span>
+                    <span className="quick-action-desc">View/manage salary info</span>
+                  </span>
+                </button>
+              )}
 
-              <button type="button" className="quick-action-item" onClick={handleNavReports}>
-                <span className="quick-action-icon">📊</span>
-                <span className="quick-action-text">
-                  <span className="quick-action-title">Reports</span>
-                  <span className="quick-action-desc">HR analytics</span>
-                </span>
-              </button>
+              {/* Reports — Admin & HR Manager */}
+              {isAdminOrHR && (
+                <button type="button" className="quick-action-item" onClick={handleNavReports}>
+                  <span className="quick-action-icon">📊</span>
+                  <span className="quick-action-text">
+                    <span className="quick-action-title">Reports</span>
+                    <span className="quick-action-desc">HR analytics/reports</span>
+                  </span>
+                </button>
+              )}
 
-              <button type="button" className="quick-action-item" onClick={handleProfile}>
+              {/* Settings / Profile — all roles */}
+              <button type="button" className="quick-action-item" onClick={isEmployee ? handleProfile : handleNavSettings}>
                 <span className="quick-action-icon">⚙️</span>
                 <span className="quick-action-text">
-                  <span className="quick-action-title">Settings</span>
-                  <span className="quick-action-desc">My Account</span>
+                  <span className="quick-action-title">
+                    {isEmployee ? 'My Profile' : 'Settings'}
+                  </span>
+                  <span className="quick-action-desc">{isEmployee ? 'Account details' : 'Account settings'}</span>
                 </span>
               </button>
+
             </div>
           </Card>
 
-          {/* Real Workforce Directory Overview Table */}
-          <Card
-            title="📁 Real Workforce Directory"
-            subtitle="Live employee data from backend API"
-            action={
-              <Button variant="outline" size="sm" onClick={handleNavEmployee}>
-                Manage Directory
-              </Button>
-            }
-          >
-            <Table
-              columns={employeeColumns}
-              data={employees}
-              loading={loading}
-              emptyText="No employee records found in system database."
-              maxHeight="380px"
-            />
-          </Card>
+          {/* Workforce Directory Table — Admin & HR Manager */}
+          {isAdminOrHR && (
+            <Card
+              title="📁 Real Workforce Directory"
+              subtitle="Live employee data from backend API"
+              action={
+                <Button variant="outline" size="sm" onClick={handleNavDirectory}>
+                  Manage Directory
+                </Button>
+              }
+            >
+              <Table
+                columns={employeeColumns}
+                data={employees}
+                loading={loading}
+                emptyText="No employee records found in system database."
+                maxHeight="380px"
+              />
+            </Card>
+          )}
+
+          {/* My Attendance History — Employee only */}
+          {isEmployee && (
+            <Card title="📆 My Attendance History" subtitle="Your recent attendance records">
+              {loading ? (
+                <Loader.Skeleton rows={3} />
+              ) : attendanceHistory.length === 0 ? (
+                <div className="hrms-table-empty" style={{ padding: '24px 16px' }}>
+                  <span style={{ fontSize: '2rem' }}>🕒</span>
+                  <span className="hrms-table-empty-text" style={{ fontWeight: 600, color: '#475569' }}>
+                    No attendance history found.
+                  </span>
+                </div>
+              ) : (
+                <div className="activity-list">
+                  {attendanceHistory.slice(0, 5).map((item, idx) => {
+                    const dateStr = item.date
+                      ? new Date(item.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+                      : '-';
+                    return (
+                      <div key={item._id || idx} className="activity-item">
+                        <div className="activity-avatar" style={{ background: '#ecfdf5', color: '#047857' }}>
+                          📅
+                        </div>
+                        <div className="activity-details">
+                          <strong>{dateStr}</strong>
+                          <p>
+                            In: {formatTime(item.checkIn || item.checkInTime)} &nbsp;|&nbsp;
+                            Out: {formatTime(item.checkOut || item.checkOutTime)}
+                          </p>
+                        </div>
+                        <span className="activity-time">
+                          <span className={`status-badge ${item.status?.toLowerCase() === 'present' ? 'status-badge-active' : 'status-badge-leave'}`}>
+                            {item.status || 'Present'}
+                          </span>
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </Card>
+          )}
         </div>
 
-        {/* Right Column: Attendance Status & Real Leave Overview */}
+        {/* ── Right Column ───────────────────────────────────────────────────── */}
         <div className="dashboard-side-column">
-          {/* Today's Attendance Card */}
-          <Card title="⏰ Today's Attendance Record" subtitle="Real-time check-in status">
+
+          {/* Today's Attendance Card — all roles */}
+          <Card title="⏰ Today's Attendance" subtitle="Real-time check-in status">
             {loading ? (
               <Loader.Skeleton rows={3} />
             ) : !todayAttendance ? (
@@ -485,35 +627,42 @@ function Dashboard() {
             )}
           </Card>
 
-          {/* Real Leave History Card */}
-          <Card title="📅 Leave Applications" subtitle="Real data from Leave API">
+          {/* Leave Applications Card */}
+          <Card
+            title={isEmployee ? '📅 My Leave Applications' : '📅 Leave Applications'}
+            subtitle={isEmployee ? 'Your personal leave history' : 'Leave applications for HR review'}
+          >
             {loading ? (
               <Loader.Skeleton rows={3} />
-            ) : leaveHistory.length === 0 ? (
+            ) : (isEmployee ? leaveHistory : adminLeaves).length === 0 ? (
               <div className="hrms-table-empty" style={{ padding: '20px' }}>
                 <span style={{ fontSize: '1.5rem' }}>📑</span>
-                <span className="hrms-table-empty-text">No leave history records found.</span>
+                <span className="hrms-table-empty-text">No leave records found.</span>
               </div>
             ) : (
               <div className="activity-list">
-                {leaveHistory.slice(0, 4).map((item, idx) => (
-                  <div key={item._id || item.id || idx} className="activity-item">
-                    <div className="activity-avatar">
-                      {(item.leaveType || item.type || 'L').charAt(0).toUpperCase()}
-                    </div>
-                    <div className="activity-details">
-                      <strong>{item.leaveType || item.type || 'Leave Request'}</strong>
-                      <p>
-                        {item.reason || item.description || `Status: ${item.status || 'Pending'}`}
-                      </p>
-                    </div>
-                    <span className="activity-time">
-                      <span className={`status-badge ${item.status?.toLowerCase() === 'approved' ? 'status-badge-active' : 'status-badge-leave'}`}>
-                        {item.status || 'Pending'}
+                {(isEmployee ? leaveHistory : adminLeaves).slice(0, 4).map((item, idx) => {
+                  const empName = item.employee?.name || item.employeeName || (isEmployee ? 'My Leave' : 'Employee');
+                  return (
+                    <div key={item._id || item.id || idx} className="activity-item">
+                      <div className="activity-avatar">
+                        {(item.leaveType || item.type || 'L').charAt(0).toUpperCase()}
+                      </div>
+                      <div className="activity-details">
+                        <strong>{item.leaveType || item.type || 'Leave Request'}</strong>
+                        <p>
+                          {isAdminOrHR && <span style={{ fontWeight: 600, color: '#3b82f6' }}>{empName} — </span>}
+                          {item.reason || item.description || `Status: ${item.status || 'Pending'}`}
+                        </p>
+                      </div>
+                      <span className="activity-time">
+                        <span className={`status-badge ${item.status?.toLowerCase() === 'approved' ? 'status-badge-active' : 'status-badge-leave'}`}>
+                          {item.status || 'Pending'}
+                        </span>
                       </span>
-                    </span>
-                  </div>
-                ))}
+                    </div>
+                  );
+                })}
               </div>
             )}
           </Card>
