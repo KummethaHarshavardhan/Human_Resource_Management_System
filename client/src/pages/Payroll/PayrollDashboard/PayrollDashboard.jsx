@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
+import { useToast } from '../../../context/ToastContext';
 import { getAllPayrolls, generatePayroll, markPayrollAsPaid, getAllSalaries } from '../../../services/payrollService';
 import { getAllEmployees } from '../../../services/employeeService';
 import SummaryCard from '../../../components/Payroll/SummaryCard';
@@ -11,12 +12,14 @@ import EmptyState from '../../../components/Payroll/EmptyState';
 import formatCurrency, { formatCompactCurrency } from '../../../utils/formatCurrency';
 import { MONTH_NAMES, YEARS_LIST, getEmployeeOptionLabel } from '../../../utils/payrollConstants';
 import { normalizeRole } from '../../../utils/permission';
+import { FiBarChart2, FiClock, FiCheckCircle, FiDollarSign, FiX, FiAlertTriangle } from 'react-icons/fi';
 import '../../../components/Payroll/payrollTheme.css';
 import './PayrollDashboard.css';
 
 export default function PayrollDashboard() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { showToast } = useToast();
   const isAdmin = normalizeRole(user?.role) === 'admin';
   const [payrolls, setPayrolls] = useState([]);
   const [employees, setEmployees] = useState([]);
@@ -34,64 +37,53 @@ export default function PayrollDashboard() {
     totalWorkingDays: 22,
     bonus: 0,
   });
-  const [genSubmitting, setGenSubmitting] = useState(false);
+  const [generating, setGenerating] = useState(false);
   const [genError, setGenError] = useState('');
   const [genSuccess, setGenSuccess] = useState('');
 
-  const fetchData = async () => {
+  const fetchDashboardData = async () => {
     setLoading(true);
     setError('');
     try {
-      const [payrollRes, empRes, salaryRes] = await Promise.allSettled([
+      const [payrollsRes, empsRes, salariesRes] = await Promise.all([
         getAllPayrolls(),
         getAllEmployees(),
         getAllSalaries(),
       ]);
 
-      if (payrollRes.status === 'fulfilled' && payrollRes.value?.success) {
-        setPayrolls(payrollRes.value.data || []);
-      } else if (payrollRes.status === 'rejected') {
-        setError(payrollRes.reason?.message || 'Failed to fetch payroll records');
-      }
-
-      if (empRes.status === 'fulfilled' && empRes.value?.success) {
-        setEmployees(empRes.value.data || empRes.value.employees || []);
-      }
-
-      if (salaryRes.status === 'fulfilled' && salaryRes.value?.success) {
-        setSalaries(salaryRes.value.data || []);
-      }
+      if (payrollsRes?.success) setPayrolls(payrollsRes.data || []);
+      if (empsRes?.success) setEmployees(empsRes.data || empsRes.employees || []);
+      if (salariesRes?.success) setSalaries(salariesRes.data || []);
     } catch (err) {
-      setError(err.message || 'Error loading dashboard data');
+      setError(err.message || 'Failed to load payroll dashboard');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchData();
+    fetchDashboardData();
   }, []);
-
-  // Compute summary stats from real data
-  const totalRecords = payrolls.length;
-  const generatedCount = payrolls.filter((p) => p.status === 'Generated').length;
-  const paidCount = payrolls.filter((p) => p.status === 'Paid').length;
-  const totalGross = payrolls.reduce((acc, p) => acc + (p.grossSalary || 0), 0);
-  const totalNet = payrolls.reduce((acc, p) => acc + (p.netSalary || 0), 0);
-  const totalDeductions = payrolls.reduce((acc, p) => acc + (p.deductions || 0), 0);
 
   const handleMarkPaid = async (id) => {
     try {
       const res = await markPayrollAsPaid(id);
       if (res?.success) {
         setPayrolls((prev) =>
-          prev.map((item) => (item._id === id ? { ...item, status: 'Paid', paymentDate: new Date() } : item))
+          prev.map((p) => (p._id === id ? { ...p, status: 'Paid', paymentDate: new Date() } : p))
         );
+        showToast('success', 'Payroll marked as paid successfully.');
       }
     } catch (err) {
-      alert(err.message || 'Failed to mark payroll as paid');
+      showToast('error', err.message || 'Failed to mark payroll as paid');
     }
   };
+
+  // Check if chosen employee already has salary structure
+  const selectedEmpSalary = salaries.find((s) => {
+    const sEmpId = s.employeeId?._id || s.employeeId;
+    return sEmpId === genData.employeeId;
+  });
 
   const handleGenSubmit = async (e) => {
     e.preventDefault();
@@ -99,16 +91,35 @@ export default function PayrollDashboard() {
     setGenSuccess('');
 
     if (!genData.employeeId) {
-      setGenError('Please select an employee');
+      setGenError('Please select an employee.');
       return;
     }
 
-    setGenSubmitting(true);
+    if (!selectedEmpSalary) {
+      setGenError('This employee does not have an active salary structure. Please create one under Salary Management first.');
+      return;
+    }
+
+    // Client-side duplicate check before API call
+    const monthNum = parseInt(genData.month, 10);
+    const yearNum = parseInt(genData.year, 10);
+    const exists = payrolls.some((p) => {
+      const pEmpId = p.employeeId?._id || p.employeeId;
+      return pEmpId === genData.employeeId && Number(p.month) === monthNum && Number(p.year) === yearNum;
+    });
+
+    if (exists) {
+      const monthLabel = MONTH_NAMES[monthNum - 1]?.label || monthNum;
+      setGenError(`Payroll already exists for this employee for ${monthLabel} ${yearNum}.`);
+      return;
+    }
+
+    setGenerating(true);
     try {
       const res = await generatePayroll({
-        employeeId: genData.employeeId,
-        month: Number(genData.month),
-        year: Number(genData.year),
+        ...genData,
+        month: monthNum,
+        year: yearNum,
         daysPresent: Number(genData.daysPresent),
         totalWorkingDays: Number(genData.totalWorkingDays),
         bonus: Number(genData.bonus || 0),
@@ -116,95 +127,107 @@ export default function PayrollDashboard() {
 
       if (res?.success) {
         setGenSuccess('Payroll generated successfully!');
+        showToast('success', 'Payroll generated successfully!');
+        setPayrolls((prev) => [res.data, ...prev]);
         setTimeout(() => {
           setShowGenModal(false);
           setGenSuccess('');
-          fetchData();
         }, 1200);
       }
     } catch (err) {
-      setGenError(err.message || 'Failed to generate payroll');
+      const errMsg = err.message || 'Failed to generate payroll.';
+      setGenError(errMsg);
+      showToast('error', errMsg);
     } finally {
-      setGenSubmitting(false);
+      setGenerating(false);
     }
   };
 
-  if (loading) {
-    return <LoadingState message="Loading Payroll Dashboard..." />;
-  }
+  // Metrics calculation
+  const totalDisbursed = payrolls
+    .filter((p) => p.status === 'Paid')
+    .reduce((sum, p) => sum + (p.netSalary || 0), 0);
 
-  if (error) {
-    return <ErrorState message={error} onRetry={fetchData} />;
-  }
+  const pendingDisbursement = payrolls
+    .filter((p) => p.status === 'Generated' || p.status === 'Pending')
+    .reduce((sum, p) => sum + (p.netSalary || 0), 0);
 
-  const hasActiveSalaries = salaries.some((s) => s.isActive);
+  const totalEmployeesWithSalary = salaries.length;
+  const hasActiveSalaries = salaries.length > 0;
+
+  if (loading) return <LoadingState message="Loading Payroll Dashboard..." />;
+  if (error) return <ErrorState message={error} onRetry={fetchDashboardData} />;
 
   return (
     <div className="payroll-container">
       {/* Header Banner */}
       <div className="payroll-header">
         <div>
-          <h1 className="payroll-header-title">Payroll Dashboard</h1>
+          <h1 className="payroll-header-title">Payroll Management</h1>
           <p className="payroll-header-subtitle">
-            Overview of salary runs, payouts, and monthly payroll generation.
+            Enterprise compensation processing, automated salary calculation & payslip distribution.
           </p>
         </div>
-        {/* Admin-only action buttons */}
-        {isAdmin && (
-          <div className="payroll-header-actions">
-            <button className="pr-btn pr-btn-secondary" onClick={() => navigate('/payroll/salaries')}>
-              Manage Salary Structures
-            </button>
+        <div className="payroll-header-actions">
+          {isAdmin && (
             <button
               className="pr-btn pr-btn-primary"
-              onClick={() => setShowGenModal(true)}
-              title={!hasActiveSalaries ? 'No active salary structures exist' : ''}
+              onClick={() => {
+                setGenError('');
+                setGenSuccess('');
+                setShowGenModal(true);
+              }}
             >
               + Generate Payroll
             </button>
-          </div>
-        )}
+          )}
+          <button
+            className="pr-btn pr-btn-secondary"
+            onClick={() => navigate('/payroll/salaries')}
+          >
+            Salary Structures
+          </button>
+        </div>
       </div>
 
-      {/* Real Summary Metrics Cards */}
-      <div className="payroll-grid">
+      {/* Summary Stat Cards */}
+      <div className="payroll-summary-grid">
+        <SummaryCard
+          title="Total Paid Out"
+          value={formatCompactCurrency(totalDisbursed)}
+          subtitle={`${payrolls.filter((p) => p.status === 'Paid').length} processed disbursements`}
+          icon={<FiCheckCircle />}
+          variant="success"
+        />
+        <SummaryCard
+          title="Pending Approval / Pay"
+          value={formatCompactCurrency(pendingDisbursement)}
+          subtitle={`${payrolls.filter((p) => p.status === 'Generated' || p.status === 'Pending').length} runs awaiting payment`}
+          icon={<FiClock />}
+          variant="warning"
+        />
+        <SummaryCard
+          title="Salary Structures"
+          value={totalEmployeesWithSalary}
+          subtitle="Employees with configured salary"
+          icon={<FiDollarSign />}
+          variant="info"
+        />
         <SummaryCard
           title="Total Payroll Runs"
-          value={totalRecords}
-          subtitle="Real records in database"
-          variant="info"
-          icon="📊"
-        />
-        <SummaryCard
-          title="Generated (Pending Payout)"
-          value={generatedCount}
-          subtitle="Status: Generated"
-          variant="warning"
-          icon="⏳"
-        />
-        <SummaryCard
-          title="Paid Payrolls"
-          value={paidCount}
-          subtitle="Status: Paid"
-          variant="success"
-          icon="✅"
-        />
-        <SummaryCard
-          title="Total Net Salary Payout"
-          value={formatCompactCurrency(totalNet)}
-          exactValue={formatCurrency(totalNet)}
-          subtitle={`Gross: ${formatCompactCurrency(totalGross)} | Ded: ${formatCompactCurrency(totalDeductions)}`}
-          variant="primary"
-          icon="💰"
+          value={payrolls.length}
+          subtitle="All-time generated compensation runs"
+          icon={<FiBarChart2 />}
+          variant="default"
         />
       </div>
 
-      {/* Recent Payrolls Section */}
-      <div className="payroll-card">
-        <div className="dashboard-section-header">
+      {/* Recent Payroll Runs Section */}
+      <div className="payroll-section">
+        <div className="payroll-section-header">
           <div>
-            <h3 className="section-title">Recent Payroll Records</h3>
-            <p className="section-subtitle">Real records stored in MongoDB</p>
+            <h2 className="payroll-section-title">Recent Payroll Runs</h2>
+            <p className="payroll-section-subtitle">Latest processed compensation cycles</p>
           </div>
           <button className="pr-btn pr-btn-secondary pr-btn-sm" onClick={() => navigate('/payroll/history')}>
             View Full History →
@@ -213,9 +236,9 @@ export default function PayrollDashboard() {
 
         {payrolls.length === 0 ? (
           <EmptyState
-            title="No Payroll Data Available"
-            message="No payroll has been generated for any period yet."
-            actionText={isAdmin ? '+ Generate First Payroll' : undefined}
+            title="No Payroll Runs Found"
+            message="No payroll has been processed yet. Click 'Generate Payroll' to calculate employee compensation for this period."
+            actionText={isAdmin ? "+ Generate First Payroll" : undefined}
             onAction={isAdmin ? () => setShowGenModal(true) : undefined}
           />
         ) : (
@@ -233,16 +256,34 @@ export default function PayrollDashboard() {
           <div className="pr-modal-content">
             <div className="modal-header">
               <h3>Generate Monthly Payroll</h3>
-              <button className="close-btn" onClick={() => setShowGenModal(false)}>✕</button>
+              <button
+                className="close-btn"
+                onClick={() => setShowGenModal(false)}
+                aria-label="Close modal"
+                style={{ display: "flex", alignItems: "center", justifyContent: "center" }}
+              >
+                <FiX size={18} />
+              </button>
             </div>
 
             {!hasActiveSalaries && (
-              <div className="modal-alert alert-error">
-                ⚠️ No active salary structures exist in the system. Please create a salary structure for an employee first.
+              <div className="modal-alert alert-error" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <FiAlertTriangle size={18} style={{ flexShrink: 0 }} />
+                <span>No active salary structures exist in the system. Please create a salary structure for an employee first.</span>
               </div>
             )}
-            {genError && <div className="modal-alert alert-error">{genError}</div>}
-            {genSuccess && <div className="modal-alert alert-success">{genSuccess}</div>}
+            {genError && (
+              <div className="modal-alert alert-error" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <FiAlertTriangle size={18} style={{ flexShrink: 0 }} />
+                <span>{genError}</span>
+              </div>
+            )}
+            {genSuccess && (
+              <div className="modal-alert alert-success" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <FiCheckCircle size={18} style={{ flexShrink: 0 }} />
+                <span>{genSuccess}</span>
+              </div>
+            )}
 
             <form onSubmit={handleGenSubmit} className="gen-form">
               <div className="form-group">

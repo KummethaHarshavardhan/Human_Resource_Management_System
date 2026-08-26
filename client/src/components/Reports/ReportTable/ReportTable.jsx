@@ -1,7 +1,9 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "../../../context/ToastContext";
 import { formatCurrency } from "../../../utils/formatCurrency";
 import { exportReport } from "../../../services/reportService";
+import { FiEye, FiDownload, FiFolder } from "react-icons/fi";
 import "./ReportTable.css";
 
 const MONTH_NAMES = [
@@ -16,18 +18,25 @@ export default function ReportTable({
   onRefresh,
 }) {
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   const handleExport = async (id, e) => {
     e.stopPropagation();
     try {
       await exportReport(id);
+      showToast('success', 'Report exported to CSV successfully');
     } catch (err) {
-      alert(err.message || "Failed to export report");
+      showToast('error', err.message || "Failed to export report");
     }
   };
 
   if (loading) {
-    return <div className="report-table-loading">Loading reports...</div>;
+    return (
+      <div className="report-table-loading" style={{ padding: "48px 24px", textAlign: "center" }}>
+        <div className="emp-spinner" style={{ margin: "0 auto 12px" }} />
+        Loading reports...
+      </div>
+    );
   }
 
   if (error) {
@@ -44,7 +53,12 @@ export default function ReportTable({
   }
 
   if (!reports || reports.length === 0) {
-    return <div className="report-table-empty">No reports have been generated yet.</div>;
+    return (
+      <div className="report-table-empty" style={{ padding: "48px 24px", textAlign: "center", color: "#94a3b8" }}>
+        <FiFolder size={36} style={{ margin: "0 auto 8px", color: "#cbd5e1" }} />
+        <p style={{ margin: 0, fontWeight: 600, color: "#64748b" }}>No reports have been generated yet.</p>
+      </div>
+    );
   }
 
   return (
@@ -86,7 +100,7 @@ export default function ReportTable({
             const dept = report.department || empObj?.department || empObj?.department_id?.departmentName || "All Departments";
 
             return (
-              <tr key={id} onClick={() => navigate(`/reports/${id}`)}>
+              <tr key={id} onClick={() => navigate(`/reports/${id}`)} style={{ cursor: "pointer" }}>
                 <td>
                   <span className={`type-badge type-${type}`}>
                     {type.toUpperCase()}
@@ -103,18 +117,22 @@ export default function ReportTable({
                 <td className="date-text">{generatedAtStr}</td>
                 <td className="actions-cell" onClick={(e) => e.stopPropagation()}>
                   <button
+                    type="button"
                     className="action-btn view-btn"
                     onClick={() => navigate(`/reports/${id}`)}
                     title="View Details"
+                    aria-label="View Report Details"
                   >
-                    View
+                    <FiEye size={13} style={{ marginRight: 4 }} /> View
                   </button>
                   <button
+                    type="button"
                     className="action-btn export-btn"
                     onClick={(e) => handleExport(id, e)}
                     title="Export CSV"
+                    aria-label="Export Report CSV"
                   >
-                    Export
+                    <FiDownload size={13} style={{ marginRight: 4 }} /> Export
                   </button>
                 </td>
               </tr>

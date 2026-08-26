@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { FiX } from 'react-icons/fi';
 import './Modal.css';
 
 /**
@@ -13,8 +14,9 @@ export const ModalHeader = ({ title, onClose, showCloseButton = true, children }
         className="hrms-modal-close-btn"
         onClick={onClose}
         aria-label="Close modal"
+        style={{ display: "flex", alignItems: "center", justifyContent: "center" }}
       >
-        ✕
+        <FiX size={18} />
       </button>
     )}
   </div>

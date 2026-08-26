@@ -14,15 +14,10 @@ function Profile() {
   const [profile, setProfile] = useState(null);
   const [form, setForm] = useState({
     name: "",
-    email: "",
+    email:"",
     phone: "",
     department: "",
   });
-  const canEditEmail =
-    profile?.role === "Admin" || profile?.role === "HR" ||
-    authUser?.role === "Admin" || authUser?.role === "HR" ||
-    String(profile?.role).toLowerCase() === "admin" ||
-    String(authUser?.role).toLowerCase() === "admin";
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -91,30 +86,19 @@ function Profile() {
     setSaving(true);
     setError('');
     setSuccess('');
-
-    if (canEditEmail && form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-      setError('Please enter a valid email address.');
-      setSaving(false);
-      return;
-    }
     try {
-      const payload = {
+      const data = await updateProfile({
         name: form.name,
         phone: form.phone,
         department: form.department,
-        role: form.role,
-      };
-      if (canEditEmail && form.email) {
-        payload.email = form.email.trim().toLowerCase();
-      }
-      const data = await updateProfile(payload);
+        role: form.role
+      });
       setProfile(data.user);
       setForm({
-        name: data.user.name || '',
-        email: data.user.email || '',
+        name: data.user.name,
         phone: data.user.phone || '',
         department: data.user.department || '',
-        role: data.user.role || 'Employee',
+        role: data.user.role || 'Employee'
       });
       updateUser(data.user);
       const msg = 'Profile updated successfully.';
@@ -232,23 +216,15 @@ function Profile() {
 
                 <div className="profile-form-group">
                   <label className="profile-form-label">
-                    <FiMail size={14} /> Email Address
-                    {!canEditEmail && " (Read-Only)"}
+                    <FiMail size={14} /> Email Address (Read-Only)
                   </label>
                   <input
                     name="email"
                     type="email"
                     value={form.email}
-                    onChange={handleChange}
-                    disabled={!canEditEmail}
-                    className={`profile-form-input${!canEditEmail ? " disabled" : ""}`}
-                    placeholder="e.g. user@company.com"
+                    disabled
+                    className="profile-form-input disabled"
                   />
-                  {!canEditEmail && (
-                    <span className="profile-field-hint" style={{ fontSize: "0.75rem", color: "#64748b", marginTop: 4, display: "block" }}>
-                      Email can only be modified by Admin.
-                    </span>
-                  )}
                 </div>
 
                 <div className="profile-form-group">

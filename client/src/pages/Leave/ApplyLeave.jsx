@@ -83,9 +83,9 @@ export default function ApplyLeave({ refreshLeaves }) {
               required
             >
               <option value="">Select Leave Type</option>
-              <option value="Sick">🤒 Sick Leave</option>
-              <option value="Casual">☕ Casual Leave</option>
-              <option value="Annual">🏖️ Annual Leave</option>
+              <option value="Sick">Sick Leave</option>
+              <option value="Casual">Casual Leave</option>
+              <option value="Annual">Annual Leave</option>
             </select>
           </div>
 

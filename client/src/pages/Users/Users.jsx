@@ -4,7 +4,7 @@ import { getAllEmployees } from '../../services/employeeService';
 import { getDepartments } from '../../services/departmentService';
 import { getRoles } from '../../services/roleService';
 import { normalizeRole } from '../../utils/permission';
-import { FiUsers, FiUserCheck, FiShield, FiUserPlus, FiMoreVertical, FiSearch } from 'react-icons/fi';
+import { FiUsers, FiUserCheck, FiShield, FiUserPlus, FiMoreVertical, FiSearch, FiArrowUp, FiArrowDown } from 'react-icons/fi';
 import './Users.css';
 
 function Users() {
@@ -18,6 +18,9 @@ function Users() {
   const [search, setSearch]             = useState('');
   const [deptFilter, setDeptFilter]     = useState('All Departments');
   const [roleFilter, setRoleFilter]     = useState('All Roles');
+  const [statusFilter, setStatusFilter] = useState('All Statuses');
+  const [sortField, setSortField]       = useState('name');
+  const [sortAsc, setSortAsc]           = useState(true);
 
   // ── Fetch users/employees ────────────────────────────────────────────────
   useEffect(() => {
@@ -59,7 +62,6 @@ function Users() {
       setDeptLoading(true);
       try {
         const data = await getDepartments();
-        // Backend returns { departments: [...] } or an array
         const list = Array.isArray(data) ? data : data?.departments || data?.data || [];
         const names = list
           .map((d) => d.departmentName || d.name || d)
@@ -68,7 +70,6 @@ function Users() {
         setDepartments(names);
       } catch (err) {
         console.warn('Could not load departments:', err.message);
-        // Fallback: derive unique departments from already-loaded users
         setDepartments([]);
       } finally {
         setDeptLoading(false);
@@ -99,23 +100,18 @@ function Users() {
     fetchRolesData();
   }, []);
 
-  // ── If API departments are empty, derive from loaded user list ───────────
   const departmentOptions = useMemo(() => {
     if (departments.length > 0) return departments;
-    // Derive unique dept names from users as fallback
-    const fromUsers = [...new Set(usersList.map((u) => u.department).filter(Boolean))].sort(
+    return [...new Set(usersList.map((u) => u.department).filter(Boolean))].sort(
       (a, b) => a.localeCompare(b)
     );
-    return fromUsers;
   }, [departments, usersList]);
 
-  // ── If API roles are empty, derive from loaded user list ───────────
   const roleOptions = useMemo(() => {
     let list = roles;
     if (list.length === 0) {
       list = [...new Set(usersList.map((u) => u.role).filter(Boolean))];
     }
-    // Deduplicate case-insensitively while preserving original casing
     const seen = new Set();
     const result = [];
     for (const r of list) {
@@ -128,9 +124,18 @@ function Users() {
     return result.sort((a, b) => a.localeCompare(b));
   }, [roles, usersList]);
 
-  // ── Filtered users ───────────────────────────────────────────────────────
+  const handleSort = (field) => {
+    if (sortField === field) {
+      setSortAsc(!sortAsc);
+    } else {
+      setSortField(field);
+      setSortAsc(true);
+    }
+  };
+
+  // ── Filtered and Sorted users ─────────────────────────────────────────────
   const filteredUsers = useMemo(() => {
-    return usersList.filter((u) => {
+    const filtered = usersList.filter((u) => {
       const q = search.toLowerCase();
       const matchesSearch =
         u.name.toLowerCase().includes(q) ||
@@ -140,9 +145,17 @@ function Users() {
         deptFilter === 'All Departments' || u.department === deptFilter;
       const matchesRole =
         roleFilter === 'All Roles' || u.role.toLowerCase() === roleFilter.toLowerCase();
-      return matchesSearch && matchesDept && matchesRole;
+      const matchesStatus =
+        statusFilter === 'All Statuses' || u.status.toLowerCase() === statusFilter.toLowerCase();
+      return matchesSearch && matchesDept && matchesRole && matchesStatus;
     });
-  }, [usersList, search, deptFilter, roleFilter]);
+
+    return filtered.sort((a, b) => {
+      const aVal = (a[sortField] || '').toString().toLowerCase();
+      const bVal = (b[sortField] || '').toString().toLowerCase();
+      return sortAsc ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+    });
+  }, [usersList, search, deptFilter, roleFilter, statusFilter, sortField, sortAsc]);
 
   const totalCount    = usersList.length;
   const activeCount   = usersList.filter((u) => u.status.toLowerCase() === 'active').length;
@@ -201,7 +214,7 @@ function Users() {
           />
         </div>
 
-        {/* Real department dropdown */}
+        {/* Department Filter */}
         <select
           id="users-dept-filter"
           className="users-filter-select"
@@ -216,6 +229,7 @@ function Users() {
           ))}
         </select>
 
+        {/* Role Filter */}
         <select
           id="users-role-filter"
           className="users-filter-select"
@@ -229,6 +243,19 @@ function Users() {
             <option key={r} value={r}>{r}</option>
           ))}
         </select>
+
+        {/* Status Filter */}
+        <select
+          id="users-status-filter"
+          className="users-filter-select"
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          aria-label="Filter by status"
+        >
+          <option value="All Statuses">All Statuses</option>
+          <option value="Active">Active</option>
+          <option value="Inactive">Inactive</option>
+        </select>
       </div>
 
       {/* Table */}
@@ -237,12 +264,24 @@ function Users() {
           <table className="users-table">
             <thead>
               <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Employee ID</th>
-                <th>Department</th>
-                <th>Role</th>
-                <th>Status</th>
+                <th onClick={() => handleSort('name')} style={{ cursor: 'pointer' }}>
+                  Name {sortField === 'name' && (sortAsc ? <FiArrowUp size={12} /> : <FiArrowDown size={12} />)}
+                </th>
+                <th onClick={() => handleSort('email')} style={{ cursor: 'pointer' }}>
+                  Email {sortField === 'email' && (sortAsc ? <FiArrowUp size={12} /> : <FiArrowDown size={12} />)}
+                </th>
+                <th onClick={() => handleSort('id')} style={{ cursor: 'pointer' }}>
+                  Employee ID {sortField === 'id' && (sortAsc ? <FiArrowUp size={12} /> : <FiArrowDown size={12} />)}
+                </th>
+                <th onClick={() => handleSort('department')} style={{ cursor: 'pointer' }}>
+                  Department {sortField === 'department' && (sortAsc ? <FiArrowUp size={12} /> : <FiArrowDown size={12} />)}
+                </th>
+                <th onClick={() => handleSort('role')} style={{ cursor: 'pointer' }}>
+                  Role {sortField === 'role' && (sortAsc ? <FiArrowUp size={12} /> : <FiArrowDown size={12} />)}
+                </th>
+                <th onClick={() => handleSort('status')} style={{ cursor: 'pointer' }}>
+                  Status {sortField === 'status' && (sortAsc ? <FiArrowUp size={12} /> : <FiArrowDown size={12} />)}
+                </th>
                 <th>Actions</th>
               </tr>
             </thead>

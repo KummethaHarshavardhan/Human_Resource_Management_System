@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { getAllReports } from "../../../services/reportService";
+import { FiSearch, FiX } from "react-icons/fi";
 import ReportTable from "../../../components/Reports/ReportTable/ReportTable";
 import "./AllReports.css";
 
@@ -102,12 +103,14 @@ export default function AllReports() {
             <label htmlFor="reportSearchInput" className="control-label">
               Search
             </label>
-            <div className="search-input-wrapper">
+            <div className="search-input-wrapper" style={{ position: "relative", display: "flex", alignItems: "center" }}>
+              <FiSearch size={15} style={{ position: "absolute", left: 10, color: "#94a3b8", pointerEvents: "none" }} />
               <input
                 id="reportSearchInput"
                 type="text"
                 className="control-search-input"
-                placeholder="🔍 Search Employee, Code, Dept, Year..."
+                style={{ paddingLeft: 32 }}
+                placeholder="Search Employee, Code, Dept, Year..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -117,8 +120,9 @@ export default function AllReports() {
                   className="clear-search-btn"
                   onClick={() => setSearchQuery("")}
                   title="Clear search"
+                  style={{ display: "flex", alignItems: "center", justifyContent: "center" }}
                 >
-                  ×
+                  <FiX size={14} />
                 </button>
               )}
             </div>

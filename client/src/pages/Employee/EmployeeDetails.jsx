@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
+import { useToast } from "../../context/ToastContext.jsx";
 import EmployeeDetailsCard from "../../components/employee/EmployeeDetailsCard.jsx";
+import ConfirmModal from "../../components/Modal/ConfirmModal.jsx";
 import {
   getEmployeeById,
   updateEmployeeStatus,
@@ -10,47 +12,21 @@ import {
 import "../../components/employee/emp.shared.css";
 import "../../components/employee/EmployeeDetailsCard.css";
 import "./EmployeeList.css";
-import { FiArrowLeft, FiXCircle, FiCheckCircle, FiSearch, FiAlertTriangle } from "react-icons/fi";
-
-function ConfirmDialog({ employee, onConfirm, onCancel, loading }) {
-  const name =
-    (typeof employee?.user_id === "object" && employee?.user_id?.name) ||
-    employee?.name ||
-    "this employee";
-
-  return (
-    <div className="emp-confirm-overlay" role="dialog" aria-modal="true">
-      <div className="emp-confirm-box">
-        <div className="emp-confirm-icon"><FiAlertTriangle size={28} /></div>
-        <h3>Delete Employee?</h3>
-        <p>
-          Are you sure you want to delete <strong>{name}</strong>? This action cannot be undone.
-        </p>
-        <div className="emp-confirm-actions">
-          <button className="emp-btn-secondary" onClick={onCancel} disabled={loading}>
-            Cancel
-          </button>
-          <button className="emp-btn-danger" onClick={onConfirm} disabled={loading} id="confirm-delete-btn">
-            {loading ? "Deleting..." : "Yes, Delete"}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
+import { normalizeRole } from "../../utils/permission.js";
+import { FiArrowLeft, FiXCircle, FiCheckCircle, FiSearch } from "react-icons/fi";
 
 export default function EmployeeDetails() {
-  const { id } = useParams();
   const navigate = useNavigate();
+  const { id } = useParams();
   const { user } = useAuth();
-  const userRole = (user?.role || "").toLowerCase();
-  const canEdit = userRole === "admin" || userRole === "hr";
+  const { showToast } = useToast();
+  const normRole = normalizeRole(user?.role);
+  const canEdit = normRole === "admin" || normRole === "hr_manager";
 
   const [employee, setEmployee] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [statusLoading, setStatusLoading] = useState(false);
-  const [statusMsg, setStatusMsg] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
@@ -68,14 +44,12 @@ export default function EmployeeDetails() {
     const newStatus =
       employee.employment_status === "Active" ? "Inactive" : "Active";
     setStatusLoading(true);
-    setStatusMsg("");
     try {
       const data = await updateEmployeeStatus(id, newStatus);
       setEmployee(data?.employee || employee);
-      setStatusMsg(`Status updated to ${newStatus}`);
-      setTimeout(() => setStatusMsg(""), 3000);
+      showToast('success', `Status updated to ${newStatus}`);
     } catch (err) {
-      setStatusMsg(err.message || "Failed to update status");
+      showToast('error', err.message || "Failed to update status");
     } finally {
       setStatusLoading(false);
     }
@@ -85,9 +59,10 @@ export default function EmployeeDetails() {
     setDeleting(true);
     try {
       await deleteEmployee(id);
+      showToast('success', "Employee deactivated successfully.");
       navigate("/employee");
     } catch (err) {
-      setError(err.message || "Failed to delete employee");
+      showToast('error', err.message || "Failed to deactivate employee");
       setConfirmDelete(false);
     } finally {
       setDeleting(false);
@@ -96,7 +71,7 @@ export default function EmployeeDetails() {
 
   const handleEditClick = (emp) => {
     if (!canEdit) {
-      setError("You do not have access permission to edit employee details.");
+      showToast('error', "You do not have permission to edit employee details.");
       return;
     }
     navigate(`/employee/${emp._id || emp.id}/edit`);
@@ -104,7 +79,7 @@ export default function EmployeeDetails() {
 
   const handleDeleteClick = () => {
     if (!canEdit) {
-      setError("You do not have access permission to delete employee details.");
+      showToast('error', "You do not have permission to deactivate employees.");
       return;
     }
     setConfirmDelete(true);
@@ -150,25 +125,22 @@ export default function EmployeeDetails() {
     );
   }
 
+  const name =
+    (typeof employee?.user_id === "object" && employee?.user_id?.name) ||
+    employee?.name ||
+    "this employee";
+
   return (
     <div className="emp-page">
-      {statusMsg && (
-        <div
-          className={`emp-alert ${
-            statusMsg.startsWith("Status updated") ? "success" : "error"
-          }`}
-        >
-          {statusMsg}
-        </div>
-      )}
-
       {canEdit && (
-        <div style={{ display: "flex", justifyContent: "flex-end" }}>
+        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 12 }}>
           <button
+            type="button"
             className="emp-btn-secondary"
             onClick={handleToggleStatus}
             disabled={statusLoading}
             id="toggle-status-btn"
+            aria-label={`Toggle status to ${employee.employment_status === "Active" ? "Inactive" : "Active"}`}
           >
             {statusLoading
               ? "Updating..."
@@ -187,14 +159,16 @@ export default function EmployeeDetails() {
         onBack={() => navigate("/employee")}
       />
 
-      {confirmDelete && (
-        <ConfirmDialog
-          employee={employee}
-          onConfirm={handleDeleteConfirm}
-          onCancel={() => setConfirmDelete(false)}
-          loading={deleting}
-        />
-      )}
+      <ConfirmModal
+        isOpen={confirmDelete}
+        onClose={() => setConfirmDelete(false)}
+        onConfirm={handleDeleteConfirm}
+        title="Deactivate Employee?"
+        message={`Are you sure you want to deactivate ${name} (${employee.employee_code || "EMP"})? Historical records across payroll, leave, and attendance will be preserved.`}
+        confirmText="Deactivate"
+        variant="danger"
+        loading={deleting}
+      />
     </div>
   );
 }

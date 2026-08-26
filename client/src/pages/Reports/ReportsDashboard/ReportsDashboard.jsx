@@ -8,6 +8,7 @@ import {
   getTopEarners,
 } from "../../../services/analyticsService";
 
+import { FiCalendar, FiBarChart2, FiUser, FiLayers } from "react-icons/fi";
 import ReportSummary from "../../../components/Reports/ReportSummary/ReportSummary";
 import AnalyticsCard from "../../../components/Reports/AnalyticsCard/AnalyticsCard";
 import PayrollTrendChart from "../../../components/Reports/PayrollTrendChart/PayrollTrendChart";
@@ -49,53 +50,32 @@ export default function ReportsDashboard() {
         deptRes,
         deductionRes,
         topEarnersRes,
-      ] = await Promise.all([
-        getAllReports().catch(() => ({ data: [] })),
-        getSummaryStats().catch(() => ({ data: null })),
-        getPayrollTrend().catch(() => ({ data: [] })),
-        getDepartmentBreakdown().catch(() => ({ data: [] })),
-        getDeductionBreakdown().catch(() => ({ data: {} })),
-        getTopEarners().catch(() => ({ data: [] })),
+      ] = await Promise.allSettled([
+        getAllReports(),
+        getSummaryStats(),
+        getPayrollTrend(),
+        getDepartmentBreakdown(),
+        getDeductionBreakdown(),
+        getTopEarners(),
       ]);
 
-      setReports(reportsRes.data || []);
-      setTrendData(trendRes.data || []);
-      setDeptData(deptRes.data || []);
-      setDeductionData(deductionRes.data || {});
-      setTopEarnersData(topEarnersRes.data || []);
-
-      // Use the dedicated summary endpoint first
-      if (summaryRes.data) {
-        setSummaryData({
-          totalEmployees: summaryRes.data.totalEmployees || 0,
-          totalGrossPay: summaryRes.data.totalGrossPay || 0,
-          totalDeductions: summaryRes.data.totalDeductions || 0,
-          totalNetPay: summaryRes.data.totalNetPay || 0,
-        });
-      } else {
-        // Fallback: aggregate from trend data
-        const fetchedTrend = trendRes.data || [];
-        if (fetchedTrend.length > 0) {
-          const agg = fetchedTrend.reduce(
-            (acc, item) => {
-              acc.totalEmployees = Math.max(
-                acc.totalEmployees,
-                item.employeeCount || 0
-              );
-              acc.totalGrossPay += item.totalGrossPay || 0;
-              acc.totalDeductions += item.totalDeductions || 0;
-              acc.totalNetPay += item.totalNetPay || 0;
-              return acc;
-            },
-            {
-              totalEmployees: 0,
-              totalGrossPay: 0,
-              totalDeductions: 0,
-              totalNetPay: 0,
-            }
-          );
-          setSummaryData(agg);
-        }
+      if (reportsRes.status === "fulfilled" && reportsRes.value?.data) {
+        setReports(reportsRes.value.data);
+      }
+      if (summaryRes.status === "fulfilled" && summaryRes.value?.data) {
+        setSummaryData(summaryRes.value.data);
+      }
+      if (trendRes.status === "fulfilled" && trendRes.value?.data) {
+        setTrendData(trendRes.value.data);
+      }
+      if (deptRes.status === "fulfilled" && deptRes.value?.data) {
+        setDeptData(deptRes.value.data);
+      }
+      if (deductionRes.status === "fulfilled" && deductionRes.value?.data) {
+        setDeductionData(deductionRes.value.data);
+      }
+      if (topEarnersRes.status === "fulfilled" && topEarnersRes.value?.data) {
+        setTopEarnersData(topEarnersRes.value.data);
       }
     } catch (err) {
       setError(err.message || "Failed to load dashboard analytics");
@@ -115,28 +95,28 @@ export default function ReportsDashboard() {
             description="Generate comprehensive monthly payroll summary by month and year."
             type="monthly"
             targetPath="/reports/monthly"
-            icon="📅"
+            icon={<FiCalendar size={22} />}
           />
           <ReportCard
             title="Yearly Report"
             description="Generate annual financial summary and overall tax & salary totals."
             type="yearly"
             targetPath="/reports/yearly"
-            icon="📊"
+            icon={<FiBarChart2 size={22} />}
           />
           <ReportCard
             title="Employee Report"
             description="View complete historical salary records and payslips for individual employees."
             type="employee"
             targetPath="/reports/employee"
-            icon="👤"
+            icon={<FiUser size={22} />}
           />
           <ReportCard
             title="Department Report"
             description="Analyze salary distributions and headcount breakdown by department."
             type="department"
             targetPath="/reports/department"
-            icon="🏢"
+            icon={<FiLayers size={22} />}
           />
         </div>
       </section>

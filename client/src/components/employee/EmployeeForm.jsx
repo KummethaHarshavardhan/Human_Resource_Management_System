@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import "../employee/emp.shared.css";
 import "../employee/EmployeeForm.css";
 

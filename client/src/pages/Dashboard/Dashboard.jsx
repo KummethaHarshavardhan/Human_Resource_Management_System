@@ -15,6 +15,20 @@ import Card from '../../components/Card/Card.jsx';
 import Table from '../../components/Table/Table.jsx';
 import Modal from '../../components/Modal/Modal.jsx';
 import Loader from '../../components/Loader/Loader.jsx';
+import {
+  FiUsers,
+  FiClock,
+  FiCalendar,
+  FiLayers,
+  FiDollarSign,
+  FiBarChart2,
+  FiSettings,
+  FiUser,
+  FiAlertTriangle,
+  FiInfo,
+  FiZap,
+  FiCheckCircle,
+} from 'react-icons/fi';
 import './Dashboard.css';
 
 // Helper to format time string/date cleanly (e.g. 09:08 AM)
@@ -61,40 +75,16 @@ function Dashboard() {
   const [departments, setDepartments] = useState([]);
   const [departmentCount, setDepartmentCount] = useState(0);
   const [adminLeaves, setAdminLeaves] = useState([]);
-  const [employeesOnLeaveCount, setEmployeesOnLeaveCount] = useState(0);
 
   // Real Data States — personal (all roles)
   const [todayAttendance, setTodayAttendance] = useState(null);
   const [attendanceHistory, setAttendanceHistory] = useState([]);
   const [leaveHistory, setLeaveHistory] = useState([]);
-  const [pendingLeaveCount, setPendingLeaveCount] = useState(0);
 
+  // Modal State
   const [isAnnounceModalOpen, setIsAnnounceModalOpen] = useState(false);
 
-  const handleProfile = () => { navigate('/profile'); };
-
-  // Quick Navigation handlers
-  const handleNavDirectory  = () => navigate('/directory');
-  const handleNavAttendance = () => navigate('/attendance-dashboard');
-  const handleNavLeave      = () => navigate('/leave');
-  const handleNavPayroll    = () => navigate('/payroll');
-  const handleNavReports    = () => navigate('/reports');
-  const handleNavSettings   = () => navigate('/settings');
-
-  // Create department map for mapping employee.departmentId -> Department Name
-  const departmentMap = useMemo(() => {
-    const map = {};
-    if (Array.isArray(departments)) {
-      departments.forEach((d) => {
-        const id   = d._id || d.id;
-        const name = d.departmentName || d.name || d.department_name;
-        if (id && name) map[id] = name;
-      });
-    }
-    return map;
-  }, [departments]);
-
-  // ── Fetch real data from existing backend APIs ───────────────────────────────
+  // ── 1. Fetch Real Backend Data on Mount ──────────────────────────────────────
   useEffect(() => {
     let isMounted = true;
 
@@ -103,122 +93,155 @@ function Dashboard() {
       setApiError('');
 
       try {
-        // ── Org-wide data — only load for Admin / HR ──────────────────────
+        const promises = [
+          getTodayAttendance().catch((err) => {
+            console.warn('Today attendance not recorded yet:', err.message);
+            return { data: null };
+          }),
+          getLeaveHistory().catch((err) => {
+            console.warn('Leave history fetch failed:', err.message);
+            return { data: [] };
+          }),
+        ];
+
         if (isAdminOrHR) {
-          try {
-            const deptRes = await getDepartments();
-            if (isMounted) {
-              const deptList = Array.isArray(deptRes)
-                ? deptRes
-                : deptRes?.departments || deptRes?.data || [];
-              setDepartments(deptList);
-              setDepartmentCount(deptList.length);
-            }
-          } catch (err) {
-            console.warn('Departments API warning:', err.message);
-          }
-
-          try {
-            const empRes = await getAllEmployees({ limit: 100 });
-            if (isMounted) {
-              const empList = Array.isArray(empRes)
-                ? empRes
-                : empRes?.employees || empRes?.data || [];
-              const count = empRes?.totalCount || empRes?.totalEmployees || empRes?.total || empList.length;
-              setEmployees(empList);
-              setEmployeeCount(count || 0);
-            }
-          } catch (err) {
-            console.warn('Employees API warning:', err.message);
-          }
-
-          try {
-            const allLeavesRes = await getAdminAllLeaves();
-            if (isMounted) {
-              const allLeavesList = Array.isArray(allLeavesRes)
-                ? allLeavesRes
-                : allLeavesRes?.leaves || allLeavesRes?.data || [];
-              setAdminLeaves(allLeavesList);
-              const pending = allLeavesList.filter(
-                (l) => l.status?.toLowerCase() === 'pending'
-              ).length;
-              setPendingLeaveCount(pending);
-
-              // Calculate employees currently on approved leave
-              const today = new Date();
-              today.setHours(0, 0, 0, 0);
-              const onLeave = allLeavesList.filter((l) => {
-                if (l.status?.toLowerCase() !== 'approved') return false;
-                const start = l.startDate ? new Date(l.startDate) : null;
-                const end = l.endDate ? new Date(l.endDate) : null;
-                if (!start || !end) return false;
-                start.setHours(0, 0, 0, 0);
-                end.setHours(23, 59, 59, 999);
-                return today >= start && today <= end;
-              }).length;
-              setEmployeesOnLeaveCount(onLeave);
-            }
-          } catch (err) {
-            console.warn('Admin leaves API warning:', err.message);
-          }
+          promises.push(
+            getAllEmployees({ page: 1, limit: 10 }).catch((err) => {
+              console.error('Employees fetch error:', err.message);
+              return { employees: [], totalEmployees: 0 };
+            }),
+            getDepartments().catch((err) => {
+              console.error('Departments fetch error:', err.message);
+              return { data: [] };
+            }),
+            getAdminAllLeaves().catch((err) => {
+              console.error('Admin all leaves fetch error:', err.message);
+              return { data: [] };
+            })
+          );
+        } else {
+          promises.push(
+            getAttendanceHistory().catch((err) => {
+              console.warn('Attendance history fetch failed:', err.message);
+              return { data: [] };
+            })
+          );
         }
 
-        // ── Personal attendance — all roles ───────────────────────────────
-        try {
-          const attToday = await getTodayAttendance();
-          const attHist  = await getAttendanceHistory();
-          if (isMounted) {
-            const todayData = attToday?.attendance || attToday?.data || attToday;
-            setTodayAttendance(
-              todayData && (todayData._id || todayData.checkIn || todayData.checkInTime || todayData.status)
-                ? todayData
-                : null
-            );
-            const histList = Array.isArray(attHist)
-              ? attHist
-              : attHist?.history || attHist?.attendance || attHist?.data || [];
-            setAttendanceHistory(histList);
-          }
-        } catch (err) {
-          console.warn('Attendance API warning:', err.message);
-        }
+        const results = await Promise.all(promises);
 
-        // ── Personal leave data — for Employee role ───────────────────────
-        if (isEmployee) {
-          try {
-            const leaveRes = await getLeaveHistory();
-            if (isMounted) {
-              const leaveList = Array.isArray(leaveRes)
-                ? leaveRes
-                : leaveRes?.history || leaveRes?.leaves || leaveRes?.data || [];
-              setLeaveHistory(leaveList);
-              const pending = leaveList.filter(
-                (l) => l.status?.toLowerCase() === 'pending'
-              ).length;
-              setPendingLeaveCount(pending);
-            }
-          } catch (err) {
-            console.warn('Leave API warning:', err.message);
-          }
-        }
+        if (!isMounted) return;
 
-      } catch (err) {
-        if (isMounted) setApiError(err.message || 'Error loading dashboard data');
+        // 1. Personal Attendance
+        const todayAttRes = results[0];
+        const rawToday = todayAttRes?.data !== undefined ? todayAttRes.data : todayAttRes;
+        setTodayAttendance(rawToday || null);
+
+        // 2. Personal Leave History
+        const leaveRes = results[1];
+        const rawLeaves = Array.isArray(leaveRes?.data)
+          ? leaveRes.data
+          : Array.isArray(leaveRes)
+          ? leaveRes
+          : [];
+        setLeaveHistory(rawLeaves);
+
+        if (isAdminOrHR) {
+          // 3. Organization Employees
+          const empRes = results[2];
+          const empList = Array.isArray(empRes?.employees)
+            ? empRes.employees
+            : Array.isArray(empRes?.data)
+            ? empRes.data
+            : Array.isArray(empRes)
+            ? empRes
+            : [];
+          setEmployees(empList);
+          setEmployeeCount(empRes?.totalEmployees ?? empList.length);
+
+          // 4. Organization Departments
+          const deptRes = results[3];
+          const deptList = Array.isArray(deptRes?.data)
+            ? deptRes.data
+            : Array.isArray(deptRes?.departments)
+            ? deptRes.departments
+            : Array.isArray(deptRes)
+            ? deptRes
+            : [];
+          setDepartments(deptList);
+          setDepartmentCount(deptList.length);
+
+          // 5. Admin Organization Leaves
+          const adminLeavesRes = results[4];
+          const allOrgLeaves = Array.isArray(adminLeavesRes?.data)
+            ? adminLeavesRes.data
+            : Array.isArray(adminLeavesRes)
+            ? adminLeavesRes
+            : [];
+          setAdminLeaves(allOrgLeaves);
+        } else {
+          // 3. Employee Attendance History
+          const attHistRes = results[2];
+          const rawHist = Array.isArray(attHistRes?.data)
+            ? attHistRes.data
+            : Array.isArray(attHistRes)
+            ? attHistRes
+            : [];
+          setAttendanceHistory(rawHist);
+        }
+      } catch (error) {
+        console.error('Fatal Dashboard data load error:', error);
+        if (isMounted) {
+          setApiError(error.message || 'Failed to load live dashboard statistics.');
+        }
       } finally {
-        if (isMounted) setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     }
 
     fetchDashboardData();
-    return () => { isMounted = false; };
-  }, [isAdminOrHR, isEmployee]);
 
-  // Columns for Workforce Directory Overview Table (Admin/HR)
+    return () => {
+      isMounted = false;
+    };
+  }, [isAdminOrHR]);
+
+  // ── 2. Computed KPI Metrics ─────────────────────────────────────────────────
+  const pendingLeaveCount = useMemo(() => {
+    if (isAdminOrHR) {
+      return adminLeaves.filter((l) => (l.status || '').toLowerCase() === 'pending').length;
+    }
+    return leaveHistory.filter((l) => (l.status || '').toLowerCase() === 'pending').length;
+  }, [isAdminOrHR, adminLeaves, leaveHistory]);
+
+  const employeesOnLeaveCount = useMemo(() => {
+    if (!isAdminOrHR) return 0;
+    return adminLeaves.filter((l) => (l.status || '').toLowerCase() === 'approved').length;
+  }, [isAdminOrHR, adminLeaves]);
+
+  // Format attendance display times
+  const checkInTimeStr = formatTime(todayAttendance?.checkIn || todayAttendance?.checkInTime);
+  const checkOutTimeStr = formatTime(todayAttendance?.checkOut || todayAttendance?.checkOutTime);
+  const workingHoursStr = formatWorkingHours(todayAttendance?.workingHours);
+
+  // ── 3. Quick Action Navigation Handlers ─────────────────────────────────────
+  const handleNavDirectory = () => navigate('/employee');
+  const handleNavAttendance = () => navigate('/attendance-dashboard');
+  const handleNavLeave = () => navigate('/leave');
+  const handleNavPayroll = () => navigate('/payroll');
+  const handleNavReports = () => navigate('/reports');
+  const handleNavSettings = () => navigate('/settings');
+  const handleProfile = () => navigate('/profile');
+
+  // ── 4. Workforce Table Column Definitions ───────────────────────────────────
   const employeeColumns = [
     {
       key: 'name',
       header: 'Employee Name',
-      width: '38%',
+      width: '36%',
+      minWidth: '220px',
       render: (row) => {
         const empName =
           row.user_id?.name ||
@@ -226,14 +249,17 @@ function Dashboard() {
           (row.firstName ? `${row.firstName} ${row.lastName || ''}`.trim() : null) ||
           '-';
         const empEmail = row.user_id?.email || row.email || '-';
+        const empCode = row.employee_code || '';
         const initials = empName !== '-' ? empName.slice(0, 2).toUpperCase() : 'E';
         return (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }} title={`${empName} (${empEmail})`}>
             <div className="activity-avatar" style={{ width: '32px', height: '32px', fontSize: '12px' }}>
               {initials}
             </div>
             <div style={{ minWidth: 0 }}>
-              <strong style={{ display: 'block', fontSize: '13px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{empName}</strong>
+              <strong style={{ display: 'block', fontSize: '13px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {empName} {empCode && <span style={{ color: '#4f46e5', fontWeight: 600, fontSize: '11px' }}>({empCode})</span>}
+              </strong>
               <span style={{ fontSize: '11px', color: '#64748b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block' }}>{empEmail}</span>
             </div>
           </div>
@@ -244,53 +270,94 @@ function Dashboard() {
       key: 'department',
       header: 'Department',
       width: '22%',
+      minWidth: '140px',
       render: (row) => {
         const deptObj = row.department_id || row.department;
-        if (typeof deptObj === 'object' && deptObj !== null) {
-          return deptObj.departmentName || deptObj.name || deptObj.department_name || '-';
-        }
-        const deptId = row.department_id || row.departmentId || row.department;
-        return departmentMap[deptId] || (typeof deptId === 'string' && !deptId.startsWith('6') ? deptId : '-');
+        const deptStr = typeof deptObj === 'object' && deptObj !== null
+          ? (deptObj.departmentName || deptObj.name || deptObj.department_name || '-')
+          : (deptObj || '-');
+        return <span title={deptStr}>{deptStr}</span>;
       }
     },
     {
       key: 'role',
-      header: 'Role',
-      width: '22%',
+      header: 'Role / Designation',
+      width: '24%',
+      minWidth: '150px',
       render: (row) => {
-        const roleObj = row.role_id || row.role;
-        if (typeof roleObj === 'object' && roleObj !== null) {
-          return roleObj.roleName || roleObj.name || '-';
-        }
-        return row.designation || row.role || row.user_id?.role || '-';
+        const roleStr = row.designation || row.role || row.user_id?.role || '-';
+        return <span title={roleStr}>{roleStr}</span>;
       }
     },
     {
       key: 'status',
       header: 'Status',
       width: '18%',
+      minWidth: '110px',
       render: (row) => {
-        const st = row.employment_status || row.status || 'Active';
-        const isActive = st.toLowerCase() === 'active';
+        const status = row.employment_status || row.status || 'Active';
+        const isAct = status.toLowerCase() === 'active';
         return (
-          <span className={`status-badge ${isActive ? 'status-badge-active' : 'status-badge-leave'}`}>
-            ● {st}
+          <span className={`status-badge ${isAct ? 'status-badge-active' : 'status-badge-inactive'}`}>
+            ● {status}
           </span>
         );
       }
     }
   ];
 
-  const checkInTimeStr  = formatTime(todayAttendance?.checkIn || todayAttendance?.checkInTime);
-  const checkOutTimeStr = formatTime(todayAttendance?.checkOut || todayAttendance?.checkOutTime);
-  const workingHoursStr = formatWorkingHours(todayAttendance?.workingHours);
-
   return (
-    <div className="dashboard-page">
+    <div className="dashboard-container">
+
+      {/* ── Dashboard Welcome Header ────────────────────────────────────────── */}
+      <div className="dashboard-header">
+        <div className="dashboard-header-intro">
+          <h1>Welcome back, {user?.name || 'Colleague'}!</h1>
+          <p>
+            {isAdmin
+              ? 'Administrator Overview & System Metrics'
+              : isHR
+              ? 'HR Management Portal & Live Workforce Indicators'
+              : 'Personal Workforce Workspace & Live Status'}
+          </p>
+        </div>
+        <div className="dashboard-actions">
+          {isAdminOrHR && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleNavReports}
+              aria-label="View Analytics"
+              className="dashboard-action-btn"
+            >
+              <FiBarChart2 style={{ marginRight: 6 }} /> Analytics
+            </Button>
+          )}
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={isEmployee ? handleNavLeave : handleNavDirectory}
+            aria-label={isEmployee ? "Apply Leave" : "Directory Hub"}
+            className="dashboard-action-btn"
+          >
+            {isEmployee ? (
+              <>
+                <FiCalendar style={{ marginRight: 6 }} /> Apply Leave
+              </>
+            ) : (
+              <>
+                <FiUsers style={{ marginRight: 6 }} /> Directory Hub
+              </>
+            )}
+          </Button>
+        </div>
+      </div>
+
+      {/* API Warning Notice if any endpoint failed */}
       {apiError && (
-        <div className="notification-item notification-item-warning" style={{ marginBottom: '20px' }}>
-          <div className="notification-content">
-            <p>⚠️ System Notice</p>
+        <div className="system-notice-banner" style={{ background: '#fef2f2', borderColor: '#fecaca', color: '#991b1b' }}>
+          <div className="system-notice-content">
+            <p><FiAlertTriangle style={{ marginRight: 6 }} /> System Notice</p>
             <span>{apiError}</span>
           </div>
         </div>
@@ -298,16 +365,15 @@ function Dashboard() {
 
       {/* ══════════════════════════════════════════════════════════════════════
           1. STATISTICS SUMMARY GRID
-          HR Manager: Today's Attendance, Pending Leaves, Total Employees, Employees On Leave
-          Admin: Total Employees, Today's Attendance, Pending Leaves, Total Departments
-          Employee: Today's Attendance, My Pending Leaves
          ══════════════════════════════════════════════════════════════════════ */}
       <div className={`stats-grid ${isEmployee ? 'stats-grid--employee' : ''}`}>
 
         {/* ── Admin Top Stat Card 1: Total Employees ── */}
         {isAdmin && (
           <div className="stat-card-custom">
-            <div className="stat-icon-wrapper stat-icon-blue">👥</div>
+            <div className="stat-icon-wrapper stat-icon-blue">
+              <FiUsers size={22} />
+            </div>
             <div className="stat-details">
               <p>Total Employees</p>
               {loading ? (
@@ -316,7 +382,7 @@ function Dashboard() {
                 <h2>{employeeCount}</h2>
               )}
               <span className="stat-trend stat-trend-up">
-                ✓ {employees.length} records loaded
+                <FiCheckCircle size={12} /> {employees.length} records loaded
               </span>
             </div>
           </div>
@@ -324,7 +390,9 @@ function Dashboard() {
 
         {/* ── HR Manager Top Stat Card 1 & Admin/Employee: Today's Attendance ── */}
         <div className="stat-card-custom">
-          <div className="stat-icon-wrapper stat-icon-green">🕒</div>
+          <div className="stat-icon-wrapper stat-icon-green">
+            <FiClock size={22} />
+          </div>
           <div className="stat-details">
             <p>Today's Attendance</p>
             {loading ? (
@@ -346,7 +414,9 @@ function Dashboard() {
 
         {/* ── Pending Leave Requests / My Pending Leaves ── */}
         <div className="stat-card-custom">
-          <div className="stat-icon-wrapper stat-icon-amber">🏖️</div>
+          <div className="stat-icon-wrapper stat-icon-amber">
+            <FiCalendar size={22} />
+          </div>
           <div className="stat-details">
             <p>{isEmployee ? 'My Pending Leaves' : 'Pending Leave Requests'}</p>
             {loading ? (
@@ -365,7 +435,9 @@ function Dashboard() {
         {/* ── HR Manager Card 3: Total Employees ── */}
         {isHR && (
           <div className="stat-card-custom">
-            <div className="stat-icon-wrapper stat-icon-blue">👥</div>
+            <div className="stat-icon-wrapper stat-icon-blue">
+              <FiUsers size={22} />
+            </div>
             <div className="stat-details">
               <p>Total Employees</p>
               {loading ? (
@@ -374,7 +446,7 @@ function Dashboard() {
                 <h2>{employeeCount}</h2>
               )}
               <span className="stat-trend stat-trend-up">
-                ✓ {employees.length} records loaded
+                <FiCheckCircle size={12} /> {employees.length} records loaded
               </span>
             </div>
           </div>
@@ -383,7 +455,9 @@ function Dashboard() {
         {/* ── HR Manager Card 4: Employees On Leave ── */}
         {isHR && (
           <div className="stat-card-custom">
-            <div className="stat-icon-wrapper stat-icon-purple">🌴</div>
+            <div className="stat-icon-wrapper stat-icon-purple">
+              <FiCalendar size={22} />
+            </div>
             <div className="stat-details">
               <p>Employees On Leave</p>
               {loading ? (
@@ -401,7 +475,9 @@ function Dashboard() {
         {/* ── Admin Card 4: Total Departments ── */}
         {isAdmin && (
           <div className="stat-card-custom">
-            <div className="stat-icon-wrapper stat-icon-purple">🏢</div>
+            <div className="stat-icon-wrapper stat-icon-purple">
+              <FiLayers size={22} />
+            </div>
             <div className="stat-details">
               <p>Total Departments</p>
               {loading ? (
@@ -410,7 +486,7 @@ function Dashboard() {
                 <h2>{departmentCount}</h2>
               )}
               <span className="stat-trend stat-trend-up">
-                ✓ {departments.length} active units
+                <FiCheckCircle size={12} /> {departments.length} active units
               </span>
             </div>
           </div>
@@ -419,7 +495,7 @@ function Dashboard() {
 
       {/* ══════════════════════════════════════════════════════════════════════
           2. MAIN DASHBOARD CONTENT GRID
-          ══════════════════════════════════════════════════════════════════════ */}
+         ══════════════════════════════════════════════════════════════════════ */}
       <div className="dashboard-grid">
 
         {/* ── Left Column ────────────────────────────────────────────────────── */}
@@ -427,15 +503,17 @@ function Dashboard() {
 
           {/* Quick Actions — filtered per role */}
           <Card
-            title={isEmployee ? '⚡ Quick Actions' : '⚡ Quick HR Actions'}
+            title="Quick Actions"
             subtitle={isEmployee ? 'Fast access to your workspace' : 'Fast access to essential workforce modules'}
           >
             <div className={`quick-actions-grid ${isEmployee ? 'quick-actions-grid--employee' : ''}`}>
 
               {/* Directory — Admin & HR Manager */}
               {isAdminOrHR && (
-                <button type="button" className="quick-action-item" onClick={handleNavDirectory}>
-                  <span className="quick-action-icon">📁</span>
+                <button type="button" className="quick-action-item" onClick={handleNavDirectory} aria-label="Workforce Directory">
+                  <span className="quick-action-icon">
+                    <FiUsers size={20} />
+                  </span>
                   <span className="quick-action-text">
                     <span className="quick-action-title">Directory</span>
                     <span className="quick-action-desc">View/manage employees</span>
@@ -444,8 +522,10 @@ function Dashboard() {
               )}
 
               {/* Attendance — all roles */}
-              <button type="button" className="quick-action-item" onClick={handleNavAttendance}>
-                <span className="quick-action-icon">⏰</span>
+              <button type="button" className="quick-action-item" onClick={handleNavAttendance} aria-label="Attendance Tracking">
+                <span className="quick-action-icon">
+                  <FiClock size={20} />
+                </span>
                 <span className="quick-action-text">
                   <span className="quick-action-title">Attendance</span>
                   <span className="quick-action-desc">
@@ -455,8 +535,10 @@ function Dashboard() {
               </button>
 
               {/* Leave — all roles */}
-              <button type="button" className="quick-action-item" onClick={handleNavLeave}>
-                <span className="quick-action-icon">📅</span>
+              <button type="button" className="quick-action-item" onClick={handleNavLeave} aria-label="Leave Management">
+                <span className="quick-action-icon">
+                  <FiCalendar size={20} />
+                </span>
                 <span className="quick-action-text">
                   <span className="quick-action-title">
                     {isEmployee ? 'My Leave' : 'Leave Management'}
@@ -469,8 +551,10 @@ function Dashboard() {
 
               {/* Payroll — Admin & HR Manager ONLY — Employee must NOT see this */}
               {isAdminOrHR && (
-                <button type="button" className="quick-action-item" onClick={handleNavPayroll}>
-                  <span className="quick-action-icon">💰</span>
+                <button type="button" className="quick-action-item" onClick={handleNavPayroll} aria-label="Payroll Management">
+                  <span className="quick-action-icon">
+                    <FiDollarSign size={20} />
+                  </span>
                   <span className="quick-action-text">
                     <span className="quick-action-title">Payroll</span>
                     <span className="quick-action-desc">View/manage salary info</span>
@@ -480,8 +564,10 @@ function Dashboard() {
 
               {/* Reports — Admin & HR Manager */}
               {isAdminOrHR && (
-                <button type="button" className="quick-action-item" onClick={handleNavReports}>
-                  <span className="quick-action-icon">📊</span>
+                <button type="button" className="quick-action-item" onClick={handleNavReports} aria-label="HR Analytics and Reports">
+                  <span className="quick-action-icon">
+                    <FiBarChart2 size={20} />
+                  </span>
                   <span className="quick-action-text">
                     <span className="quick-action-title">Reports</span>
                     <span className="quick-action-desc">HR analytics/reports</span>
@@ -490,8 +576,10 @@ function Dashboard() {
               )}
 
               {/* Settings / Profile — all roles */}
-              <button type="button" className="quick-action-item" onClick={isEmployee ? handleProfile : handleNavSettings}>
-                <span className="quick-action-icon">⚙️</span>
+              <button type="button" className="quick-action-item" onClick={isEmployee ? handleProfile : handleNavSettings} aria-label={isEmployee ? "My Profile" : "Account Settings"}>
+                <span className="quick-action-icon">
+                  {isEmployee ? <FiUser size={20} /> : <FiSettings size={20} />}
+                </span>
                 <span className="quick-action-text">
                   <span className="quick-action-title">
                     {isEmployee ? 'My Profile' : 'Settings'}
@@ -506,10 +594,10 @@ function Dashboard() {
           {/* Workforce Directory Table — Admin & HR Manager */}
           {isAdminOrHR && (
             <Card
-              title="📁 Real Workforce Directory"
+              title="Workforce Directory"
               subtitle="Live employee data from backend API"
               action={
-                <Button variant="outline" size="sm" onClick={handleNavDirectory}>
+                <Button variant="outline" size="sm" onClick={handleNavDirectory} aria-label="Manage Directory">
                   Manage Directory
                 </Button>
               }
@@ -526,12 +614,12 @@ function Dashboard() {
 
           {/* My Attendance History — Employee only */}
           {isEmployee && (
-            <Card title="📆 My Attendance History" subtitle="Your recent attendance records">
+            <Card title="My Attendance History" subtitle="Your recent attendance records">
               {loading ? (
                 <Loader.Skeleton rows={3} />
               ) : attendanceHistory.length === 0 ? (
                 <div className="hrms-table-empty" style={{ padding: '24px 16px' }}>
-                  <span style={{ fontSize: '2rem' }}>🕒</span>
+                  <FiClock size={32} color="#94a3b8" />
                   <span className="hrms-table-empty-text" style={{ fontWeight: 600, color: '#475569' }}>
                     No attendance history found.
                   </span>
@@ -545,7 +633,7 @@ function Dashboard() {
                     return (
                       <div key={item._id || idx} className="activity-item">
                         <div className="activity-avatar" style={{ background: '#ecfdf5', color: '#047857' }}>
-                          📅
+                          <FiCalendar size={16} />
                         </div>
                         <div className="activity-details">
                           <strong>{dateStr}</strong>
@@ -572,12 +660,12 @@ function Dashboard() {
         <div className="dashboard-side-column">
 
           {/* Today's Attendance Card — all roles */}
-          <Card title="⏰ Today's Attendance" subtitle="Real-time check-in status">
+          <Card title="Today's Attendance" subtitle="Real-time check-in status">
             {loading ? (
               <Loader.Skeleton rows={3} />
             ) : !todayAttendance ? (
               <div className="hrms-table-empty" style={{ padding: '24px 16px' }}>
-                <span style={{ fontSize: '2rem' }}>🕒</span>
+                <FiClock size={32} color="#94a3b8" />
                 <span className="hrms-table-empty-text" style={{ fontWeight: 600, color: '#475569' }}>
                   No attendance recorded today
                 </span>
@@ -629,14 +717,14 @@ function Dashboard() {
 
           {/* Leave Applications Card */}
           <Card
-            title={isEmployee ? '📅 My Leave Applications' : '📅 Leave Applications'}
+            title={isEmployee ? 'My Leave Applications' : 'Leave Applications'}
             subtitle={isEmployee ? 'Your personal leave history' : 'Leave applications for HR review'}
           >
             {loading ? (
               <Loader.Skeleton rows={3} />
             ) : (isEmployee ? leaveHistory : adminLeaves).length === 0 ? (
               <div className="hrms-table-empty" style={{ padding: '20px' }}>
-                <span style={{ fontSize: '1.5rem' }}>📑</span>
+                <FiCalendar size={28} color="#94a3b8" />
                 <span className="hrms-table-empty-text">No leave records found.</span>
               </div>
             ) : (
@@ -673,7 +761,7 @@ function Dashboard() {
       <Modal
         isOpen={isAnnounceModalOpen}
         onClose={() => setIsAnnounceModalOpen(false)}
-        title="ℹ️ System Information"
+        title="System Information"
         size="md"
         footer={
           <Button variant="primary" size="sm" onClick={() => setIsAnnounceModalOpen(false)}>

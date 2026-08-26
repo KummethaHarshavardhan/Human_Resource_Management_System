@@ -45,13 +45,7 @@ export default function EmployeeCard({
   const designation = employee.designation || "—";
   const joinDate = formatDate(employee.date_of_joining);
   const status = employee.employment_status;
-  const rawCode = employee.employee_code || employee.employeeCode;
-  const code =
-    rawCode && !/^[0-9a-fA-F]{24}$/.test(rawCode)
-      ? rawCode
-      : employee._id || employee.id
-      ? `EMP-${String(employee._id || employee.id).slice(-6).toUpperCase()}`
-      : "—";
+  const code = employee.employee_code || "—";
 
   return (
     <div className="emp-card" onClick={() => onView?.(employee)}>
