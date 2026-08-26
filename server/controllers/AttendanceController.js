@@ -9,6 +9,7 @@ import {
 } from "../services/attendanceService.js";
 
 import User from "../models/UserModel.js";
+import Employee from "../models/Employee.js";
 
 
 // CHECK IN
@@ -200,19 +201,36 @@ export const getAllAttendanceAdmin = async (req, res) => {
 
     // Enrich with user details
     const userIds = [...new Set(records.map((r) => r.employeeId))];
-    const users = await User.find({ _id: { $in: userIds } })
-      .select("name email role department")
-      .lean();
+    const [users, emps] = await Promise.all([
+      User.find({ _id: { $in: userIds } }).select("name email role department").lean(),
+      Employee.find({ user_id: { $in: userIds } }).select("user_id employee_code designation").lean(),
+    ]);
 
     const userMap = {};
     users.forEach((u) => {
       userMap[String(u._id)] = u;
     });
 
-    const enriched = records.map((r) => ({
-      ...r.toObject ? r.toObject() : r,
-      employee: userMap[String(r.employeeId)] || null,
-    }));
+    const empMap = {};
+    emps.forEach((e) => {
+      empMap[String(e.user_id)] = e;
+    });
+
+    const enriched = records.map((r) => {
+      const u = userMap[String(r.employeeId)] || null;
+      const emp = empMap[String(r.employeeId)] || null;
+      return {
+        ...(r.toObject ? r.toObject() : r),
+        employee: u
+          ? {
+              ...u,
+              employeeCode: emp?.employee_code || "",
+              employee_code: emp?.employee_code || "",
+              designation: emp?.designation || "",
+            }
+          : null,
+      };
+    });
 
     return res.status(200).json({
       success: true,
@@ -225,4 +243,4 @@ export const getAllAttendanceAdmin = async (req, res) => {
       message: error.message,
     });
   }
-};
+};
