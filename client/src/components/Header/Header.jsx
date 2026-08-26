@@ -50,7 +50,10 @@ const Header = ({ onToggleSidebar }) => {
         <div className="header-user-group">
           <div className="header-user-avatar">{userInitials}</div>
           <div className="header-title-box">
-            <h1 className="header-welcome-title">Welcome back, {userName}!</h1>
+            <h1 className="header-welcome-title">
+              <span className="header-welcome-prefix">Welcome back, </span>
+              <span className="header-welcome-name">{userName}!</span>
+            </h1>
             <span className="header-role-badge">Role: {userRole}</span>
           </div>
         </div>

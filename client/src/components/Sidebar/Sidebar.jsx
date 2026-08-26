@@ -1,26 +1,38 @@
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { canAccessFeature, normalizeRole } from "../../utils/permission.js";
+import {
+  FiGrid,
+  FiUser,
+  FiUsers,
+  FiClock,
+  FiCalendar,
+  FiDollarSign,
+  FiBarChart2,
+  FiShield,
+  FiSettings,
+  FiLogOut,
+} from "react-icons/fi";
 
 import "./Sidebar.css";
 
 const menuItems = [
-  { label: "Dashboard", to: "/dashboard", feature: "dashboard", icon: "🏠" },
-  { label: "Profile", to: "/profile", feature: "profile", icon: "👤" },
-  { label: "Directory", to: "/directory", feature: "employee", icon: "📁" },
-  { label: "Attendance", to: "/attendance-dashboard", feature: "attendance", icon: "⏰" },
-  { label: "Leave Management", to: "/leave", feature: "leave", icon: "📅" },
-  { label: "Payroll", to: "/payroll", feature: "payroll", icon: "💰" },
-  { label: "Reports", to: "/reports", feature: "reports", icon: "📊" },
-  { label: "Users", to: "/users", feature: "users", icon: "👥" },
-  { label: "Settings", to: "/settings", feature: "settings", icon: "⚙️" },
+  { label: "Dashboard", to: "/dashboard", feature: "dashboard", icon: <FiGrid size={18} /> },
+  { label: "Profile", to: "/profile", feature: "profile", icon: <FiUser size={18} /> },
+  { label: "Directory", to: "/directory", feature: "employee", icon: <FiUsers size={18} /> },
+  { label: "Attendance", to: "/attendance-dashboard", feature: "attendance", icon: <FiClock size={18} /> },
+  { label: "Leave Management", to: "/leave", feature: "leave", icon: <FiCalendar size={18} /> },
+  { label: "Payroll", to: "/payroll", feature: "payroll", icon: <FiDollarSign size={18} /> },
+  { label: "Reports", to: "/reports", feature: "reports", icon: <FiBarChart2 size={18} /> },
+  { label: "Users", to: "/users", feature: "users", icon: <FiShield size={18} /> },
+  { label: "Settings", to: "/settings", feature: "settings", icon: <FiSettings size={18} /> },
 ];
 
 export default function Sidebar({
   isCollapsed = true,
   isMobileOpen = false,
   onToggleSidebar,
-  onCloseMobile
+  onCloseMobile,
 }) {
   const { user, logout } = useAuth();
   const role = user?.role || "";
@@ -69,7 +81,7 @@ export default function Sidebar({
           </div>
         )}
 
-        <nav className="sidebar-nav">
+        <nav className="sidebar-nav" aria-label="Main Navigation">
           {visibleItems.length === 0 ? (
             <div className="sidebar-no-items">
               {!isCollapsed && "No menu items available."}
@@ -81,6 +93,7 @@ export default function Sidebar({
                 to={item.to}
                 onClick={handleLinkClick}
                 title={isCollapsed ? item.label : undefined}
+                aria-label={item.label}
                 className={({ isActive }) =>
                   `sidebar-link ${isActive ? "active" : ""}`
                 }
@@ -98,9 +111,12 @@ export default function Sidebar({
           type="button"
           onClick={logout}
           className="sidebar-logout-btn"
-          title={isCollapsed ? "Logout" : undefined}
+          title="Logout"
+          aria-label="Logout"
         >
-          <span className="sidebar-icon">🚪</span>
+          <span className="sidebar-icon">
+            <FiLogOut size={18} />
+          </span>
           {!isCollapsed && <span className="sidebar-label">Logout</span>}
         </button>
       </div>

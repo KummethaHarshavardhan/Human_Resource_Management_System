@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { FiSearch, FiEye, FiEyeOff, FiAlertCircle, FiCheckCircle } from 'react-icons/fi';
 import './Input.css';
 
 /**
@@ -34,7 +35,7 @@ const Input = ({
   const actualType = isPassword ? (showPassword ? 'text' : 'password') : type;
 
   // Determine icons
-  const leftIcon = isSearch ? (icon || '🔍') : icon;
+  const leftIcon = isSearch ? (icon || <FiSearch size={16} />) : icon;
 
   const wrapperClasses = [
     'hrms-input-wrapper',
@@ -94,14 +95,25 @@ const Input = ({
             onClick={() => setShowPassword(!showPassword)}
             tabIndex={-1}
             title={showPassword ? 'Hide password' : 'Show password'}
+            aria-label={showPassword ? 'Hide password' : 'Show password'}
           >
-            {showPassword ? '🙈' : '👁️'}
+            {showPassword ? <FiEyeOff size={16} /> : <FiEye size={16} />}
           </button>
         )}
       </div>
 
-      {error && <div className="hrms-input-error-msg">⚠️ {error}</div>}
-      {!error && success && <div className="hrms-input-success-msg">✓ {success}</div>}
+      {error && (
+        <div className="hrms-input-error-msg">
+          <FiAlertCircle size={14} style={{ marginRight: 4, verticalAlign: 'middle' }} />
+          {error}
+        </div>
+      )}
+      {!error && success && (
+        <div className="hrms-input-success-msg">
+          <FiCheckCircle size={14} style={{ marginRight: 4, verticalAlign: 'middle' }} />
+          {success}
+        </div>
+      )}
       {!error && !success && helperText && <div className="hrms-input-helper">{helperText}</div>}
     </div>
   );

@@ -43,3 +43,21 @@
 .payroll-content-body {
   width: 100%;
 }
+
+@media (max-width: 640px) {
+  .payroll-nav-tabs {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 6px;
+    gap: 4px;
+    box-sizing: border-box;
+  }
+
+  .payroll-tab {
+    padding: 8px 12px;
+    font-size: 13px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+}

@@ -1,48 +1,28 @@
-import { Link, useLocation } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
-import "./Navbar.css";
+import React from 'react';
+import { FiX } from 'react-icons/fi';
+import './SearchBar.css';
 
-export default function Navbar() {
-  const location = useLocation();
-  const { user, logout } = useAuth();
-  const isDirectory = location.pathname.startsWith("/employee");
-
+export default function SearchBar({ value, onChange, placeholder = 'Search by Employee Code or Name...' }) {
   return (
-    <header className="navbar">
-      <div className="navbar-left">
-        <div className="navbar-brand">
-          <strong>Infinetra HRMS</strong>
-          
-        </div>
-
-        <nav className="navbar-links">
-          <Link to="/employee" className={isDirectory ? "active" : ""}>Directory</Link>
-          <Link to="/dashboard">Benefits</Link>
-          <Link to="/dashboard">Policies</Link>
-        </nav>
-      </div>
-
-      {user && (
-        <div className="navbar-right">
-          <div className="navbar-user">
-            <div className="navbar-avatar">
-              {user.name?.charAt(0).toUpperCase() || "U"}
-            </div>
-            <div className="navbar-user-info">
-              <span className="navbar-user-name">{user.name}</span>
-              <span className="navbar-user-role">{user.role}</span>
-            </div>
-          </div>
-          <button 
-            onClick={logout} 
-            className="navbar-button" 
-            title="Logout"
-            type="button"
-          >
-            🚪
-          </button>
-        </div>
+    <div className="payroll-search-bar">
+      <input
+        type="text"
+        className="search-input"
+        placeholder={placeholder}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      />
+      {value && (
+        <button
+          type="button"
+          className="search-clear-btn"
+          onClick={() => onChange('')}
+          title="Clear search"
+          style={{ display: "flex", alignItems: "center", justifyContent: "center" }}
+        >
+          <FiX size={14} />
+        </button>
       )}
-    </header>
+    </div>
   );
 }

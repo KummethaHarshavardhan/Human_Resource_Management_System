@@ -1,4 +1,5 @@
 import React from 'react';
+import { FiFolder } from 'react-icons/fi';
 import Button from '../Button/Button';
 import Input from '../Input/Input';
 import Loader from '../Loader/Loader';
@@ -6,8 +7,8 @@ import './Table.css';
 
 /**
  * Reusable Enterprise Table Component
- * - Sticky table header (thead never scrolls)
- * - Scrollable tbody with custom thin scrollbar
+ * - Unified responsive table inside dedicated horizontal-scroll wrapper
+ * - Sticky table header (thead stays fixed during vertical scroll)
  * - Accepts maxHeight prop for fixed-height internal scroll container
  * - Supports: loading skeleton, empty state, searchable toolbar, pagination
  */
@@ -49,50 +50,26 @@ const Table = ({
       ) : data.length === 0 ? (
         /* Empty State */
         <div className="hrms-table-empty">
-          <span className="hrms-table-empty-icon">📁</span>
+          <span className="hrms-table-empty-icon"><FiFolder size={32} /></span>
           <span className="hrms-table-empty-text">{emptyText}</span>
         </div>
       ) : (
-        /* Table with sticky thead + scrollable tbody */
+        /* Unified table with sticky thead + scrollable wrapper */
         <div className="hrms-table-outer">
-          {/* Sticky Header — rendered outside scroll area so it never moves */}
-          <table className="hrms-table hrms-table-head-only" aria-hidden="true">
-            <thead>
-              <tr>
-                {columns.map((col, idx) => (
-                  <th
-                    key={col.key || idx}
-                    style={{
-                      width: col.width || 'auto',
-                      textAlign: col.align || 'left'
-                    }}
-                  >
-                    {col.header}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-          </table>
-
-          {/* Scrollable Body */}
           <div
             className="hrms-table-scroll-body"
             style={maxHeight ? { maxHeight, overflowY: 'auto' } : {}}
           >
             <table className="hrms-table">
-              {/* Hidden thead for column widths to match visible header above */}
-              <thead className="hrms-table-hidden-head" aria-hidden="true">
+              <thead>
                 <tr>
                   {columns.map((col, idx) => (
                     <th
                       key={col.key || idx}
                       style={{
                         width: col.width || 'auto',
-                        textAlign: col.align || 'left',
-                        visibility: 'hidden',
-                        padding: '0',
-                        height: '0',
-                        border: 'none'
+                        minWidth: col.minWidth || 'auto',
+                        textAlign: col.align || 'left'
                       }}
                     >
                       {col.header}
@@ -112,7 +89,11 @@ const Table = ({
                       return (
                         <td
                           key={col.key || colIndex}
-                          style={{ textAlign: col.align || 'left' }}
+                          style={{
+                            width: col.width || 'auto',
+                            minWidth: col.minWidth || 'auto',
+                            textAlign: col.align || 'left'
+                          }}
                         >
                           {col.render ? col.render(row, rowIndex) : cellValue}
                         </td>
