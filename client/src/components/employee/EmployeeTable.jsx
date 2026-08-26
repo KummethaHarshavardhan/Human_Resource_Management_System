@@ -1,6 +1,7 @@
+import { useState } from "react";
 import "../employee/emp.shared.css";
 import "../employee/EmployeeTable.css";
-import { FiSearch, FiEye, FiEdit2, FiTrash2, FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import { FiSearch, FiEye, FiEdit2, FiTrash2, FiChevronLeft, FiChevronRight, FiArrowUp, FiArrowDown } from "react-icons/fi";
 import { HiOutlineUserGroup } from "react-icons/hi2";
 
 const avatarColors = [
@@ -91,14 +92,54 @@ function Pagination({ currentPage, totalPages, totalEmployees, pageSize, onPage 
   );
 }
 
+const SORT_OPTIONS = [
+  { value: "name_asc",    label: "Name (A → Z)" },
+  { value: "name_desc",   label: "Name (Z → A)" },
+  { value: "date_desc",   label: "Join Date (Newest)" },
+  { value: "date_asc",    label: "Join Date (Oldest)" },
+  { value: "status_asc",  label: "Status (Active First)" },
+  { value: "status_desc", label: "Status (Inactive First)" },
+];
+
+function getEmpCode(emp) {
+  const raw = emp.employee_code || emp.employeeCode;
+  if (raw && !/^[0-9a-fA-F]{24}$/.test(raw)) return raw;
+  const id = emp._id || emp.id || "";
+  return id ? `EMP-${String(id).slice(-6).toUpperCase()}` : "—";
+}
+
+function sortEmployees(list, sortBy) {
+  const sorted = [...list];
+  switch (sortBy) {
+    case "name_asc":
+      return sorted.sort((a, b) => (a.user_id?.name || a.name || "").localeCompare(b.user_id?.name || b.name || ""));
+    case "name_desc":
+      return sorted.sort((a, b) => (b.user_id?.name || b.name || "").localeCompare(a.user_id?.name || a.name || ""));
+    case "date_asc":
+      return sorted.sort((a, b) => new Date(a.date_of_joining || a.createdAt) - new Date(b.date_of_joining || b.createdAt));
+    case "date_desc":
+      return sorted.sort((a, b) => new Date(b.date_of_joining || b.createdAt) - new Date(a.date_of_joining || a.createdAt));
+    case "status_asc":
+      return sorted.sort((a, b) => (a.employment_status || "").localeCompare(b.employment_status || ""));
+    case "status_desc":
+      return sorted.sort((a, b) => (b.employment_status || "").localeCompare(a.employment_status || ""));
+    default:
+      return sorted;
+  }
+}
+
 export default function EmployeeTable({
   employees = [],
   totalEmployees = 0,
   currentPage = 1,
   totalPages = 1,
   pageSize = 10,
+  search = "",
+  status = "",
   deptFilter = "All Departments",
   departments = [],
+  onSearch,
+  onStatus,
   onDeptFilter,
   onPage,
   onView,
@@ -108,9 +149,13 @@ export default function EmployeeTable({
   canDelete = true,
   loading = false,
 }) {
-  const defaultDepts = ["All Departments", "Engineering", "Marketing", "Product", "HR & Ops"];
-  const dynamicDepts = departments.map((d) => d.departmentName);
+  const [sortBy, setSortBy] = useState("name_asc");
+
+  const defaultDepts = ["All Departments"];
+  const dynamicDepts = departments.map((d) => d.departmentName).filter(Boolean);
   const deptTabs = Array.from(new Set([...defaultDepts, ...dynamicDepts]));
+
+  const displayedEmployees = sortEmployees(employees, sortBy);
 
   return (
     <div className="emp-table-container">
@@ -130,6 +175,48 @@ export default function EmployeeTable({
         </div>
       </div>
 
+      {/* Filter & Sort bar */}
+      <div className="emp-filter-bar">
+        <div className="emp-search-wrap">
+          <FiSearch size={15} className="emp-search-icon" />
+          <input
+            type="text"
+            className="emp-search-input"
+            placeholder="Search by name or email…"
+            value={search}
+            onChange={(e) => onSearch?.(e.target.value)}
+            id="emp-table-search"
+          />
+        </div>
+
+        <select
+          className="emp-filter-select"
+          value={status}
+          onChange={(e) => onStatus?.(e.target.value)}
+          id="emp-status-filter"
+        >
+          <option value="">All Status</option>
+          <option value="Active">Active</option>
+          <option value="Inactive">Inactive</option>
+        </select>
+
+        <div className="emp-sort-wrap">
+          <span className="emp-sort-label">
+            {sortBy.includes("asc") ? <FiArrowUp size={13} /> : <FiArrowDown size={13} />}
+          </span>
+          <select
+            className="emp-filter-select"
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            id="emp-sort-select"
+          >
+            {SORT_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
       {loading ? (
         <div className="emp-loading">
           <span className="emp-spinner" />
@@ -145,6 +232,7 @@ export default function EmployeeTable({
           <table className="emp-table" role="grid">
             <thead>
               <tr>
+                <th>EMP ID</th>
                 <th>EMPLOYEE NAME</th>
                 <th>DEPARTMENT</th>
                 <th>ROLE</th>
@@ -154,7 +242,7 @@ export default function EmployeeTable({
               </tr>
             </thead>
             <tbody>
-              {employees.map((emp) => {
+              {displayedEmployees.map((emp) => {
                 const name = emp.user_id?.name || emp.name || "Unknown";
                 const email = emp.user_id?.email || emp.email || "";
                 const dept = emp.department_id?.departmentName || emp.department || "—";
@@ -165,6 +253,7 @@ export default function EmployeeTable({
 
                 return (
                   <tr key={emp._id || emp.id}>
+                    <td><code style={{ fontSize: 12, background: "var(--emp-surface,#f4f4f8)", padding: "2px 6px", borderRadius: 4 }}>{getEmpCode(emp)}</code></td>
                     <td>
                       <div
                         className="emp-name-cell"

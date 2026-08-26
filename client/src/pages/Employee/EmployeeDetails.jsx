@@ -41,6 +41,7 @@ function ConfirmDialog({ employee, onConfirm, onCancel, loading }) {
 
 export default function EmployeeDetails() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const userRole = (user?.role || "").toLowerCase();
   const canEdit = userRole === "admin" || userRole === "hr";
