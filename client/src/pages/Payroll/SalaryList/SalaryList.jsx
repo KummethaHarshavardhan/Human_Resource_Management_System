@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
+import { useToast } from '../../../context/ToastContext';
 import { getAllSalaries, deactivateSalary } from '../../../services/payrollService';
 import { normalizeRole } from '../../../utils/permission';
 import SearchBar from '../../../components/Payroll/SearchBar';
@@ -10,14 +11,17 @@ import LoadingState from '../../../components/Payroll/LoadingState';
 import ErrorState from '../../../components/Payroll/ErrorState';
 import EmptyState from '../../../components/Payroll/EmptyState';
 import Pagination from '../../../components/Payroll/Pagination';
+import ConfirmModal from '../../../components/Modal/ConfirmModal';
 import formatCurrency from '../../../utils/formatCurrency';
 import { getEmployeeDisplay } from '../../../utils/payrollConstants';
+import { FiEye, FiEdit2, FiTrash2 } from 'react-icons/fi';
 import '../../../components/Payroll/payrollTheme.css';
 import './SalaryList.css';
 
 export default function SalaryList() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { showToast } = useToast();
   const isAdmin = normalizeRole(user?.role) === 'admin';
   const [salaries, setSalaries] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -25,6 +29,10 @@ export default function SalaryList() {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [viewMode, setViewMode] = useState('table'); // 'table' or 'grid'
+
+  // Sorting state
+  const [sortField, setSortField] = useState('name');
+  const [sortAsc, setSortAsc] = useState(true);
 
   // Deactivate Modal State
   const [deactivateId, setDeactivateId] = useState(null);
@@ -51,17 +59,56 @@ export default function SalaryList() {
     fetchSalaries();
   }, []);
 
+  const handleSort = (field) => {
+    if (sortField === field) {
+      setSortAsc(!sortAsc);
+    } else {
+      setSortField(field);
+      setSortAsc(true);
+    }
+  };
+
   // Filter salaries by search term (code, name, or dept)
-  const filteredSalaries = salaries.filter((s) => {
-    const empDisplay = getEmployeeDisplay(s.employeeId);
-    const searchLower = searchTerm.toLowerCase();
-    return (
-      (empDisplay.code && empDisplay.code.toLowerCase().includes(searchLower)) ||
-      (empDisplay.name && empDisplay.name.toLowerCase().includes(searchLower)) ||
-      (empDisplay.dept && empDisplay.dept.toLowerCase().includes(searchLower)) ||
-      (empDisplay.label && empDisplay.label.toLowerCase().includes(searchLower))
-    );
-  });
+  const filteredSalaries = useMemo(() => {
+    let result = salaries.filter((s) => {
+      const empDisplay = getEmployeeDisplay(s.employeeId);
+      const searchLower = searchTerm.toLowerCase();
+      return (
+        (empDisplay.code && empDisplay.code.toLowerCase().includes(searchLower)) ||
+        (empDisplay.name && empDisplay.name.toLowerCase().includes(searchLower)) ||
+        (empDisplay.dept && empDisplay.dept.toLowerCase().includes(searchLower)) ||
+        (empDisplay.label && empDisplay.label.toLowerCase().includes(searchLower))
+      );
+    });
+
+    result.sort((a, b) => {
+      let valA = '';
+      let valB = '';
+
+      if (sortField === 'name') {
+        const empA = getEmployeeDisplay(a.employeeId);
+        const empB = getEmployeeDisplay(b.employeeId);
+        valA = empA.name || '';
+        valB = empB.name || '';
+      } else if (sortField === 'basicSalary') {
+        valA = a.basicSalary || 0;
+        valB = b.basicSalary || 0;
+      } else if (sortField === 'netSalary') {
+        valA = a.netSalary || 0;
+        valB = b.netSalary || 0;
+      } else if (sortField === 'effectiveFrom') {
+        valA = new Date(a.effectiveFrom || 0).getTime();
+        valB = new Date(b.effectiveFrom || 0).getTime();
+      }
+
+      if (typeof valA === 'string') {
+        return sortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+      }
+      return sortAsc ? valA - valB : valB - valA;
+    });
+
+    return result;
+  }, [salaries, searchTerm, sortField, sortAsc]);
 
   // Pagination logic
   const itemsPerPage = 8;
@@ -79,9 +126,10 @@ export default function SalaryList() {
       if (res?.success) {
         setSalaries((prev) => prev.filter((item) => item._id !== deactivateId));
         setDeactivateId(null);
+        showToast('success', 'Salary structure deactivated successfully.');
       }
     } catch (err) {
-      alert(err.message || 'Failed to deactivate salary');
+      showToast('error', err.message || 'Failed to deactivate salary');
     } finally {
       setDeactivating(false);
     }
@@ -103,7 +151,11 @@ export default function SalaryList() {
         {/* Admin-only: Create New Salary button */}
         {isAdmin && (
           <div className="payroll-header-actions">
-            <button className="pr-btn pr-btn-primary" onClick={() => navigate('/payroll/salaries/add')}>
+            <button
+              className="pr-btn pr-btn-primary"
+              onClick={() => navigate('/payroll/salaries/add')}
+              aria-label="Create New Salary"
+            >
               + Create New Salary
             </button>
           </div>
@@ -114,8 +166,11 @@ export default function SalaryList() {
       <div className="salary-toolbar">
         <SearchBar
           value={searchTerm}
-          onChange={setSearchTerm}
-          placeholder="🔍 Search by Employee Code or Name..."
+          onChange={(val) => {
+            setSearchTerm(val);
+            setCurrentPage(1);
+          }}
+          placeholder="Search by Employee Code, Name, Department..."
         />
         <div className="view-toggle">
           <button
@@ -168,15 +223,23 @@ export default function SalaryList() {
             <table className="payroll-table">
               <thead>
                 <tr>
-                  <th>Employee</th>
-                  <th>Basic Salary</th>
+                  <th onClick={() => handleSort('name')} style={{ cursor: 'pointer' }}>
+                    Employee {sortField === 'name' ? (sortAsc ? '↑' : '↓') : '↕'}
+                  </th>
+                  <th onClick={() => handleSort('basicSalary')} style={{ cursor: 'pointer' }}>
+                    Basic Salary {sortField === 'basicSalary' ? (sortAsc ? '↑' : '↓') : '↕'}
+                  </th>
                   <th>HRA</th>
                   <th>Allowances</th>
                   <th>Bonus</th>
                   <th>Deductions</th>
                   <th>Gross Salary</th>
-                  <th>Net Salary</th>
-                  <th>Effective Date</th>
+                  <th onClick={() => handleSort('netSalary')} style={{ cursor: 'pointer' }}>
+                    Net Salary {sortField === 'netSalary' ? (sortAsc ? '↑' : '↓') : '↕'}
+                  </th>
+                  <th onClick={() => handleSort('effectiveFrom')} style={{ cursor: 'pointer' }}>
+                    Effective Date {sortField === 'effectiveFrom' ? (sortAsc ? '↑' : '↓') : '↕'}
+                  </th>
                   <th>Status</th>
                   <th className="text-right">Actions</th>
                 </tr>
@@ -213,23 +276,26 @@ export default function SalaryList() {
                           <button
                             className="pr-btn pr-btn-secondary pr-btn-sm"
                             onClick={() => navigate(`/payroll/salaries/${item._id}`)}
+                            aria-label="View Salary Details"
                           >
-                            View
+                            <FiEye size={13} style={{ marginRight: 4 }} /> View
                           </button>
                           {isAdmin && (
                             <button
                               className="pr-btn pr-btn-secondary pr-btn-sm"
                               onClick={() => navigate(`/payroll/salaries/${item._id}/edit`)}
+                              aria-label="Edit Salary Structure"
                             >
-                              Edit
+                              <FiEdit2 size={13} style={{ marginRight: 4 }} /> Edit
                             </button>
                           )}
                           {isAdmin && item.isActive && (
                             <button
                               className="pr-btn pr-btn-danger pr-btn-sm"
                               onClick={() => setDeactivateId(item._id)}
+                              aria-label="Deactivate Salary Structure"
                             >
-                              Deactivate
+                              <FiTrash2 size={13} style={{ marginRight: 4 }} /> Deactivate
                             </button>
                           )}
                         </div>
@@ -251,36 +317,16 @@ export default function SalaryList() {
         </div>
       )}
 
-      {/* Deactivation Confirmation Dialog */}
-      {deactivateId && (
-        <div className="pr-modal-overlay">
-          <div className="pr-modal-content">
-            <div className="modal-header">
-              <h3 style={{ color: '#ef4444' }}>Deactivate Salary Structure</h3>
-              <button className="close-btn" onClick={() => setDeactivateId(null)}>✕</button>
-            </div>
-            <p className="deactivate-modal-text">
-              Are you sure you want to deactivate this salary structure? This operation will mark it inactive in the backend database.
-            </p>
-            <div className="modal-actions">
-              <button
-                className="pr-btn pr-btn-secondary"
-                onClick={() => setDeactivateId(null)}
-                disabled={deactivating}
-              >
-                Cancel
-              </button>
-              <button
-                className="pr-btn pr-btn-danger"
-                onClick={confirmDeactivate}
-                disabled={deactivating}
-              >
-                {deactivating ? 'Deactivating...' : 'Confirm Deactivate'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmModal
+        isOpen={Boolean(deactivateId)}
+        onClose={() => setDeactivateId(null)}
+        onConfirm={confirmDeactivate}
+        title="Deactivate Salary Structure?"
+        message="Are you sure you want to deactivate this salary structure? This will mark it inactive in the database."
+        confirmText="Deactivate"
+        variant="danger"
+        loading={deactivating}
+      />
     </div>
   );
 }

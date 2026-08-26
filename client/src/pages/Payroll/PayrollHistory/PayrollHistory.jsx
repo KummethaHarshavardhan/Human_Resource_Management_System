@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
+import { useToast } from '../../../context/ToastContext';
 import { getAllPayrolls, markPayrollAsPaid } from '../../../services/payrollService';
 import { normalizeRole } from '../../../utils/permission';
 import PayrollFilter from '../../../components/Payroll/PayrollFilter';
@@ -17,6 +18,7 @@ import './PayrollHistory.css';
 export default function PayrollHistory() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { showToast } = useToast();
   const isAdmin = normalizeRole(user?.role) === 'admin';
   const [payrolls, setPayrolls] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -61,9 +63,10 @@ export default function PayrollHistory() {
             item._id === id ? { ...item, status: 'Paid', paymentDate: new Date() } : item
           )
         );
+        showToast('success', 'Payroll marked as paid successfully');
       }
     } catch (err) {
-      alert(err.message || 'Failed to mark payroll as paid');
+      showToast('error', err.message || 'Failed to mark payroll as paid');
     } finally {
       setActionLoading(false);
     }
@@ -130,7 +133,7 @@ export default function PayrollHistory() {
         <SearchBar
           value={searchTerm}
           onChange={(val) => { setSearchTerm(val); setCurrentPage(1); }}
-          placeholder="🔍 Search by Employee Code or Name..."
+          placeholder="Search by Employee Code, Name, or Department..."
         />
         <PayrollFilter
           selectedMonth={monthFilter}

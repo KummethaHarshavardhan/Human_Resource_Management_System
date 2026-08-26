@@ -4,6 +4,8 @@ import { getSalaryById, deactivateSalary } from '../../../services/payrollServic
 import StatusBadge from '../../../components/Payroll/StatusBadge';
 import LoadingState from '../../../components/Payroll/LoadingState';
 import ErrorState from '../../../components/Payroll/ErrorState';
+import ConfirmModal from '../../../components/Modal/ConfirmModal';
+import { useToast } from '../../../context/ToastContext';
 import formatCurrency from '../../../utils/formatCurrency';
 import { getEmployeeDisplay } from '../../../utils/payrollConstants';
 import '../../../components/Payroll/payrollTheme.css';
@@ -12,10 +14,12 @@ import './SalaryDetails.css';
 export default function SalaryDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   const [salary, setSalary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showDeactivateModal, setShowDeactivateModal] = useState(false);
   const [deactivating, setDeactivating] = useState(false);
 
   const fetchDetails = async () => {
@@ -39,16 +43,17 @@ export default function SalaryDetails() {
     fetchDetails();
   }, [id]);
 
-  const handleDeactivate = async () => {
-    if (!window.confirm('Are you sure you want to deactivate this salary structure?')) return;
+  const handleDeactivateConfirm = async () => {
     setDeactivating(true);
     try {
       const res = await deactivateSalary(id);
       if (res?.success) {
         setSalary((prev) => ({ ...prev, isActive: false }));
+        setShowDeactivateModal(false);
+        showToast('success', 'Salary structure deactivated successfully.');
       }
     } catch (err) {
-      alert(err.message || 'Failed to deactivate salary structure');
+      showToast('error', err.message || 'Failed to deactivate salary structure');
     } finally {
       setDeactivating(false);
     }
@@ -78,8 +83,12 @@ export default function SalaryDetails() {
             Edit Structure
           </button>
           {salary.isActive && (
-            <button className="pr-btn pr-btn-danger" onClick={handleDeactivate} disabled={deactivating}>
-              {deactivating ? 'Deactivating...' : 'Deactivate'}
+            <button
+              className="pr-btn pr-btn-danger"
+              onClick={() => setShowDeactivateModal(true)}
+              disabled={deactivating}
+            >
+              Deactivate
             </button>
           )}
         </div>
@@ -151,6 +160,17 @@ export default function SalaryDetails() {
           </div>
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={showDeactivateModal}
+        onClose={() => setShowDeactivateModal(false)}
+        onConfirm={handleDeactivateConfirm}
+        title="Deactivate Salary Structure?"
+        message={`Are you sure you want to deactivate the salary structure for ${empDisplay.label}?`}
+        confirmText="Deactivate"
+        variant="danger"
+        loading={deactivating}
+      />
     </div>
   );
 }

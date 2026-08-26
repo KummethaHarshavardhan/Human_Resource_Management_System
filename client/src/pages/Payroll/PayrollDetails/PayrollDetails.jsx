@@ -1,17 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useToast } from '../../../context/ToastContext';
 import { getPayrollById, markPayrollAsPaid, downloadPayslip } from '../../../services/payrollService';
 import StatusBadge from '../../../components/Payroll/StatusBadge';
 import LoadingState from '../../../components/Payroll/LoadingState';
 import ErrorState from '../../../components/Payroll/ErrorState';
 import formatCurrency from '../../../utils/formatCurrency';
 import { getMonthName, getEmployeeDisplay } from '../../../utils/payrollConstants';
+import { FiArrowLeft, FiDownload, FiCheckCircle } from 'react-icons/fi';
 import '../../../components/Payroll/payrollTheme.css';
 import './PayrollDetails.css';
 
 export default function PayrollDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   const [payroll, setPayroll] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -46,9 +49,10 @@ export default function PayrollDetails() {
       const res = await markPayrollAsPaid(id);
       if (res?.success && res.data) {
         setPayroll(res.data);
+        showToast('success', 'Payroll marked as paid successfully');
       }
     } catch (err) {
-      alert(err.message || 'Failed to mark payroll as paid');
+      showToast('error', err.message || 'Failed to mark payroll as paid');
     } finally {
       setActionLoading(false);
     }
@@ -58,8 +62,9 @@ export default function PayrollDetails() {
     setDownloading(true);
     try {
       await downloadPayslip(id);
+      showToast('success', 'Payslip downloaded successfully');
     } catch (err) {
-      alert(err.message || 'PDF Download not available for this record');
+      showToast('error', err.message || 'PDF Download not available for this record');
     } finally {
       setDownloading(false);
     }
@@ -83,22 +88,33 @@ export default function PayrollDetails() {
           </p>
         </div>
         <div className="payroll-header-actions">
-          <button className="pr-btn pr-btn-secondary" onClick={() => navigate('/payroll/history')}>
-            ← Back to History
+          <button
+            type="button"
+            className="pr-btn pr-btn-secondary"
+            onClick={() => navigate('/payroll/history')}
+            aria-label="Back to Payroll History"
+          >
+            <FiArrowLeft size={14} style={{ marginRight: 4 }} /> Back to History
           </button>
           <button
+            type="button"
             className="pr-btn pr-btn-secondary"
             onClick={handleDownloadPdf}
             disabled={downloading}
+            aria-label="Download Payslip PDF"
           >
-            {downloading ? 'Downloading...' : '📄 Download Payslip PDF'}
+            <FiDownload size={14} style={{ marginRight: 6 }} />
+            {downloading ? 'Downloading...' : 'Download Payslip PDF'}
           </button>
           {payroll.status === 'Generated' && (
             <button
+              type="button"
               className="pr-btn pr-btn-success"
               onClick={handleMarkPaid}
               disabled={actionLoading}
+              aria-label="Mark Payroll as Paid"
             >
+              <FiCheckCircle size={14} style={{ marginRight: 6 }} />
               {actionLoading ? 'Updating...' : 'Mark as Paid'}
             </button>
           )}
@@ -115,7 +131,7 @@ export default function PayrollDetails() {
           <div>
             <span className="meta-label">EMPLOYEE</span>
             <div className="meta-val">{empDisplay.code || '—'}</div>
-            {empDisplay.name && <div style={{fontSize:'12px',color:'#64748b'}}>{empDisplay.name}</div>}
+            {empDisplay.name && <div style={{ fontSize: '12px', color: '#64748b' }}>{empDisplay.name}</div>}
           </div>
           <div>
             <span className="meta-label">STATUS</span>
