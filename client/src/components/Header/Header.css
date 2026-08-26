@@ -18,6 +18,7 @@
   box-shadow: 0 4px 20px rgba(15, 23, 42, 0.18);
   transition: left 0.28s cubic-bezier(0.4, 0, 0.2, 1), background 0.25s ease;
   box-sizing: border-box;
+  max-width: 100%;
 }
 
 /* Header left: Hamburger + avatar + welcome text */
@@ -26,6 +27,7 @@
   align-items: center;
   gap: 16px;
   min-width: 0;
+  flex: 1 1 auto;
 }
 
 /* Hamburger button inside top header */
@@ -40,7 +42,7 @@
   background: rgba(255, 255, 255, 0.08);
   color: #ffffff;
   cursor: pointer;
-  transition: var(--transition-fast);
+  transition: var(--transition-fast, all 0.2s ease);
   padding: 0;
   flex-shrink: 0;
 }
@@ -83,6 +85,7 @@
   flex-direction: column;
   gap: 2px;
   min-width: 0;
+  overflow: hidden;
 }
 
 .header-welcome-title {
@@ -95,6 +98,14 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.header-welcome-prefix {
+  font-weight: 600;
+}
+
+.header-welcome-name {
+  font-weight: 800;
 }
 
 .header-role-badge {
@@ -118,8 +129,6 @@
   flex-shrink: 0;
 }
 
-
-
 /* Profile & Logout icon buttons */
 .header-icon-btn {
   display: flex;
@@ -134,7 +143,7 @@
   cursor: pointer;
   font-size: 0.85rem;
   font-weight: 600;
-  transition: var(--transition-fast);
+  transition: var(--transition-fast, all 0.2s ease);
   white-space: nowrap;
 }
 
@@ -181,12 +190,13 @@
 @media (max-width: 1024px) {
   .app-fixed-header {
     left: 0 !important;
-    padding: 0 14px;
+    padding: 0 16px;
+    width: 100% !important;
   }
 
   .header-welcome-title {
-    font-size: 0.95rem;
-    max-width: 180px;
+    font-size: 1rem;
+    max-width: 220px;
   }
 }
 
@@ -195,11 +205,15 @@
    ========================================== */
 @media (max-width: 640px) {
   .app-fixed-header {
-    padding: 0 10px;
+    padding: 0 12px;
     height: 64px;
   }
 
   .header-left {
+    gap: 8px;
+  }
+
+  .header-user-group {
     gap: 8px;
   }
 
@@ -210,8 +224,30 @@
   }
 
   .header-welcome-title {
-    font-size: 0.82rem;
-    max-width: 110px;
+    font-size: 0.78rem;
+    line-height: 1.15;
+    white-space: normal;
+    display: flex;
+    flex-direction: column;
+    max-width: 130px;
+  }
+
+  .header-welcome-prefix {
+    font-size: 0.68rem;
+    color: #cbd5e1;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .header-welcome-name {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #ffffff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .header-role-badge {
@@ -231,7 +267,7 @@
     height: 36px;
     padding: 0;
     justify-content: center;
-    border-radius: var(--radius-full, 9999px);
+    border-radius: var(--radius-md, 10px);
     flex-shrink: 0;
   }
 
@@ -243,22 +279,99 @@
 }
 
 /* ==========================================
-   VERY SMALL (360px and below)
+   EXTRA SMALL (375px and below)
    ========================================== */
-@media (max-width: 360px) {
+@media (max-width: 375px) {
   .app-fixed-header {
     padding: 0 8px;
-  }
-
-  .header-title-box {
-    display: none;
   }
 
   .header-left {
     gap: 6px;
   }
 
+  .header-user-group {
+    gap: 6px;
+  }
+
+  .header-user-avatar {
+    width: 34px;
+    height: 34px;
+    font-size: 12px;
+  }
+
+  .header-hamburger-btn {
+    width: 34px;
+    height: 34px;
+  }
+
+  .header-welcome-title {
+    max-width: 100px;
+  }
+
+  .header-welcome-prefix {
+    font-size: 0.65rem;
+  }
+
+  .header-welcome-name {
+    font-size: 0.74rem;
+  }
+
   .header-right {
     gap: 4px;
+  }
+
+  .header-icon-btn {
+    width: 34px;
+    height: 34px;
+  }
+}
+
+/* ==========================================
+   TINY SCREENS (320px and below)
+   ========================================== */
+@media (max-width: 320px) {
+  .app-fixed-header {
+    padding: 0 6px;
+  }
+
+  .header-left {
+    gap: 4px;
+  }
+
+  .header-user-group {
+    gap: 4px;
+  }
+
+  .header-user-avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 11px;
+  }
+
+  .header-hamburger-btn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .header-welcome-title {
+    max-width: 82px;
+  }
+
+  .header-welcome-prefix {
+    font-size: 0.62rem;
+  }
+
+  .header-welcome-name {
+    font-size: 0.70rem;
+  }
+
+  .header-right {
+    gap: 3px;
+  }
+
+  .header-icon-btn {
+    width: 32px;
+    height: 32px;
   }
 }

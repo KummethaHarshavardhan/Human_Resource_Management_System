@@ -3,7 +3,7 @@ import Employee from "../models/Employee.js";
 
 // -------------------------------------------------------
 // GET /api/analytics/summary
-// Dashboard summary cards: totalEmployees, grossPay, deductions, netPay
+// Dashboard s: totalEmployees, grossPay, deductions, netPay
 // -------------------------------------------------------
 export const getSummaryStats = async (req, res) => {
   try {
