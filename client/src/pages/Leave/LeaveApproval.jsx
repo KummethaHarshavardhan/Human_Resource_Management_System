@@ -119,7 +119,14 @@ export default function LeaveApproval({ leaves = [], refreshLeaves, currentUserI
                   <div className="approval-meta-item">
                     <FiUser size={13} className="approval-meta-icon" />
                     <span className="approval-meta-label">Employee</span>
-                    <span className="approval-meta-value">{leave.employee?.name || "—"}</span>
+                    <span className="approval-meta-value">
+                      {leave.employee?.name || "—"}
+                      {(leave.employee?.employee_code || leave.employee?.employeeCode) && (
+                        <span style={{ marginLeft: 6, fontSize: "0.75rem", color: "#6366f1", fontWeight: 600 }}>
+                          ({leave.employee?.employee_code || leave.employee?.employeeCode})
+                        </span>
+                      )}
+                    </span>
                   </div>
                   <div className="approval-meta-item">
                     <FiMail size={13} className="approval-meta-icon" />

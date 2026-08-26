@@ -1,5 +1,5 @@
 import React from "react";
-import { FiCalendar, FiInbox } from "react-icons/fi";
+import { FiCalendar, FiInbox, FiActivity, FiCoffee, FiSun, FiClock } from "react-icons/fi";
 
 const formatDate = (date) => {
   if (!date) return "—";
@@ -15,9 +15,9 @@ const statusConfig = {
 };
 
 const typeConfig = {
-  Sick:    { icon: "🤒", color: "var(--success)"  },
-  Casual:  { icon: "☕", color: "var(--warning)"  },
-  Annual:  { icon: "🏖️", color: "var(--primary-600)" },
+  Sick:    { icon: <FiActivity size={15} style={{ verticalAlign: 'middle', marginRight: 4 }} />, color: "var(--success)"  },
+  Casual:  { icon: <FiCoffee size={15} style={{ verticalAlign: 'middle', marginRight: 4 }} />, color: "var(--warning)"  },
+  Annual:  { icon: <FiSun size={15} style={{ verticalAlign: 'middle', marginRight: 4 }} />, color: "var(--primary-600)" },
 };
 
 const LeaveCalendar = ({ leaves }) => {
@@ -55,7 +55,7 @@ const LeaveCalendar = ({ leaves }) => {
             <tbody>
               {leaveList.map((leave) => {
                 const config = statusConfig[leave.status] || { cls: "badge-info", label: leave.status };
-                const typeConf = typeConfig[leave.leaveType] || { icon: "📋", color: "var(--slate-500)" };
+                const typeConf = typeConfig[leave.leaveType] || { icon: <FiClock size={15} style={{ verticalAlign: 'middle', marginRight: 4 }} />, color: "var(--slate-500)" };
 
                 const start = leave.startDate ? new Date(leave.startDate) : null;
                 const end   = leave.endDate   ? new Date(leave.endDate)   : null;

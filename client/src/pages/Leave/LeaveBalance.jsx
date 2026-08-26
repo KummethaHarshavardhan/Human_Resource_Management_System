@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getMyLeaveBalance } from "../../services/leaveBalanceService";
+import { FiSun, FiActivity, FiCoffee, FiRefreshCw, FiAlertTriangle } from "react-icons/fi";
 
 export default function LeaveBalance() {
   const [balance, setBalance] = useState({
@@ -45,7 +46,7 @@ export default function LeaveBalance() {
     {
       id: "annual",
       title: "Annual Leave",
-      icon: "🏖️",
+      icon: <FiSun size={20} color="var(--primary-600)" />,
       total: balance.annualTotal ?? 20,
       used: balance.annualUsed ?? 0,
       remaining: balance.annualRemaining ?? 20,
@@ -57,7 +58,7 @@ export default function LeaveBalance() {
     {
       id: "sick",
       title: "Sick Leave",
-      icon: "🤒",
+      icon: <FiActivity size={20} color="var(--success)" />,
       total: balance.sickTotal ?? 10,
       used: balance.sickUsed ?? 0,
       remaining: balance.sickRemaining ?? 10,
@@ -69,7 +70,7 @@ export default function LeaveBalance() {
     {
       id: "casual",
       title: "Casual Leave",
-      icon: "☕",
+      icon: <FiCoffee size={20} color="var(--warning)" />,
       total: balance.casualTotal ?? 6,
       used: balance.casualUsed ?? 0,
       remaining: balance.casualRemaining ?? 6,
@@ -87,14 +88,20 @@ export default function LeaveBalance() {
           <h2 className="leave-balance-title">Leave Balance Quotas</h2>
           <p className="leave-balance-subtitle">Overview of your allocated, used, and remaining annual leave balance</p>
         </div>
-        <button className="btn-secondary" onClick={fetchBalance} title="Refresh Leave Balance">
-          🔄 Refresh Quota
+        <button
+          type="button"
+          className="btn-secondary"
+          onClick={fetchBalance}
+          title="Refresh Leave Balance"
+          aria-label="Refresh Quota"
+        >
+          <FiRefreshCw size={14} style={{ marginRight: 6 }} /> Refresh Quota
         </button>
       </div>
 
       {error && (
         <div className="status-message error">
-          <span>⚠️ {error}</span>
+          <span><FiAlertTriangle size={15} style={{ marginRight: 4, verticalAlign: 'middle' }} /> {error}</span>
         </div>
       )}
 
@@ -111,7 +118,7 @@ export default function LeaveBalance() {
               {/* Card Header */}
               <div className="leave-card-header">
                 <div className="leave-icon-box" style={{ background: card.lightBg }}>
-                  <span>{card.icon}</span>
+                  {card.icon}
                 </div>
                 <span className={`badge ${card.badgeClass}`}>
                   {card.title}

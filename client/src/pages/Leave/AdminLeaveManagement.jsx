@@ -2,10 +2,11 @@ import { useState, useMemo } from "react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { approveLeave, rejectLeave } from "../../services/leaveService";
+import { useToast } from "../../context/ToastContext";
 import {
   FiCheckCircle, FiXCircle, FiAlertCircle, FiInbox,
   FiCalendar, FiBriefcase, FiUser, FiMail, FiClock,
-  FiDownload, FiSearch,
+  FiDownload, FiSearch, FiActivity, FiCoffee, FiSun, FiRefreshCw,
 } from "react-icons/fi";
 import "./AdminLeaveManagement.css";
 
@@ -36,8 +37,12 @@ const STATUS_BADGE_MAP = {
 };
 
 export default function AdminLeaveManagement({ leaves = [], refreshLeaves }) {
+  const { showToast } = useToast();
   const [activeTab, setActiveTab]   = useState("Pending");
   const [search, setSearch]         = useState("");
+  const [typeFilter, setTypeFilter] = useState("");
+  const [sortField, setSortField]   = useState("startDate");
+  const [sortAsc, setSortAsc]       = useState(false);
   const [processing, setProcessing] = useState({});
   const [messages, setMessages]     = useState({});
 
@@ -50,10 +55,14 @@ export default function AdminLeaveManagement({ leaves = [], refreshLeaves }) {
     setMsg(id, "", "");
     try {
       await approveLeave(id);
-      setMsg(id, "success", "Leave approved successfully.");
+      const msg = "Leave approved successfully.";
+      setMsg(id, "success", msg);
+      showToast("success", msg);
       if (refreshLeaves) refreshLeaves();
     } catch (err) {
-      setMsg(id, "error", err.response?.data?.message || err.message || "Approval failed.");
+      const errMsg = err.response?.data?.message || err.message || "Approval failed.";
+      setMsg(id, "error", errMsg);
+      showToast("error", errMsg);
     } finally {
       setProcessing((p) => ({ ...p, [id]: null }));
     }
@@ -65,10 +74,14 @@ export default function AdminLeaveManagement({ leaves = [], refreshLeaves }) {
     setMsg(id, "", "");
     try {
       await rejectLeave(id);
-      setMsg(id, "success", "Leave rejected.");
+      const msg = "Leave rejected successfully.";
+      setMsg(id, "success", msg);
+      showToast("success", msg);
       if (refreshLeaves) refreshLeaves();
     } catch (err) {
-      setMsg(id, "error", err.response?.data?.message || err.message || "Rejection failed.");
+      const errMsg = err.response?.data?.message || err.message || "Rejection failed.";
+      setMsg(id, "error", errMsg);
+      showToast("error", errMsg);
     } finally {
       setProcessing((p) => ({ ...p, [id]: null }));
     }
@@ -84,9 +97,14 @@ export default function AdminLeaveManagement({ leaves = [], refreshLeaves }) {
     [leaves]
   );
 
-  // ── Filtered list ──────────────────────────────────────────────────────────
+  // ── Filtered & Sorted list ──────────────────────────────────────────────────
   const displayed = useMemo(() => {
     let list = leaves.filter((l) => l.status === activeTab);
+
+    if (typeFilter) {
+      list = list.filter((l) => l.leaveType === typeFilter);
+    }
+
     if (search.trim()) {
       const q = search.trim().toLowerCase();
       list = list.filter(
@@ -98,8 +116,31 @@ export default function AdminLeaveManagement({ leaves = [], refreshLeaves }) {
           l.reason?.toLowerCase().includes(q)
       );
     }
+
+    list.sort((a, b) => {
+      let valA = "";
+      let valB = "";
+
+      if (sortField === "startDate") {
+        valA = new Date(a.startDate || 0).getTime();
+        valB = new Date(b.startDate || 0).getTime();
+        return sortAsc ? valA - valB : valB - valA;
+      } else if (sortField === "name") {
+        valA = (a.employee?.name || "").toLowerCase();
+        valB = (b.employee?.name || "").toLowerCase();
+      } else if (sortField === "leaveType") {
+        valA = (a.leaveType || "").toLowerCase();
+        valB = (b.leaveType || "").toLowerCase();
+      }
+
+      if (typeof valA === "string") {
+        return sortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+      }
+      return sortAsc ? valA - valB : valB - valA;
+    });
+
     return list;
-  }, [leaves, activeTab, search]);
+  }, [leaves, activeTab, typeFilter, search, sortField, sortAsc]);
 
   // ── PDF Export ─────────────────────────────────────────────────────────────
   const handleExportPDF = () => {
@@ -170,19 +211,51 @@ export default function AdminLeaveManagement({ leaves = [], refreshLeaves }) {
             id="alm-search"
             type="text"
             className="alm-search-input"
-            placeholder="🔍 Search by name, email, role or leave type…"
+            placeholder="Search by name, email, role or reason…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             aria-label="Search leave requests"
           />
         </div>
+
+        <div className="alm-filter-group">
+          <select
+            className="alm-filter-select"
+            value={typeFilter}
+            onChange={(e) => setTypeFilter(e.target.value)}
+            aria-label="Filter by Leave Type"
+          >
+            <option value="">All Leave Types</option>
+            <option value="Sick">Sick Leave</option>
+            <option value="Casual">Casual Leave</option>
+            <option value="Annual">Annual Leave</option>
+          </select>
+
+          <select
+            className="alm-filter-select"
+            value={`${sortField}-${sortAsc ? 'asc' : 'desc'}`}
+            onChange={(e) => {
+              const [f, d] = e.target.value.split('-');
+              setSortField(f);
+              setSortAsc(d === 'asc');
+            }}
+            aria-label="Sort Requests"
+          >
+            <option value="startDate-desc">Date (Newest First)</option>
+            <option value="startDate-asc">Date (Oldest First)</option>
+            <option value="name-asc">Applicant Name (A-Z)</option>
+            <option value="name-desc">Applicant Name (Z-A)</option>
+          </select>
+        </div>
+
         <button
           type="button"
           className="alm-export-btn"
           onClick={handleExportPDF}
           disabled={displayed.length === 0}
+          aria-label="Export PDF Report"
         >
-          <FiDownload size={14} />
+          <FiDownload size={15} />
           Export PDF
         </button>
       </div>
@@ -212,8 +285,8 @@ export default function AdminLeaveManagement({ leaves = [], refreshLeaves }) {
           <div className="alm-empty-icon"><FiInbox size={32} /></div>
           <h3>No {activeTab.toLowerCase()} requests</h3>
           <p>
-            {search
-              ? "No leave requests matched your search criteria."
+            {search || typeFilter
+              ? "No leave requests matched your search or filter criteria."
               : activeTab === "Pending"
               ? "All leave requests have been reviewed."
               : `No ${activeTab.toLowerCase()} leave requests to display.`}
@@ -278,32 +351,64 @@ export default function AdminLeaveManagement({ leaves = [], refreshLeaves }) {
                     {leave.status}
                   </span>
 
-                  {/* Only show action buttons for Pending status.
-                      Admin never sees Cancel for other users. */}
-                  {leave.status === "Pending" && (
-                    <div className="alm-action-btns">
+                  <div className="alm-action-btns">
+                    {leave.status === "Pending" && (
+                      <>
+                        <button
+                          id={`alm-approve-${leave._id}`}
+                          type="button"
+                          className="alm-btn alm-btn-approve"
+                          onClick={() => handleApprove(leave._id)}
+                          disabled={isBusy}
+                          aria-label={`Approve leave for ${leave.employee?.name || "employee"}`}
+                        >
+                          <FiCheckCircle size={13} />
+                          {isApproving ? "Approving…" : "Approve"}
+                        </button>
+                        <button
+                          id={`alm-reject-${leave._id}`}
+                          type="button"
+                          className="alm-btn alm-btn-reject"
+                          onClick={() => handleReject(leave._id)}
+                          disabled={isBusy}
+                          aria-label={`Reject leave for ${leave.employee?.name || "employee"}`}
+                        >
+                          <FiXCircle size={13} />
+                          {isRejecting ? "Rejecting…" : "Reject"}
+                        </button>
+                      </>
+                    )}
+
+                    {leave.status === "Approved" && (
                       <button
-                        id={`alm-approve-${leave._id}`}
-                        type="button"
-                        className="alm-btn alm-btn-approve"
-                        onClick={() => handleApprove(leave._id)}
-                        disabled={isBusy}
-                      >
-                        <FiCheckCircle size={13} />
-                        {isApproving ? "Approving…" : "Approve"}
-                      </button>
-                      <button
-                        id={`alm-reject-${leave._id}`}
+                        id={`alm-change-reject-${leave._id}`}
                         type="button"
                         className="alm-btn alm-btn-reject"
                         onClick={() => handleReject(leave._id)}
                         disabled={isBusy}
+                        title="Change decision and reject this leave"
+                        aria-label={`Change decision to Rejected for ${leave.employee?.name || "employee"}`}
                       >
                         <FiXCircle size={13} />
-                        {isRejecting ? "Rejecting…" : "Reject"}
+                        {isRejecting ? "Rejecting…" : "Reject Application"}
                       </button>
-                    </div>
-                  )}
+                    )}
+
+                    {leave.status === "Rejected" && (
+                      <button
+                        id={`alm-change-approve-${leave._id}`}
+                        type="button"
+                        className="alm-btn alm-btn-approve"
+                        onClick={() => handleApprove(leave._id)}
+                        disabled={isBusy}
+                        title="Change decision and approve this leave"
+                        aria-label={`Change decision to Approved for ${leave.employee?.name || "employee"}`}
+                      >
+                        <FiCheckCircle size={13} />
+                        {isApproving ? "Approving…" : "Approve Application"}
+                      </button>
+                    )}
+                  </div>
 
                   {msg?.text && (
                     <div className={`alm-msg ${msg.type === "success" ? "alm-msg-success" : "alm-msg-error"}`}>

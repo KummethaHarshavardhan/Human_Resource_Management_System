@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { cancelLeave } from "../../services/leaveService";
-import { FiCalendar, FiFileText, FiXCircle, FiCheckCircle, FiAlertCircle } from "react-icons/fi";
+import { FiCalendar, FiFileText, FiXCircle, FiCheckCircle, FiAlertCircle, FiActivity, FiCoffee, FiSun, FiClock } from "react-icons/fi";
 
 const formatDate = (date) => {
   if (!date) return "—";
@@ -16,7 +16,11 @@ const statusConfig = {
   Cancelled: { badgeClass: "badge-info",    label: "Cancelled" },
 };
 
-const typeIcons = { Sick: "🤒", Casual: "☕", Annual: "🏖️" };
+const typeIcons = {
+  Sick: <FiActivity size={16} color="#dc2626" />,
+  Casual: <FiCoffee size={16} color="#d97706" />,
+  Annual: <FiSun size={16} color="#2563eb" />
+};
 
 /**
  * LeaveCard — renders a single leave record in the personal history list.
@@ -57,7 +61,7 @@ export default function LeaveCard({ leave, refreshLeaves, currentUserId }) {
   const canCancel    = isOwner && leave.status === "Pending";
 
   const sc       = statusConfig[leave.status] || { badgeClass: "badge-info", label: leave.status };
-  const typeIcon = typeIcons[leave.leaveType] || "📋";
+  const typeIcon = typeIcons[leave.leaveType] || <FiClock size={16} color="#64748b" />;
 
   return (
     <div className="leave-card-history-item">
