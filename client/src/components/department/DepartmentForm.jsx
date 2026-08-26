@@ -52,13 +52,13 @@ export default function DepartmentForm({
       <form onSubmit={handleSubmit} autoComplete="off">
 
         <div className="form-group">
-          <label htmlFor="departmentId">Department ID</label>
+          <label htmlFor="departmentId">Department ID <span style={{ color: "#ef4444" }}>*</span></label>
 
           <input
             id="departmentId"
             type="text"
             name="departmentId"
-            placeholder="Enter Department ID"
+            placeholder="Enter Department ID (e.g. ENG001)"
             value={form.departmentId}
             onChange={handleChange}
             required
@@ -66,7 +66,7 @@ export default function DepartmentForm({
         </div>
 
         <div className="form-group">
-          <label htmlFor="departmentName">Department Name</label>
+          <label htmlFor="departmentName">Department Name <span style={{ color: "#ef4444" }}>*</span></label>
 
           <input
             id="departmentName"

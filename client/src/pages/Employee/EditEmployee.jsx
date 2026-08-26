@@ -53,6 +53,22 @@ export default function EditEmployee() {
         (typeof employee.user_id === "object" && employee.user_id?._id) ||
         employee.user_id ||
         "",
+      name:
+        (typeof employee.user_id === "object" && employee.user_id?.name) ||
+        employee.name ||
+        "",
+      email:
+        (typeof employee.user_id === "object" && employee.user_id?.email) ||
+        employee.email ||
+        "",
+      phone:
+        (typeof employee.user_id === "object" && employee.user_id?.phone) ||
+        employee.phone ||
+        "",
+      role:
+        (typeof employee.user_id === "object" && employee.user_id?.role) ||
+        employee.role ||
+        "Employee",
       department_id:
         (typeof employee.department_id === "object" && employee.department_id?._id) ||
         employee.department_id ||
@@ -62,7 +78,9 @@ export default function EditEmployee() {
         (typeof employee.manager_id === "object" && employee.manager_id?._id) ||
         employee.manager_id ||
         "",
-      hire_date: employee.hire_date ? employee.hire_date.slice(0, 10) : "",
+      date_of_joining: employee.date_of_joining
+        ? String(employee.date_of_joining).slice(0, 10)
+        : "",
       employment_status: employee.employment_status || "Active",
     };
   }, [employee]);

@@ -50,19 +50,19 @@ export default function RoleForm({
     <div className="form-card">
       <form onSubmit={handleSubmit} autoComplete="off">
         <div className="form-group">
-          <label>Role ID</label>
+          <label>Role ID <span style={{ color: "#ef4444" }}>*</span></label>
           <input
             type="text"
             name="roleId"
             value={form.roleId}
             onChange={handleChange}
-            placeholder="Enter Role ID"
+            placeholder="Enter Role ID (e.g. ROL001)"
             required
           />
         </div>
 
         <div className="form-group">
-          <label>Role Name</label>
+          <label>Role Name <span style={{ color: "#ef4444" }}>*</span></label>
           <input
             type="text"
             name="roleName"

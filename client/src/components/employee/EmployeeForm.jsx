@@ -4,6 +4,10 @@ import "../employee/EmployeeForm.css";
 
 const EMPTY = {
   user_id: "",
+  name: "",
+  email: "",
+  phone: "",
+  role: "Employee",
   department_id: "",
   designation: "",
   manager_id: "",
@@ -17,7 +21,8 @@ export default function EmployeeForm({
   onCancel,
   loading = false,
   departments = [],
-  users = [],   
+  employees = [],
+  users = [],
   title = "Employee Details",
   isEditMode = false,
   linkedUserName = "",
@@ -29,7 +34,14 @@ export default function EmployeeForm({
 
   useEffect(() => {
     if (initialData && Object.keys(initialData).length > 0) {
-      setForm({ ...EMPTY, ...initialData });
+      setForm((prev) => ({ ...EMPTY, ...initialData }));
+      if (initialData.name || initialData.email) {
+        setUserSearch(
+          initialData.name && initialData.email
+            ? `${initialData.name} (${initialData.email})`
+            : initialData.email || initialData.name || ""
+        );
+      }
     }
   }, [initialDataStr]);
 
@@ -39,10 +51,11 @@ export default function EmployeeForm({
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
-  const handleUserSearchChange = (e) => {
+  const handleUserSelect = (e) => {
     const text = e.target.value;
     setUserSearch(text);
     if (errors.user_id) setErrors((prev) => ({ ...prev, user_id: "" }));
+    if (errors.email) setErrors((prev) => ({ ...prev, email: "" }));
 
     const match = users.find(
       (u) =>
@@ -50,17 +63,51 @@ export default function EmployeeForm({
         u.email?.toLowerCase() === text.toLowerCase() ||
         `${u.name} (${u.email})`.toLowerCase() === text.toLowerCase()
     );
-    setForm((prev) => ({ ...prev, user_id: match ? (match._id || match.id) : text }));
+
+    if (match) {
+      setForm((prev) => ({
+        ...prev,
+        user_id: match._id || match.id,
+        name: match.name || prev.name,
+        email: match.email || prev.email,
+        phone: match.phone || prev.phone,
+        role: match.role || prev.role || "Employee",
+      }));
+    } else {
+      setForm((prev) => ({
+        ...prev,
+        user_id: text,
+        email: text.includes("@") ? text : prev.email,
+      }));
+    }
   };
 
   const validate = () => {
     const errs = {};
-    if (!isEditMode && !form.user_id?.trim()) {
-      errs.user_id = "User account (email or ID) is required";
+    if (!form.name?.trim()) {
+      errs.name = "Full name is required";
     }
+
+    if (!form.email?.trim()) {
+      errs.email = "Email address is required";
+    } else {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(form.email.trim())) {
+        errs.email = "Please enter a valid email address";
+      }
+    }
+
+    if (form.phone && form.phone.trim()) {
+      const cleaned = form.phone.replace(/\D/g, "");
+      if (cleaned.length !== 10) {
+        errs.phone = "Phone must be a valid 10-digit number";
+      }
+    }
+
     if (!form.department_id) errs.department_id = "Department is required";
-    if (!form.designation.trim()) errs.designation = "Designation is required";
+    if (!form.designation?.trim()) errs.designation = "Designation is required";
     if (!form.date_of_joining) errs.date_of_joining = "Date of joining is required";
+
     return errs;
   };
 
@@ -71,8 +118,13 @@ export default function EmployeeForm({
       setErrors(errs);
       return;
     }
+
     const payload = {
-      ...(isEditMode ? {} : { user_id: form.user_id }),
+      user_id: form.user_id || undefined,
+      name: form.name.trim(),
+      email: form.email.trim().toLowerCase(),
+      phone: form.phone ? form.phone.trim() : "",
+      role: form.role || "Employee",
       department_id: form.department_id,
       designation: form.designation.trim(),
       manager_id: form.manager_id || null,
@@ -90,30 +142,11 @@ export default function EmployeeForm({
         <h2>{title}</h2>
         <div className="emp-form-grid">
 
-          {isEditMode ? (
-            <div className="emp-form-group full-width">
-              <label className="emp-form-label">Linked User Account</label>
-              <div
-                className="emp-form-input"
-                style={{
-                  background: "var(--emp-surface, #f4f4f8)",
-                  color: "var(--emp-text-muted, #6b7280)",
-                  cursor: "not-allowed",
-                  display: "flex",
-                  alignItems: "center",
-                  minHeight: 42,
-                }}
-              >
-                {linkedUserName || "—"}
-              </div>
-              <span style={{ fontSize: "0.75rem", color: "var(--emp-text-muted, #6b7280)", marginTop: 4 }}>
-                User account cannot be changed after creation.
-              </span>
-            </div>
-          ) : (
+          {/* Create mode: User Search / Select dropdown */}
+          {!isEditMode && (
             <div className="emp-form-group full-width">
               <label className="emp-form-label">
-                Select User <span>*</span>
+                Link to Existing User or Create New Account
               </label>
 
               <datalist id={datalistId}>
@@ -125,26 +158,90 @@ export default function EmployeeForm({
               <input
                 type="text"
                 list={datalistId}
-                className={`emp-form-input${errors.user_id ? " error" : ""}`}
-                placeholder="Type to search by name or email…"
+                className="emp-form-input"
+                placeholder="Search existing registered user by name or email…"
                 value={userSearch}
-                onChange={handleUserSearchChange}
+                onChange={handleUserSelect}
                 autoComplete="off"
               />
 
-              {form.user_id && !errors.user_id && (
-                <span style={{ fontSize: "0.78rem", color: users.some(u => (u._id || u.id) === form.user_id) ? "#16a34a" : "#2563eb", marginTop: 4 }}>
-                  {users.some(u => (u._id || u.id) === form.user_id) 
-                    ? "✓ Existing user matched and will be linked" 
-                    : "+ New user account will be created automatically"}
+              {form.user_id && users.some((u) => (u._id || u.id) === form.user_id) && (
+                <span style={{ fontSize: "0.8rem", color: "#16a34a", marginTop: 4 }}>
+                  ✓ Existing user account matched and details filled below
                 </span>
-              )}
-              {errors.user_id && (
-                <span className="emp-field-error">{errors.user_id}</span>
               )}
             </div>
           )}
 
+          {/* Full Name */}
+          <div className="emp-form-group">
+            <label className="emp-form-label">
+              Full Name <span>*</span>
+            </label>
+            <input
+              type="text"
+              name="name"
+              className={`emp-form-input${errors.name ? " error" : ""}`}
+              placeholder="e.g. Sarah Jenkins"
+              value={form.name}
+              onChange={handleChange}
+            />
+            {errors.name && (
+              <span className="emp-field-error">{errors.name}</span>
+            )}
+          </div>
+
+          {/* Email Address */}
+          <div className="emp-form-group">
+            <label className="emp-form-label">
+              Email Address <span>*</span>
+            </label>
+            <input
+              type="email"
+              name="email"
+              className={`emp-form-input${errors.email ? " error" : ""}`}
+              placeholder="e.g. sarah.jenkins@company.com"
+              value={form.email}
+              onChange={handleChange}
+            />
+            {errors.email && (
+              <span className="emp-field-error">{errors.email}</span>
+            )}
+          </div>
+
+          {/* Phone Number */}
+          <div className="emp-form-group">
+            <label className="emp-form-label">Phone Number</label>
+            <input
+              type="text"
+              name="phone"
+              maxLength={10}
+              className={`emp-form-input${errors.phone ? " error" : ""}`}
+              placeholder="10-digit phone number"
+              value={form.phone}
+              onChange={handleChange}
+            />
+            {errors.phone && (
+              <span className="emp-field-error">{errors.phone}</span>
+            )}
+          </div>
+
+          {/* System Role */}
+          <div className="emp-form-group">
+            <label className="emp-form-label">System Role</label>
+            <select
+              name="role"
+              className="emp-form-select"
+              value={form.role}
+              onChange={handleChange}
+            >
+              <option value="Employee">Employee</option>
+              <option value="HR Manager">HR Manager</option>
+              <option value="Admin">Admin</option>
+            </select>
+          </div>
+
+          {/* Designation */}
           <div className="emp-form-group">
             <label className="emp-form-label">
               Designation <span>*</span>
@@ -153,7 +250,7 @@ export default function EmployeeForm({
               type="text"
               name="designation"
               className={`emp-form-input${errors.designation ? " error" : ""}`}
-              placeholder="e.g. Senior Developer"
+              placeholder="e.g. Senior Software Engineer"
               value={form.designation}
               onChange={handleChange}
             />
@@ -162,6 +259,7 @@ export default function EmployeeForm({
             )}
           </div>
 
+          {/* Department */}
           <div className="emp-form-group">
             <label className="emp-form-label">
               Department <span>*</span>
@@ -184,6 +282,29 @@ export default function EmployeeForm({
             )}
           </div>
 
+          {/* Reporting Manager */}
+          <div className="emp-form-group">
+            <label className="emp-form-label">Reporting Manager</label>
+            <select
+              name="manager_id"
+              className="emp-form-select"
+              value={form.manager_id || ""}
+              onChange={handleChange}
+            >
+              <option value="">— None (No Manager) —</option>
+              {employees.map((emp) => {
+                const empName = emp.user_id?.name || emp.name || "Employee";
+                const empCode = emp.employee_code ? `(${emp.employee_code})` : "";
+                return (
+                  <option key={emp._id || emp.id} value={emp._id || emp.id}>
+                    {empName} {empCode}
+                  </option>
+                );
+              })}
+            </select>
+          </div>
+
+          {/* Date of Joining */}
           <div className="emp-form-group">
             <label className="emp-form-label">
               Date of Joining <span>*</span>
@@ -200,6 +321,7 @@ export default function EmployeeForm({
             )}
           </div>
 
+          {/* Employment Status */}
           <div className="emp-form-group">
             <label className="emp-form-label">Employment Status</label>
             <select
@@ -228,6 +350,7 @@ export default function EmployeeForm({
           type="submit"
           className="emp-btn-primary"
           disabled={loading}
+          id="save-emp-btn"
         >
           {loading ? (
             <>

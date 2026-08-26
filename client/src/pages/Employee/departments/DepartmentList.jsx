@@ -1,14 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "../../../context/ToastContext.jsx";
-
 import DepartmentTable from "../../../components/department/DepartmentTable";
-
-import {
-  getDepartments,
-  deleteDepartment,
-} from "../../../services/departmentService";
-
+import ConfirmModal from "../../../components/Modal/ConfirmModal";
+import { getDepartments, deleteDepartment } from "../../../services/departmentService";
+import { FiArrowLeft, FiPlus } from "react-icons/fi";
 import "../department-role.css";
 
 export default function DepartmentList() {
@@ -17,17 +13,16 @@ export default function DepartmentList() {
 
   const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const loadDepartments = async () => {
     try {
       setLoading(true);
-
       const res = await getDepartments();
-
-      setDepartments(res.data || res);
+      setDepartments(res.data || res || []);
     } catch (err) {
-      setMessage(err.message || "Failed to load departments");
+      showToast('error', err.message || "Failed to load departments");
     } finally {
       setLoading(false);
     }
@@ -41,67 +36,71 @@ export default function DepartmentList() {
     navigate(`/employee/departments/edit/${department._id}`);
   };
 
-  const handleDelete = async (id) => {
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this department?",
-    );
+  const handleDeleteClick = (department) => {
+    setDeleteTarget(department);
+  };
 
-    if (!confirmDelete) return;
-
+  const handleDeleteConfirm = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
     try {
-      await deleteDepartment(id);
-
-      const msg = "Department deleted successfully.";
-      setMessage(msg);
-      showToast('success', msg);
-
+      await deleteDepartment(deleteTarget._id);
+      showToast('success', `Department "${deleteTarget.departmentName}" deleted successfully.`);
+      setDeleteTarget(null);
       loadDepartments();
-
-      setTimeout(() => {
-        setMessage("");
-      }, 3000);
     } catch (err) {
-      const errMsg = err.message || "Failed to delete department";
-      setMessage(errMsg);
-      showToast('error', errMsg);
+      showToast('error', err.message || "Failed to delete department");
+    } finally {
+      setDeleting(false);
     }
   };
 
   return (
-
     <div className="page">
       <div className="page-header">
         <div>
           <button
-            className="btn-secondary"
-            style={{ marginBottom: "15px" }}
+            type="button"
+            className="emp-btn-secondary"
+            style={{ marginBottom: "12px" }}
             onClick={() => navigate("/employee")}
+            aria-label="Back to Directory"
           >
-            ← Back to Directory
+            <FiArrowLeft size={15} /> Back to Directory
           </button>
-
           <h2>Departments</h2>
-          <p>Manage all company departments.</p>
+          <p>Manage all company departments, organizational units, and locations.</p>
         </div>
 
         <button
-          className="btn-primary"
+          type="button"
+          className="emp-btn-primary"
           onClick={() => navigate("/employee/departments/add")}
+          aria-label="Add Department"
         >
-          + Add Department
+          <FiPlus size={16} /> Add Department
         </button>
       </div>
-
-      {message && <div className="success-message">{message}</div>}
 
       <div className="table-card">
         <DepartmentTable
           departments={departments}
           loading={loading}
           onEdit={handleEdit}
-          onDelete={handleDelete}
+          onDelete={handleDeleteClick}
         />
       </div>
+
+      <ConfirmModal
+        isOpen={Boolean(deleteTarget)}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Department?"
+        message={`Are you sure you want to delete "${deleteTarget?.departmentName}"? Associated employee assignments may be affected.`}
+        confirmText="Delete Department"
+        variant="danger"
+        loading={deleting}
+      />
     </div>
   );
 }

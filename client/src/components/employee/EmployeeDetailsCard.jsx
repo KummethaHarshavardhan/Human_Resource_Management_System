@@ -82,11 +82,23 @@ export default function EmployeeDetailsCard({ employee, onEdit, onDelete, onBack
         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
           {canEdit && (
             <>
-              <button className="emp-btn-primary" onClick={() => onEdit?.(employee)} id="emp-detail-edit-btn">
+              <button
+                type="button"
+                className="emp-btn-primary"
+                onClick={() => onEdit?.(employee)}
+                id="emp-detail-edit-btn"
+                aria-label={`Edit ${name}`}
+              >
                 <FiEdit2 size={15} /> Edit Employee
               </button>
-              <button className="emp-btn-danger" onClick={() => onDelete?.(employee)} id="emp-detail-delete-btn">
-                <FiTrash2 size={15} /> Delete Employee
+              <button
+                type="button"
+                className="emp-btn-danger"
+                onClick={() => onDelete?.(employee)}
+                id="emp-detail-delete-btn"
+                aria-label={`Deactivate ${name}`}
+              >
+                <FiTrash2 size={15} /> Deactivate Employee
               </button>
             </>
           )}

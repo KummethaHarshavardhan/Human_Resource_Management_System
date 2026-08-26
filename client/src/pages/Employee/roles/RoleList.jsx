@@ -1,31 +1,28 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
+import { useToast } from "../../../context/ToastContext";
 import RoleTable from "../../../components/role/RoleTable";
-
-import {
-  getRoles,
-  deleteRole,
-} from "../../../services/roleService";
-
+import ConfirmModal from "../../../components/Modal/ConfirmModal";
+import { getRoles, deleteRole } from "../../../services/roleService";
+import { FiArrowLeft, FiPlus, FiShield } from "react-icons/fi";
 import "../department-role.css";
 
 export default function RoleList() {
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   const [roles, setRoles] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const loadRoles = async () => {
     try {
       setLoading(true);
-
       const res = await getRoles();
-
-      setRoles(res.data || res);
+      setRoles(res.data || res || []);
     } catch (err) {
-      setMessage(err.message);
+      showToast('error', err.message || "Failed to load roles");
     } finally {
       setLoading(false);
     }
@@ -39,62 +36,69 @@ export default function RoleList() {
     navigate(`/employee/roles/edit/${role._id}`);
   };
 
-  const handleDelete = async (id) => {
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this role?"
-    );
+  const handleDeleteClick = (role) => {
+    setDeleteTarget(role);
+  };
 
-    if (!confirmDelete) return;
-
+  const handleDeleteConfirm = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
     try {
-      await deleteRole(id);
-
-      setMessage("Role deleted successfully.");
-
+      await deleteRole(deleteTarget._id);
+      showToast('success', `Role "${deleteTarget.roleName}" deleted successfully.`);
+      setDeleteTarget(null);
       loadRoles();
     } catch (err) {
-      setMessage(err.message);
+      showToast('error', err.message || "Failed to delete role");
+    } finally {
+      setDeleting(false);
     }
   };
 
   return (
     <div className="page">
-
       <div className="page-header">
         <div>
           <button
-            className="btn-secondary"
-            style={{ marginBottom: "15px" }}
+            type="button"
+            className="emp-btn-secondary"
+            style={{ marginBottom: "12px" }}
             onClick={() => navigate("/employee")}
+            aria-label="Back to Directory"
           >
-            ← Back to Directory
+            <FiArrowLeft size={15} /> Back to Directory
           </button>
-
           <h2>Roles</h2>
-          <p>Manage all company roles.</p>
+          <p>Manage system roles, access tiers, and employee permissions.</p>
         </div>
 
         <button
-          className="btn-primary"
+          type="button"
+          className="emp-btn-primary"
           onClick={() => navigate("/employee/roles/add")}
+          aria-label="Add Role"
         >
-          + Add Role
+          <FiPlus size={16} /> Add Role
         </button>
       </div>
-
-      {message && (
-        <div className="success-message">
-          {message}
-        </div>
-      )}
 
       <RoleTable
         roles={roles}
         loading={loading}
         onEdit={handleEdit}
-        onDelete={handleDelete}
+        onDelete={handleDeleteClick}
       />
 
+      <ConfirmModal
+        isOpen={Boolean(deleteTarget)}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Role?"
+        message={`Are you sure you want to delete the role "${deleteTarget?.roleName}"? Users with this role may lose associated access permissions.`}
+        confirmText="Delete Role"
+        variant="danger"
+        loading={deleting}
+      />
     </div>
   );
 }
