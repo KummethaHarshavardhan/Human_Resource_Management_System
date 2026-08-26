@@ -1,6 +1,138 @@
 import Employee from "../models/Employee.js";
 import User from "../models/UserModel.js";
+import Department from "../models/Department.js";
 import mongoose from "mongoose";
+import bcrypt from "bcrypt";
+
+// =====================================================
+// HELPER: Generate next sequential Employee Code (e.g. EMP001, EMP002)
+// =====================================================
+export const generateNextEmployeeCode = async () => {
+  const employees = await Employee.find({
+    employee_code: { $exists: true, $ne: null, $nin: [""] }
+  }).select("employee_code");
+
+  let maxNumber = 0;
+  for (const emp of employees) {
+    if (emp.employee_code) {
+      const match = String(emp.employee_code).match(/\d+/);
+      if (match) {
+        const num = parseInt(match[0], 10);
+        if (!isNaN(num) && num > maxNumber) {
+          maxNumber = num;
+        }
+      }
+    }
+  }
+
+  const nextNumber = maxNumber + 1;
+  return `EMP${String(nextNumber).padStart(3, "0")}`;
+};
+
+// =====================================================
+// HELPER: Safe Backfill for missing Employee Codes
+// =====================================================
+export const backfillEmployeeCodes = async () => {
+  try {
+    const unassigned = await Employee.find({
+      $or: [
+        { employee_code: { $exists: false } },
+        { employee_code: null },
+        { employee_code: "" },
+      ],
+    }).sort({ createdAt: 1 });
+
+    if (unassigned.length === 0) return;
+
+    console.log(`[Backfill] Found ${unassigned.length} employee(s) without employee_code. Assigning codes...`);
+
+    const assigned = await Employee.find({
+      employee_code: { $exists: true, $ne: null, $nin: [""] }
+    }).select("employee_code");
+
+    let maxNumber = 0;
+    for (const emp of assigned) {
+      const match = String(emp.employee_code).match(/\d+/);
+      if (match) {
+        const num = parseInt(match[0], 10);
+        if (!isNaN(num) && num > maxNumber) maxNumber = num;
+      }
+    }
+
+    for (const emp of unassigned) {
+      maxNumber += 1;
+      emp.employee_code = `EMP${String(maxNumber).padStart(3, "0")}`;
+      await emp.save();
+      console.log(`[Backfill] Assigned ${emp.employee_code} to employee ID ${emp._id}`);
+    }
+  } catch (err) {
+    console.error("[Backfill] Error backfilling employee codes:", err.message);
+  }
+};
+
+// =====================================================
+// HELPER: Auto-sync registered users to Employee documents
+// =====================================================
+export const syncUsersToEmployees = async () => {
+  try {
+    const allUsers = await User.find({});
+    let syncedCount = 0;
+
+    for (const user of allUsers) {
+      const exists = await Employee.findOne({ user_id: user._id });
+      if (!exists) {
+        let deptId = null;
+        if (user.department) {
+          const deptDoc = await Department.findOne({
+            departmentName: { $regex: new RegExp(`^${user.department.trim()}$`, "i") }
+          });
+          if (deptDoc) {
+            deptId = deptDoc._id;
+          }
+        }
+        if (!deptId) {
+          let defaultDept = await Department.findOne({});
+          if (!defaultDept) {
+            defaultDept = await Department.create({
+              departmentId: "DEP001",
+              departmentName: user.department || "General",
+              description: "General Department",
+              status: "Active"
+            });
+          }
+          deptId = defaultDept._id;
+        }
+
+        const employee_code = await generateNextEmployeeCode();
+        const designation =
+          user.role === "Admin"
+            ? "System Administrator"
+            : user.role === "HR Manager"
+            ? "HR Manager"
+            : "Employee";
+
+        await Employee.create({
+          user_id: user._id,
+          employee_code,
+          department_id: deptId,
+          designation,
+          manager_id: null,
+          date_of_joining: user.createdAt || new Date(),
+          employment_status: "Active",
+        });
+        syncedCount++;
+      }
+    }
+
+    if (syncedCount > 0) {
+      console.log(`[Sync] Automatically synced ${syncedCount} user(s) to Employee directory.`);
+    }
+
+    await backfillEmployeeCodes();
+  } catch (err) {
+    console.error("[Sync] Error syncing users to employees:", err.message);
+  }
+};
 
 // =====================================================
 // 1. CREATE EMPLOYEE
@@ -10,6 +142,10 @@ export const createEmployee = async (req, res) => {
   try {
     const {
       user_id,
+      name,
+      email,
+      phone,
+      role,
       department_id,
       designation,
       manager_id,
@@ -18,45 +154,100 @@ export const createEmployee = async (req, res) => {
     } = req.body;
 
     // Required field validation
-    if (!user_id || !department_id || !designation || !date_of_joining) {
+    if (!department_id) {
       return res.status(400).json({
         success: false,
-        message: "user_id, department_id, designation and date_of_joining are required",
+        message: "Department is required",
+      });
+    }
+
+    if (!designation || !String(designation).trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Designation is required",
+      });
+    }
+
+    if (!date_of_joining) {
+      return res.status(400).json({
+        success: false,
+        message: "Date of joining is required",
       });
     }
 
     let resolvedUserId = null;
 
-    // Check if user_id is a valid mongoose ObjectId
-    const isValidObjectId = mongoose.Types.ObjectId.isValid(user_id);
-
-    if (isValidObjectId) {
+    // 1. Check if user_id is provided as a valid ObjectId
+    if (user_id && mongoose.Types.ObjectId.isValid(user_id)) {
       const existingUser = await User.findById(user_id);
       if (existingUser) {
         resolvedUserId = existingUser._id;
       }
     }
 
-    if (!resolvedUserId) {
-      // Treat user_id as email and find or create a user account for them
-      const email = user_id.trim().toLowerCase();
-      let existingUser = await User.findOne({ email });
+    // 2. If not resolved by ObjectId, check or create by email
+    const targetEmail = (email || user_id || "").trim().toLowerCase();
 
-      if (!existingUser) {
-        // Auto-create user account if it doesn't exist
-        const name = email.split("@")[0] || email;
-        const defaultHash = "$2b$10$ogIhRcMOO.jB0UJZ7/ufkugvwWrUdjT47j7klcDFW5iyMx9xo2.SG"; // Hashed "123456"
-        
-        existingUser = await User.create({
-          name,
-          email,
-          phone,
-          password: defaultHash,
-          role,
-          department
+    if (!resolvedUserId) {
+      if (!targetEmail) {
+        return res.status(400).json({
+          success: false,
+          message: "User account selection or email is required",
         });
       }
-      resolvedUserId = existingUser._id;
+
+      // Simple email validation regex
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(targetEmail)) {
+        return res.status(400).json({
+          success: false,
+          message: "Please provide a valid email address",
+        });
+      }
+
+      let existingUser = await User.findOne({ email: targetEmail });
+
+      if (existingUser) {
+        resolvedUserId = existingUser._id;
+        // Update user details if provided
+        if (name && String(name).trim() && existingUser.name !== name.trim()) {
+          existingUser.name = name.trim();
+        }
+        if (phone) {
+          const cleanedPhone = String(phone).replace(/\D/g, "");
+          if (cleanedPhone) existingUser.phone = cleanedPhone;
+        }
+        if (role) {
+          existingUser.role = role;
+        }
+        await existingUser.save();
+      } else {
+        // Auto-create user account
+        const userName = (name || targetEmail.split("@")[0] || "Employee").trim();
+        const userPhone = phone ? String(phone).replace(/\D/g, "") : "0000000000";
+        const userRole = role || "Employee";
+
+        // Get department name
+        let deptName = "General";
+        if (mongoose.Types.ObjectId.isValid(department_id)) {
+          const deptDoc = await Department.findById(department_id);
+          if (deptDoc) deptName = deptDoc.departmentName;
+        }
+
+        // Generate strong hashed password that matches policy: Emp@12345
+        const defaultHash = await bcrypt.hash("Emp@12345", 10);
+
+        existingUser = await User.create({
+          name: userName,
+          email: targetEmail,
+          phone: userPhone.length === 10 ? userPhone : "9876543210",
+          password: defaultHash,
+          role: userRole,
+          department: deptName,
+        });
+
+        resolvedUserId = existingUser._id;
+      }
     }
 
     // Check if user is already linked to an employee
@@ -69,40 +260,23 @@ export const createEmployee = async (req, res) => {
       });
     }
 
-    // Generate Employee Code
-    const lastEmployee = await Employee.findOne()
-      .sort({ createdAt: -1 })
-      .select("employee_code");
+    // Generate unique backend Employee Code
+    const employee_code = await generateNextEmployeeCode();
 
-    let employeeNumber = 1;
-
-    if (lastEmployee && lastEmployee.employee_code) {
-      const lastNumber = parseInt(
-        lastEmployee.employee_code.replace("EMP", ""),
-        10
-      );
-
-      if (!isNaN(lastNumber)) {
-        employeeNumber = lastNumber + 1;
-      }
-    }
-
-    const employee_code = `EMP${String(employeeNumber).padStart(3, "0")}`;
-
-    // Create employee
+    // Create employee record
     const employee = await Employee.create({
       user_id: resolvedUserId,
       employee_code,
       department_id,
-      designation,
-      manager_id: manager_id || null,
+      designation: String(designation).trim(),
+      manager_id: manager_id && mongoose.Types.ObjectId.isValid(manager_id) ? manager_id : null,
       date_of_joining,
       employment_status: employment_status || "Active",
     });
 
     // Return populated employee data
     const populatedEmployee = await Employee.findById(employee._id)
-      .populate("user_id", "name email role")
+      .populate("user_id", "name email role phone")
       .populate(
         "department_id",
         "departmentId departmentName description location status"
@@ -117,10 +291,18 @@ export const createEmployee = async (req, res) => {
   } catch (error) {
     console.error("CREATE EMPLOYEE ERROR:", error);
 
+    // Duplicate key error handler
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern || {})[0] || "field";
+      return res.status(409).json({
+        success: false,
+        message: `An employee with this ${field} already exists.`,
+      });
+    }
+
     return res.status(500).json({
       success: false,
-      message: "Error creating employee",
-      error: error.message,
+      message: error.message || "Error creating employee",
     });
   }
 };
@@ -149,18 +331,29 @@ export const getAllEmployees = async (req, res) => {
       filter.employment_status = status;
     }
 
-    // Search employee code or designation
-    if (search) {
+    // Search employee code, designation, or populated user name/email
+    if (search && String(search).trim()) {
+      const trimmedSearch = String(search).trim();
+      const matchingUsers = await User.find({
+        $or: [
+          { name: { $regex: trimmedSearch, $options: "i" } },
+          { email: { $regex: trimmedSearch, $options: "i" } },
+        ],
+      }).select("_id");
+
+      const userIds = matchingUsers.map((u) => u._id);
+
       filter.$or = [
-        { employee_code: { $regex: search, $options: "i" } },
-        { designation: { $regex: search, $options: "i" } },
+        { employee_code: { $regex: trimmedSearch, $options: "i" } },
+        { designation: { $regex: trimmedSearch, $options: "i" } },
+        { user_id: { $in: userIds } },
       ];
     }
 
     const totalEmployees = await Employee.countDocuments(filter);
 
     const employees = await Employee.find(filter)
-      .populate("user_id", "name email role")
+      .populate("user_id", "name email role phone")
       .populate(
         "department_id",
         "departmentId departmentName description location status"
@@ -175,7 +368,7 @@ export const getAllEmployees = async (req, res) => {
       message: "Employees fetched successfully",
       totalEmployees,
       currentPage: pageNumber,
-      totalPages: Math.ceil(totalEmployees / limitNumber),
+      totalPages: Math.ceil(totalEmployees / limitNumber) || 1,
       employees,
     });
   } catch (error) {
@@ -196,8 +389,15 @@ export const getEmployeeById = async (req, res) => {
   try {
     const { id } = req.params;
 
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Employee ID format",
+      });
+    }
+
     const employee = await Employee.findById(id)
-      .populate("user_id", "name email role")
+      .populate("user_id", "name email role phone")
       .populate(
         "department_id",
         "departmentId departmentName description location status"
@@ -229,20 +429,29 @@ export const getEmployeeById = async (req, res) => {
 
 // =====================================================
 // 4. UPDATE EMPLOYEE
-// Admin / HR can update employee details
+// Admin / HR can update employee & user details
 // =====================================================
 export const updateEmployee = async (req, res) => {
   try {
     const { id } = req.params;
 
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Employee ID format",
+      });
+    }
+
     const {
-      user_id,
       department_id,
       designation,
       manager_id,
       date_of_joining,
       employment_status,
+      name,
+      email,
       phone,
+      role,
     } = req.body;
 
     const employee = await Employee.findById(id);
@@ -254,22 +463,71 @@ export const updateEmployee = async (req, res) => {
       });
     }
 
-    // Update only provided fields (user_id is immutable after creation)
-    if (department_id !== undefined)
+    // Update Employee document fields
+    if (department_id !== undefined && department_id) {
       employee.department_id = department_id;
-    if (designation !== undefined)
-      employee.designation = designation;
-    if (manager_id !== undefined)
-      employee.manager_id = manager_id || null;
-    if (date_of_joining !== undefined)
+    }
+    if (designation !== undefined && String(designation).trim()) {
+      employee.designation = String(designation).trim();
+    }
+    if (manager_id !== undefined) {
+      employee.manager_id = manager_id && mongoose.Types.ObjectId.isValid(manager_id) ? manager_id : null;
+    }
+    if (date_of_joining !== undefined && date_of_joining) {
       employee.date_of_joining = date_of_joining;
-    if (employment_status !== undefined)
+    }
+    if (employment_status !== undefined) {
       employee.employment_status = employment_status;
+    }
 
     await employee.save();
 
+    // Update linked User document fields
+    if (employee.user_id) {
+      const user = await User.findById(employee.user_id);
+      if (user) {
+        // Check email uniqueness if email is updated
+        if (email !== undefined && email) {
+          const trimmedEmail = String(email).trim().toLowerCase();
+          if (trimmedEmail !== user.email) {
+            const emailInUse = await User.findOne({
+              email: trimmedEmail,
+              _id: { $ne: user._id },
+            });
+            if (emailInUse) {
+              return res.status(409).json({
+                success: false,
+                message: "Email is already in use by another account",
+              });
+            }
+            user.email = trimmedEmail;
+          }
+        }
+
+        if (name !== undefined && String(name).trim()) {
+          user.name = String(name).trim();
+        }
+
+        if (phone !== undefined) {
+          const cleanedPhone = String(phone).replace(/\D/g, "");
+          if (cleanedPhone) user.phone = cleanedPhone;
+        }
+
+        if (role !== undefined && String(role).trim()) {
+          user.role = String(role).trim();
+        }
+
+        if (department_id !== undefined && department_id && mongoose.Types.ObjectId.isValid(department_id)) {
+          const deptDoc = await Department.findById(department_id);
+          if (deptDoc) user.department = deptDoc.departmentName;
+        }
+
+        await user.save();
+      }
+    }
+
     const updatedEmployee = await Employee.findById(employee._id)
-      .populate("user_id", "name email role")
+      .populate("user_id", "name email role phone")
       .populate(
         "department_id",
         "departmentId departmentName description location status"
@@ -284,20 +542,34 @@ export const updateEmployee = async (req, res) => {
   } catch (error) {
     console.error("UPDATE EMPLOYEE ERROR:", error);
 
+    if (error.code === 11000) {
+      return res.status(409).json({
+        success: false,
+        message: "Duplicate value conflict occurred during update.",
+      });
+    }
+
     return res.status(500).json({
       success: false,
-      message: "Error updating employee",
-      error: error.message,
+      message: error.message || "Error updating employee",
     });
   }
 };
 
 // =====================================================
-// 5. DELETE EMPLOYEE
+// 5. DELETE / DEACTIVATE EMPLOYEE
+// Soft deletion: sets status to Inactive to preserve historical data
 // =====================================================
 export const deleteEmployee = async (req, res) => {
   try {
     const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Employee ID format",
+      });
+    }
 
     const employee = await Employee.findById(id);
 
@@ -308,18 +580,22 @@ export const deleteEmployee = async (req, res) => {
       });
     }
 
-    await Employee.findByIdAndDelete(id);
+    // Preserve historical attendance, leave, payroll, and references:
+    // Mark as Inactive instead of hard deleting
+    employee.employment_status = "Inactive";
+    await employee.save();
 
     return res.status(200).json({
       success: true,
-      message: "Employee deleted successfully",
+      message: "Employee deactivated successfully",
+      employee,
     });
   } catch (error) {
     console.error("DELETE EMPLOYEE ERROR:", error);
 
     return res.status(500).json({
       success: false,
-      message: "Error deleting employee",
+      message: "Error deactivating employee",
       error: error.message,
     });
   }
@@ -341,12 +617,19 @@ export const updateEmployeeStatus = async (req, res) => {
       });
     }
 
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Employee ID format",
+      });
+    }
+
     const employee = await Employee.findByIdAndUpdate(
       id,
       { employment_status },
-      { returnDocument:"after", runValidators: true }
+      { returnDocument: "after", runValidators: true }
     )
-      .populate("user_id", "name email role")
+      .populate("user_id", "name email role phone")
       .populate(
         "department_id",
         "departmentId departmentName description location status"
@@ -439,22 +722,22 @@ export const updateMyProfile = async (req, res) => {
     }
 
     // Employee can update only allowed fields
-    if (designation !== undefined) {
-      employee.designation = designation;
+    if (designation !== undefined && String(designation).trim()) {
+      employee.designation = String(designation).trim();
     }
 
     if (manager_id !== undefined) {
-      employee.manager_id = manager_id || null;
+      employee.manager_id = manager_id && mongoose.Types.ObjectId.isValid(manager_id) ? manager_id : null;
     }
 
-    if (date_of_joining !== undefined) {
+    if (date_of_joining !== undefined && date_of_joining) {
       employee.date_of_joining = date_of_joining;
     }
 
     await employee.save();
 
     const updatedEmployee = await Employee.findById(employee._id)
-      .populate("user_id", "name email role")
+      .populate("user_id", "name email role phone")
       .populate(
         "department_id",
         "departmentId departmentName description location status"
