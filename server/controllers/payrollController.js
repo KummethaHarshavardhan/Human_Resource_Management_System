@@ -13,6 +13,11 @@ const populateEmployee = {
   ],
 };
 
+const monthNames = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"
+];
+
 export const generatePayroll = async (req, res) => {
   try {
     const {
@@ -24,12 +29,16 @@ export const generatePayroll = async (req, res) => {
       bonus = 0,
     } = req.body;
 
-    const existingPayroll = await Payroll.findOne({ employeeId, month, year });
+    const monthNum = parseInt(month, 10);
+    const yearNum = parseInt(year, 10);
+    const monthLabel = `${monthNames[monthNum - 1] || month} ${yearNum}`;
+
+    const existingPayroll = await Payroll.findOne({ employeeId, month: monthNum, year: yearNum });
 
     if (existingPayroll) {
       return res.status(409).json({
         success: false,
-        message: `Payroll already generated for this employee for ${month}/${year}`,
+        message: `Salary already exists for this employee for ${monthLabel}.`,
       });
     }
 
