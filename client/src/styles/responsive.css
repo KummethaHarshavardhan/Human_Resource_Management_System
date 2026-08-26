@@ -101,7 +101,7 @@ img, video, canvas, svg {
 /* Small Mobile (<= 480px) */
 @media (max-width: 480px) {
   .app-main-content {
-    padding: 80px 12px 16px 12px;
+    padding: 76px 12px 20px 12px;
   }
 
   .app-main {
@@ -125,7 +125,7 @@ img, video, canvas, svg {
 /* Extra Small Mobile (<= 360px) */
 @media (max-width: 360px) {
   .app-main-content {
-    padding: 72px 8px 12px 8px;
+    padding: 72px 8px 16px 8px;
   }
 
   .card,

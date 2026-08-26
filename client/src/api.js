@@ -59,12 +59,12 @@ const getAuthHeaders = () => {
 
   return token
     ? {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`
-      }
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`
+    }
     : {
-        'Content-Type': 'application/json'
-      };
+      'Content-Type': 'application/json'
+    };
 };
 
 export const getProfile = async () => {
