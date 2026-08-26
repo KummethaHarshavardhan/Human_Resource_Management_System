@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "../../../context/ToastContext";
 import { generateYearlyReport, exportReport } from "../../../services/reportService";
 import ReportFilters from "../../../components/Reports/ReportFilters/ReportFilters";
 import ReportSummary from "../../../components/Reports/ReportSummary/ReportSummary";
@@ -7,6 +8,7 @@ import "./YearlyReport.css";
 
 export default function YearlyReport() {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [filters, setFilters] = useState({
     year: new Date().getFullYear(),
   });
@@ -30,6 +32,7 @@ export default function YearlyReport() {
         setError(res.message || "No payroll records available for the selected year.");
       } else {
         setGeneratedReport(res.data);
+        showToast('success', 'Yearly report generated successfully');
       }
     } catch (err) {
       setError(err.message || "Failed to generate yearly report");
@@ -42,8 +45,9 @@ export default function YearlyReport() {
     if (!generatedReport?._id) return;
     try {
       await exportReport(generatedReport._id);
+      showToast('success', 'Report exported to CSV successfully');
     } catch (err) {
-      alert(err.message || "Failed to export CSV");
+      showToast('error', err.message || "Failed to export CSV");
     }
   };
 

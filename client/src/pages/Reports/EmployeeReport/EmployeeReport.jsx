@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "../../../context/ToastContext";
 import { generateEmployeeReport, exportReport } from "../../../services/reportService";
 import { getAllEmployees } from "../../../services/employeeService";
 import ReportFilters from "../../../components/Reports/ReportFilters/ReportFilters";
@@ -8,6 +9,7 @@ import "./EmployeeReport.css";
 
 export default function EmployeeReport() {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [employees, setEmployees] = useState([]);
   const [filters, setFilters] = useState({ employeeId: "" });
 
@@ -45,6 +47,7 @@ export default function EmployeeReport() {
         setError(res.message || "No payroll records available for this employee.");
       } else {
         setGeneratedReport(res.data);
+        showToast('success', 'Employee report generated successfully');
       }
     } catch (err) {
       setError(err.message || "Failed to generate employee report");
@@ -57,8 +60,9 @@ export default function EmployeeReport() {
     if (!generatedReport?._id) return;
     try {
       await exportReport(generatedReport._id);
+      showToast('success', 'Report exported to CSV successfully');
     } catch (err) {
-      alert(err.message || "Failed to export CSV");
+      showToast('error', err.message || "Failed to export CSV");
     }
   };
 

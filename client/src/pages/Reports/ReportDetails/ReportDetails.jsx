@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useToast } from "../../../context/ToastContext";
 import { getReportById, exportReport } from "../../../services/reportService";
 import ReportSummary from "../../../components/Reports/ReportSummary/ReportSummary";
 import { formatCurrency } from "../../../utils/formatCurrency";
@@ -13,6 +14,7 @@ const MONTH_NAMES = [
 export default function ReportDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -41,8 +43,9 @@ export default function ReportDetails() {
     setExporting(true);
     try {
       await exportReport(id);
+      showToast('success', 'Report exported to CSV successfully');
     } catch (err) {
-      alert(err.message || "Failed to export report CSV");
+      showToast('error', err.message || "Failed to export report CSV");
     } finally {
       setExporting(false);
     }

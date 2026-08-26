@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "../../../context/ToastContext";
 import { generateMonthlyReport, exportReport } from "../../../services/reportService";
 import ReportFilters from "../../../components/Reports/ReportFilters/ReportFilters";
 import ReportSummary from "../../../components/Reports/ReportSummary/ReportSummary";
@@ -13,6 +14,7 @@ const MONTH_NAMES = [
 
 export default function MonthlyReport() {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const currentDate = new Date();
 
   const [filters, setFilters] = useState({
@@ -39,6 +41,7 @@ export default function MonthlyReport() {
         setError(res.message || "No payroll records available for the selected period.");
       } else {
         setGeneratedReport(res.data);
+        showToast('success', 'Monthly report generated successfully');
       }
     } catch (err) {
       setError(err.message || "Failed to generate monthly report");
@@ -51,8 +54,9 @@ export default function MonthlyReport() {
     if (!generatedReport?._id) return;
     try {
       await exportReport(generatedReport._id);
+      showToast('success', 'Report exported to CSV successfully');
     } catch (err) {
-      alert(err.message || "Failed to export CSV");
+      showToast('error', err.message || "Failed to export CSV");
     }
   };
 

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "../../../context/ToastContext";
 import { generateDepartmentReport, exportReport } from "../../../services/reportService";
 import { getDepartments } from "../../../services/departmentService";
 import ReportFilters from "../../../components/Reports/ReportFilters/ReportFilters";
@@ -8,6 +9,7 @@ import "./DepartmentReport.css";
 
 export default function DepartmentReport() {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const currentDate = new Date();
 
   const [departments, setDepartments] = useState([]);
@@ -50,6 +52,7 @@ export default function DepartmentReport() {
         activeFilters.year
       );
       setGeneratedReport(res.data);
+      showToast('success', 'Department report generated successfully');
     } catch (err) {
       setError(err.message || "Failed to generate department report");
     } finally {
@@ -61,8 +64,9 @@ export default function DepartmentReport() {
     if (!generatedReport?._id) return;
     try {
       await exportReport(generatedReport._id);
+      showToast('success', 'Report exported to CSV successfully');
     } catch (err) {
-      alert(err.message || "Failed to export CSV");
+      showToast('error', err.message || "Failed to export CSV");
     }
   };
 
