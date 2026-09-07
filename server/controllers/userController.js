@@ -165,40 +165,77 @@ export const EmpRegister = async (req, res) => {
     }
 };
 
-export const EmpLogin=async(req,res)=>{
-    try{
+export const EmpLogin = async (req, res) => {
+    try {
         const { email, password } = req.body;
-        const empdata=await Employees.findOne({email});
-        const user = await Employees.findOne({ email });
-        if (!user) {
-            return res.status(400).json({ success: false, message: "Check your Email & Password" });
+        if (!email || !password || !String(email).trim() || !String(password).trim()) {
+            return res.status(400).json({
+                success: false,
+                message: "Please provide both email and password"
+            });
         }
-        const isMatch = await bcrypt.compare(password, user.password);
+
+        const cleanEmail = String(email).trim().toLowerCase();
+        const user = await Employees.findOne({ email: cleanEmail });
+        if (!user || !user.password) {
+            return res.status(400).json({
+                success: false,
+                message: "Incorrect email or password"
+            });
+        }
+
+        const isMatch = await bcrypt.compare(String(password), user.password);
         if (!isMatch) {
-            return res.status(400).json({ success: false, message: "Check your Email & Password" });
+            return res.status(400).json({
+                success: false,
+                message: "Incorrect email or password"
+            });
         }
+
+        const secret = process.env.JWT_SECRET || "8f3a9c2e1b7d4f6a0c5e9b2d7f1a4c8e6b3d9f2a5c7e1b4d8f0a3c6e9b2d5f8a";
         const token = jwt.sign(
-            { id: user._id, email: user.email, role: user.role },
-             process.env.JWT_SECRET,
-            { expiresIn: process.env.JWT_EXPIRES_IN || "1d" }
+            {
+                id: user._id,
+                email: user.email,
+                role: user.role,
+                organizationId: user.organizationId || null
+            },
+            secret,
+            { expiresIn: process.env.JWT_EXPIRES_IN || "7d" }
         );
-        return res.status(200).cookie("token", token, {
+
+        return res
+            .status(200)
+            .cookie("token", token, {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === "production",
                 sameSite: "strict",
-                maxAge: 24 * 60 * 60 * 1000, // 1 day
+                maxAge: 7 * 24 * 60 * 60 * 1000,
             })
             .json({
                 success: true,
-                message: "Employee Logged In",
+                message: "Login successful",
                 token,
-                user: { id: user._id, name: user.name, email: user.email, role: user.role },
+                user: {
+                    id: user._id,
+                    _id: user._id,
+                    name: user.name,
+                    email: user.email,
+                    role: user.role,
+                    organizationId: user.organizationId || null,
+                    department: user.department || "Human Resources",
+                    phone: user.phone || ""
+                },
             });
-    }catch(err){
-        console.log("LOGIN ERROR:", err);
-        return res.status(500).json({success:false,message:"Sorry Invalid Request"});
+    } catch (err) {
+        console.error("LOGIN ERROR:", err);
+        return res.status(500).json({
+            success: false,
+            message: err.message || "Login failed. Please try again."
+        });
     }
-}
+};
+
 
 export const googleLogin = async (req, res) => {
     try {
@@ -219,7 +256,12 @@ export const googleLogin = async (req, res) => {
         }
 
         const jwtToken = jwt.sign(
-            { id: user._id, email: user.email, role: user.role },
+            {
+                id: user._id,
+                email: user.email,
+                role: user.role,
+                organizationId: user.organizationId || null
+            },
             process.env.JWT_SECRET,
             { expiresIn: "1d" }
         );
@@ -351,12 +393,15 @@ export const changePassword = async (req, res) => {
 
 export const getProfile = async (req, res) => {
     try {
-        const user = await Employees.findById(req.user.id).select("-password -confirm_password");
+        const user = await Employees.findById(req.user.id)
+            .select("-password -confirm_password")
+            .populate("organizationId", "name orgCode memberLimit currentMemberCount status");
         return res.status(200).json({ success: true, user });
     } catch (err) {
         return res.status(500).json({ success: false, message: "Error fetching profile" });
     }
 };
+
 
 export const updateUserProfile = async (req, res) => {
     try {

@@ -1,5 +1,20 @@
 import mongoose from "mongoose";
 
+export const USER_DEPARTMENTS = [
+  "Human Resource",
+  "Human Resources",
+  "HR",
+  "Manager",
+  "Employee",
+  "Sales",
+  "Executive Administration",
+  "Finance",
+  "Marketing",
+  "Engineering",
+  "Operations",
+  "General",
+];
+
 const UserSchema = new mongoose.Schema(
   {
     name: {
@@ -17,12 +32,9 @@ const UserSchema = new mongoose.Schema(
 
     password: {
       type: String,
-      minlength: 8,
-      match: [
-        /^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*]).{8,}$/,
-        "Password must contain at least 8 characters, one uppercase letter, one number, and one special character",
-      ],
+      required: [true, "Password is required"],
     },
+
 
     role: {
       type: String,
@@ -36,11 +48,22 @@ const UserSchema = new mongoose.Schema(
 
     department: {
       type: String,
-      default: "General",
+      default: "Human Resource",
+      trim: true,
+      enum: {
+        values: USER_DEPARTMENTS,
+        message: "{VALUE} is not a valid department",
+      },
     },
 
     googleId: {
       type: String,
+      default: null,
+    },
+
+    organizationId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Organization",
       default: null,
     },
   },
