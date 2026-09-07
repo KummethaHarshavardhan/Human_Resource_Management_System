@@ -1,10 +1,18 @@
 import React from 'react';
+import { FiDownload } from 'react-icons/fi';
 import StatusBadge from '../StatusBadge';
 import formatCurrency from '../../../utils/formatCurrency';
 import { getMonthName, getEmployeeDisplay } from '../../../utils/payrollConstants';
 import './PayrollTable.css';
 
-export default function PayrollTable({ payrolls = [], onView, onMarkPaid, isActionLoading = false }) {
+export default function PayrollTable({
+  payrolls = [],
+  onView,
+  onMarkPaid,
+  onDownload,
+  downloadingId,
+  isActionLoading = false,
+}) {
   return (
     <div className="payroll-table-wrapper">
       <table className="payroll-table">
@@ -30,6 +38,7 @@ export default function PayrollTable({ payrolls = [], onView, onMarkPaid, isActi
             const empDisplay = getEmployeeDisplay(item.employeeId, item.employeeSnapshot);
             const monthStr = getMonthName(item.month);
             const isPaid = item.status === 'Paid';
+            const isDownloading = downloadingId === item._id;
 
             return (
               <tr key={item._id}>
@@ -62,6 +71,17 @@ export default function PayrollTable({ payrolls = [], onView, onMarkPaid, isActi
                 </td>
                 <td className="text-right">
                   <div className="table-actions">
+                    {onDownload && (
+                      <button
+                        className="pr-btn pr-btn-success pr-btn-sm"
+                        disabled={isDownloading}
+                        onClick={() => onDownload(item._id)}
+                        title="Download official payslip PDF"
+                      >
+                        <FiDownload size={13} />
+                        {isDownloading ? 'Saving...' : 'PDF'}
+                      </button>
+                    )}
                     {onView && (
                       <button
                         className="pr-btn pr-btn-secondary pr-btn-sm"

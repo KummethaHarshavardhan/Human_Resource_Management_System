@@ -20,7 +20,7 @@ export default function PayrollDashboard() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { showToast } = useToast();
-  const isAdmin = normalizeRole(user?.role) === 'admin';
+  const isAdmin = ['admin', 'super_admin'].includes(normalizeRole(user?.role));
   const [payrolls, setPayrolls] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [salaries, setSalaries] = useState([]);

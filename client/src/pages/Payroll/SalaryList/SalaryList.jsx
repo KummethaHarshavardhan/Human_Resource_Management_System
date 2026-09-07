@@ -276,26 +276,29 @@ export default function SalaryList() {
                           <button
                             className="pr-btn pr-btn-secondary pr-btn-sm"
                             onClick={() => navigate(`/payroll/salaries/${item._id}`)}
+                            title="View Salary Details"
                             aria-label="View Salary Details"
                           >
-                            <FiEye size={13} style={{ marginRight: 4 }} /> View
+                            <FiEye size={15} />
                           </button>
                           {isAdmin && (
                             <button
                               className="pr-btn pr-btn-secondary pr-btn-sm"
                               onClick={() => navigate(`/payroll/salaries/${item._id}/edit`)}
+                              title="Edit Salary Structure"
                               aria-label="Edit Salary Structure"
                             >
-                              <FiEdit2 size={13} style={{ marginRight: 4 }} /> Edit
+                              <FiEdit2 size={15} />
                             </button>
                           )}
                           {isAdmin && item.isActive && (
                             <button
                               className="pr-btn pr-btn-danger pr-btn-sm"
                               onClick={() => setDeactivateId(item._id)}
+                              title="Deactivate Salary Structure"
                               aria-label="Deactivate Salary Structure"
                             >
-                              <FiTrash2 size={13} style={{ marginRight: 4 }} /> Deactivate
+                              <FiTrash2 size={15} />
                             </button>
                           )}
                         </div>
