@@ -15,7 +15,9 @@ import employeeRoutes from "./routes/employeeRoutes.js";
 import attendanceRoutes from "./routes/attendanceRoutes.js";
 import leaveRoutes from "./routes/leaveRoutes.js";
 import leaveBalanceRoutes from "./routes/leaveBalanceRoutes.js";
-
+import candidateRoutes from "./routes/candidateRoutes.js";
+import taskRoutes from "./routes/taskRoutes.js";
+import assignmentRoutes from "./routes/assignmentRoutes.js";
 import payslipRoutes from "./routes/payslipRoutes.js";
 import reportRoutes from "./routes/reportRoutes.js";
 import analyticsRoutes from "./routes/analyticsRoutes.js";
@@ -55,7 +57,9 @@ app.use("/api/employees", employeeRoutes);
 app.use("/api/attendance", attendanceRoutes);
 app.use("/api/leave", leaveRoutes);
 app.use("/api/leave-balance", leaveBalanceRoutes);
-
+app.use("/api/candidates", candidateRoutes);
+app.use("/api/tasks", taskRoutes);
+app.use("/api/assignments", assignmentRoutes);
 app.use("/api/payslips", payslipRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/analytics", analyticsRoutes);
