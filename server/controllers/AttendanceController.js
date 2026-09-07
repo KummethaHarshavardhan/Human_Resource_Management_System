@@ -199,8 +199,16 @@ export const getAllAttendanceAdmin = async (req, res) => {
 
     const records = await getAllAttendanceAdminService({ status, employeeId });
 
+    // Multi-tenant scope: filter records to acting organization
+    let scopedRecords = records;
+    if (req.user?.organizationId) {
+      const orgUsers = await User.find({ organizationId: req.user.organizationId }).select("_id");
+      const orgUserIds = new Set(orgUsers.map((u) => String(u._id)));
+      scopedRecords = records.filter((r) => orgUserIds.has(String(r.employeeId)));
+    }
+
     // Enrich with user details
-    const userIds = [...new Set(records.map((r) => r.employeeId))];
+    const userIds = [...new Set(scopedRecords.map((r) => r.employeeId))];
     const [users, emps] = await Promise.all([
       User.find({ _id: { $in: userIds } }).select("name email role department").lean(),
       Employee.find({ user_id: { $in: userIds } }).select("user_id employee_code designation").lean(),
@@ -216,7 +224,7 @@ export const getAllAttendanceAdmin = async (req, res) => {
       empMap[String(e.user_id)] = e;
     });
 
-    const enriched = records.map((r) => {
+    const enriched = scopedRecords.map((r) => {
       const u = userMap[String(r.employeeId)] || null;
       const emp = empMap[String(r.employeeId)] || null;
       return {
