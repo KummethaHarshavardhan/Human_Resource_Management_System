@@ -1,6 +1,7 @@
 export const normalizeRole = (role) => {
   if (!role) return "";
   const r = String(role).trim().toLowerCase();
+  if (r === "super_admin" || r === "superadmin" || r === "super admin") return "super_admin";
   if (r === "admin") return "admin";
   if (
     r === "hr" ||
@@ -16,6 +17,17 @@ export const normalizeRole = (role) => {
 };
 
 const permissions = {
+  super_admin: [
+    "super_admin_dashboard",
+    "organizations",
+    "super_admin_hr",
+    "organization_usage",
+    "leave",
+    "payroll",
+    "super_admin_payroll",
+    "profile",
+  ],
+
   admin: [
     "dashboard",
     "profile",
@@ -27,6 +39,7 @@ const permissions = {
     "settings",
     "users"
   ],
+
 
   hr_manager: [
     "dashboard",
@@ -42,8 +55,14 @@ const permissions = {
   employee: [
     "dashboard",
     "profile",
+    "employee",
     "attendance",
     "leave",
+    "payroll",
+    "tasks",
+    "progress",
+    "submissions",
+    "reports",
     "settings"
   ]
 };

@@ -4,7 +4,7 @@ import { loginUser, googleLoginUser } from '../../services/api';
 import { useAuth } from "../../context/AuthContext.jsx";
 import { useToast } from "../../context/ToastContext.jsx";
 import { FiEye, FiEyeOff } from 'react-icons/fi';
-import Passkey from '../Passkey/Passkey.jsx';
+import { normalizeRole } from '../../utils/permission.js';
 import logo from '../../assets/infinetra-logo.png';
 import './Login.css';
 
@@ -76,8 +76,13 @@ function Login() {
 
       showToast('success', 'Google login successful');
 
+      const userRole = normalizeRole(data.user?.role);
       setTimeout(() => {
-        navigate('/dashboard');
+        if (userRole === 'super_admin') {
+          navigate('/super-admin/dashboard');
+        } else {
+          navigate('/dashboard');
+        }
       }, 1200);
     } catch (error) {
       console.error('Google login error:', error);
@@ -153,8 +158,13 @@ function Login() {
 
       showToast('success', 'Login successful');
 
+      const userRole = normalizeRole(data.user?.role);
       setTimeout(() => {
-        navigate('/dashboard');
+        if (userRole === 'super_admin') {
+          navigate('/super-admin/dashboard');
+        } else {
+          navigate('/dashboard');
+        }
       }, 1200);
     } catch (error) {
       console.error('Login error:', error);
@@ -354,34 +364,14 @@ function Login() {
 
           </form>
 
-          <p className="register-text">
-            New to Infinetra?{' '}
-
-            <button
-              type="button"
-              className="link link-button"
-              onClick={openPasskeyModal}
-            >
-              Register now
-            </button>
-          </p>
-
-          <p className="powered-by">
+          <p className="powered-by" style={{ marginTop: '24px' }}>
             POWERED BY INFINETRA TECH
           </p>
 
         </div>
       </div>
-
-      {showPasskeyModal && (
-        <Passkey
-          onClose={closePasskeyModal}
-          onSuccess={handlePasskeySuccess}
-        />
-      )}
     </div>
   );
 }
 
 export default Login;
-

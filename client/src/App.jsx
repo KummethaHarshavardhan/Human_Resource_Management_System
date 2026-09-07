@@ -20,6 +20,15 @@ import VerifyOTP from "./pages/VerifyOTP/VerifyOTP";
 import ResetPassword from "./pages/ResetPassword/ResetPassword";
 import ChangePassword from "./pages/ChangePassword/ChangePassword";
 
+/* ================= SUPER ADMIN ================= */
+
+import SuperAdminDashboard from "./pages/SuperAdmin/SuperAdminDashboard";
+import Organizations from "./pages/SuperAdmin/Organizations";
+import HRManagement from "./pages/SuperAdmin/HRManagement";
+import OrganizationUsage from "./pages/SuperAdmin/OrganizationUsage";
+
+/* ================= EXISTING PAGES ================= */
+
 import Dashboard from "./pages/Dashboard/Dashboard";
 import Profile from "./pages/Profile/Profile";
 
@@ -44,11 +53,12 @@ import RoleList from "./pages/Employee/roles/RoleList";
 import AddRole from "./pages/Employee/roles/AddRole";
 import EditRole from "./pages/Employee/roles/EditRole";
 
-
 import LeaveDashboard from "./pages/Leave/LeaveDashboard";
+
 
 function ProtectedLayout() {
   const { isAuthenticated } = useAuth();
+
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
@@ -65,7 +75,11 @@ function ProtectedLayout() {
   };
 
   return (
-    <div className={`app-layout ${isSidebarCollapsed ? "sidebar-collapsed" : ""}`}>
+    <div
+      className={`app-layout ${
+        isSidebarCollapsed ? "sidebar-collapsed" : ""
+      }`}
+    >
       {isMobileOpen && (
         <div
           className="sidebar-backdrop"
@@ -82,18 +96,21 @@ function ProtectedLayout() {
 
       <div className="app-main-wrapper">
         <Header onToggleSidebar={handleToggleSidebar} />
+
         <main className="app-main-content">
           <Outlet />
         </main>
       </div>
-
     </div>
   );
 }
 
+
 function AppRoutes() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const location = useLocation();
+
+  const isSuperAdmin = user?.role === "super_admin";
 
   const publicPaths = [
     "/login",
@@ -107,34 +124,84 @@ function AppRoutes() {
     return (
       <Routes>
         <Route path="/login" element={<Login />} />
+
         <Route path="/register" element={<Register />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
+
+        <Route
+          path="/forgot-password"
+          element={<ForgotPassword />}
+        />
+
         <Route path="/verify-otp" element={<VerifyOTP />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
+
+        <Route
+          path="/reset-password"
+          element={<ResetPassword />}
+        />
+
+        <Route
+          path="*"
+          element={<Navigate to="/login" replace />}
+        />
       </Routes>
     );
   }
 
   return (
     <Routes>
+
+      {/* ================= LOGIN ================= */}
+
       <Route
         path="/login"
         element={
-          isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />
+          isAuthenticated ? (
+            <Navigate
+              to={
+                isSuperAdmin
+                  ? "/super-admin/dashboard"
+                  : "/dashboard"
+              }
+              replace
+            />
+          ) : (
+            <Login />
+          )
         }
       />
+
+      {/* ================= REGISTER ================= */}
 
       <Route
         path="/register"
         element={
-          isAuthenticated ? <Navigate to="/dashboard" replace /> : <Register />
+          isAuthenticated ? (
+            <Navigate to="/dashboard" replace />
+          ) : (
+            <Register />
+          )
         }
       />
 
-      <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/verify-otp" element={<VerifyOTP />} />
-      <Route path="/reset-password" element={<ResetPassword />} />
+      {/* ================= PASSWORD ROUTES ================= */}
+
+      <Route
+        path="/forgot-password"
+        element={<ForgotPassword />}
+      />
+
+      <Route
+        path="/verify-otp"
+        element={<VerifyOTP />}
+      />
+
+      <Route
+        path="/reset-password"
+        element={<ResetPassword />}
+      />
+
+
+      {/* ================= PROTECTED LAYOUT ================= */}
 
       <Route
         element={
@@ -143,30 +210,123 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       >
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+
+        {/* ================= DEFAULT ROUTE ================= */}
+
+        <Route
+          path="/"
+          element={
+            <Navigate
+              to={
+                isSuperAdmin
+                  ? "/super-admin/dashboard"
+                  : "/dashboard"
+              }
+              replace
+            />
+          }
+        />
+
+
+        {/* ================================================= */}
+        {/* SUPER ADMIN ROUTES */}
+        {/* ================================================= */}
+
+        {/* 1. Super Admin Dashboard */}
+
+        <Route
+          path="/super-admin/dashboard"
+          element={
+            <ProtectedRoute allowedRoles={["super_admin"]}>
+              <SuperAdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* 2. Organizations */}
+
+        <Route
+          path="/super-admin/organizations"
+          element={
+            <ProtectedRoute allowedRoles={["super_admin"]}>
+              <Organizations />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* 3. HR Management */}
+
+        <Route
+          path="/super-admin/hr-management"
+          element={
+            <ProtectedRoute allowedRoles={["super_admin"]}>
+              <HRManagement />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* 4. Organization Usage */}
+
+        <Route
+          path="/super-admin/usage-limits"
+          element={
+            <ProtectedRoute allowedRoles={["super_admin"]}>
+              <OrganizationUsage />
+            </ProtectedRoute>
+          }
+        />
+
+
+        {/* ================================================= */}
+        {/* DASHBOARD */}
+        {/* ================================================= */}
 
         <Route
           path="/dashboard"
           element={
-            <ProtectedRoute allowedRoles={["Admin", "HR Manager", "Employee"]}>
+            <ProtectedRoute
+              allowedRoles={[
+                "Admin",
+                "HR Manager",
+                "Employee",
+              ]}
+            >
               <Dashboard />
             </ProtectedRoute>
           }
         />
 
+
+        {/* ================================================= */}
+        {/* PROFILE */}
+        {/* ================================================= */}
+
         <Route
           path="/profile"
           element={
-            <ProtectedRoute allowedRoles={["Admin", "HR Manager", "Employee"]}>
+            <ProtectedRoute
+              allowedRoles={[
+                "Admin",
+                "HR Manager",
+                "Employee",
+              ]}
+            >
               <Profile />
             </ProtectedRoute>
           }
         />
 
+
+        {/* ================================================= */}
+        {/* EMPLOYEE DIRECTORY */}
+        {/* ================================================= */}
+
         <Route
           path="/directory"
           element={
-            <ProtectedRoute allowedRoles={["Admin", "HR Manager"]}>
+            <ProtectedRoute
+              allowedRoles={["Admin", "HR Manager"]}
+            >
               <EmployeeList />
             </ProtectedRoute>
           }
@@ -175,7 +335,9 @@ function AppRoutes() {
         <Route
           path="/employee"
           element={
-            <ProtectedRoute allowedRoles={["Admin", "HR Manager"]}>
+            <ProtectedRoute
+              allowedRoles={["Admin", "HR Manager"]}
+            >
               <EmployeeList />
             </ProtectedRoute>
           }
@@ -184,7 +346,9 @@ function AppRoutes() {
         <Route
           path="/employee/add"
           element={
-            <ProtectedRoute allowedRoles={["Admin", "HR Manager"]}>
+            <ProtectedRoute
+              allowedRoles={["Admin", "HR Manager"]}
+            >
               <AddEmployee />
             </ProtectedRoute>
           }
@@ -193,7 +357,13 @@ function AppRoutes() {
         <Route
           path="/employee/profile"
           element={
-            <ProtectedRoute allowedRoles={["Admin", "HR Manager", "Employee"]}>
+            <ProtectedRoute
+              allowedRoles={[
+                "Admin",
+                "HR Manager",
+                "Employee",
+              ]}
+            >
               <EmployeeProfile />
             </ProtectedRoute>
           }
@@ -202,7 +372,9 @@ function AppRoutes() {
         <Route
           path="/employee/:id"
           element={
-            <ProtectedRoute allowedRoles={["Admin", "HR Manager"]}>
+            <ProtectedRoute
+              allowedRoles={["Admin", "HR Manager"]}
+            >
               <EmployeeDetails />
             </ProtectedRoute>
           }
@@ -211,11 +383,18 @@ function AppRoutes() {
         <Route
           path="/employee/:id/edit"
           element={
-            <ProtectedRoute allowedRoles={["Admin", "HR Manager"]}>
+            <ProtectedRoute
+              allowedRoles={["Admin", "HR Manager"]}
+            >
               <EditEmployee />
             </ProtectedRoute>
           }
         />
+
+
+        {/* ================================================= */}
+        {/* DEPARTMENTS */}
+        {/* ================================================= */}
 
         <Route
           path="/employee/departments"
@@ -244,6 +423,11 @@ function AppRoutes() {
           }
         />
 
+
+        {/* ================================================= */}
+        {/* ROLES */}
+        {/* ================================================= */}
+
         <Route
           path="/employee/roles"
           element={
@@ -271,50 +455,108 @@ function AppRoutes() {
           }
         />
 
+
+        {/* ================================================= */}
+        {/* ATTENDANCE */}
+        {/* ================================================= */}
+
         <Route
           path="/attendance-dashboard"
           element={
-            <ProtectedRoute allowedRoles={["Admin", "HR Manager", "Employee"]}>
+            <ProtectedRoute
+              allowedRoles={[
+                "Admin",
+                "HR Manager",
+                "Employee",
+              ]}
+            >
               <AttendanceDashboard />
             </ProtectedRoute>
           }
         />
 
+
+        {/* ================================================= */}
+        {/* LEAVE */}
+        {/* ================================================= */}
+
         <Route
           path="/leave"
           element={
-            <ProtectedRoute allowedRoles={["Admin", "HR Manager", "Employee"]}>
+            <ProtectedRoute
+              allowedRoles={[
+                "Admin",
+                "HR Manager",
+                "Employee",
+              ]}
+            >
               <LeaveDashboard />
             </ProtectedRoute>
           }
         />
 
+
+        {/* ================================================= */}
+        {/* PAYROLL */}
+        {/* ================================================= */}
+
         <Route
           path="/payroll/*"
           element={
-            <ProtectedRoute allowedRoles={["Admin", "HR Manager"]}>
+            <ProtectedRoute
+              allowedRoles={[
+                "Admin",
+                "HR Manager",
+              ]}
+            >
               <PayrollRoutes />
             </ProtectedRoute>
           }
         />
 
+
+        {/* ================================================= */}
+        {/* REPORTS */}
+        {/* ================================================= */}
+
         <Route
           path="/reports/*"
           element={
-            <ProtectedRoute allowedRoles={["Admin", "HR Manager"]}>
+            <ProtectedRoute
+              allowedRoles={[
+                "Admin",
+                "HR Manager",
+              ]}
+            >
               <ReportsRoutes />
             </ProtectedRoute>
           }
         />
 
+
+        {/* ================================================= */}
+        {/* SETTINGS */}
+        {/* ================================================= */}
+
         <Route
           path="/settings"
           element={
-            <ProtectedRoute allowedRoles={["Admin", "HR Manager", "Employee"]}>
+            <ProtectedRoute
+              allowedRoles={[
+                "Admin",
+                "HR Manager",
+                "Employee",
+              ]}
+            >
               <Settings />
             </ProtectedRoute>
           }
         />
+
+
+        {/* ================================================= */}
+        {/* USERS */}
+        {/* ================================================= */}
 
         <Route
           path="/users"
@@ -325,25 +567,53 @@ function AppRoutes() {
           }
         />
 
+
+        {/* ================================================= */}
+        {/* CHANGE PASSWORD */}
+        {/* ================================================= */}
+
         <Route
           path="/change-password"
           element={
-            <ProtectedRoute allowedRoles={["Admin", "HR Manager", "Employee"]}>
+            <ProtectedRoute
+              allowedRoles={[
+                "Admin",
+                "HR Manager",
+                "Employee",
+              ]}
+            >
               <ChangePassword />
             </ProtectedRoute>
           }
         />
+
       </Route>
+
+
+      {/* ================================================= */}
+      {/* FALLBACK */}
+      {/* ================================================= */}
 
       <Route
         path="*"
         element={
-          <Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />
+          <Navigate
+            to={
+              isAuthenticated
+                ? isSuperAdmin
+                  ? "/super-admin/dashboard"
+                  : "/dashboard"
+                : "/login"
+            }
+            replace
+          />
         }
       />
+
     </Routes>
   );
 }
+
 
 function App() {
   return (
@@ -352,5 +622,6 @@ function App() {
     </BrowserRouter>
   );
 }
+
 
 export default App;

@@ -25,8 +25,9 @@ export default function ProtectedRoute({
       .map(role => normalizeRole(role))
       .includes(userRole)
   ) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to={userRole === "super_admin" ? "/super-admin/dashboard" : "/dashboard"} replace />;
   }
+
 
   return children;
 }
