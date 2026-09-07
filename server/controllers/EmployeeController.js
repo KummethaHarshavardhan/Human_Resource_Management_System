@@ -1,8 +1,12 @@
 import Employee from "../models/Employee.js";
 import User from "../models/UserModel.js";
 import Department from "../models/Department.js";
+import Organization from "../models/Organization.js";
+import { generateNextDepartmentId } from "../services/departmentService.js";
+import { syncEmployeesToCandidates } from "./candidateController.js";
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
+
 
 // =====================================================
 // HELPER: Generate next sequential Employee Code (e.g. EMP001, EMP002)
@@ -161,6 +165,31 @@ export const createEmployee = async (req, res) => {
       });
     }
 
+    // Resolve department document and ID (handles both ObjectId and Department Name string)
+    let resolvedDepartmentId = department_id;
+    let deptName = "Human Resource";
+    if (mongoose.Types.ObjectId.isValid(department_id)) {
+      const deptDoc = await Department.findById(department_id);
+      if (deptDoc) {
+        deptName = deptDoc.departmentName;
+      }
+    } else {
+      let deptDoc = await Department.findOne({
+        departmentName: { $regex: new RegExp(`^${String(department_id).trim()}$`, "i") },
+      });
+      if (!deptDoc) {
+        const nextId = await generateNextDepartmentId();
+        deptDoc = await Department.create({
+          departmentId: nextId,
+          departmentName: String(department_id).trim(),
+          description: `${String(department_id).trim()} Department`,
+          status: "Active",
+        });
+      }
+      resolvedDepartmentId = deptDoc._id;
+      deptName = deptDoc.departmentName;
+    }
+
     if (!designation || !String(designation).trim()) {
       return res.status(400).json({
         success: false,
@@ -175,19 +204,43 @@ export const createEmployee = async (req, res) => {
       });
     }
 
+    // Enforce organization member limit if acting user belongs to an organization
+    const orgId = req.user?.organizationId;
+    if (orgId && mongoose.Types.ObjectId.isValid(orgId)) {
+      const org = await Organization.findById(orgId);
+      if (org) {
+        const memberCount = await User.countDocuments({
+          organizationId: org._id,
+          role: { $ne: "SUPER_ADMIN" },
+        });
+        if (memberCount >= org.memberLimit) {
+          return res.status(400).json({
+            success: false,
+            message: "Organization member limit reached. No additional members can be added.",
+          });
+        }
+      }
+    }
+
+    const targetEmail = String(email || user_id || "").trim().toLowerCase();
     let resolvedUserId = null;
 
-    // 1. Check if user_id is provided as a valid ObjectId
+    // 1. Check if user_id is provided as a valid ObjectId AND matches targetEmail
     if (user_id && mongoose.Types.ObjectId.isValid(user_id)) {
       const existingUser = await User.findById(user_id);
       if (existingUser) {
-        resolvedUserId = existingUser._id;
+        // Only use user_id if email matches, or if email was not specified separately
+        if (!email || existingUser.email.toLowerCase() === targetEmail) {
+          resolvedUserId = existingUser._id;
+          if (orgId && !existingUser.organizationId) {
+            existingUser.organizationId = orgId;
+            await existingUser.save();
+          }
+        }
       }
     }
 
     // 2. If not resolved by ObjectId, check or create by email
-    const targetEmail = (email || user_id || "").trim().toLowerCase();
-
     if (!resolvedUserId) {
       if (!targetEmail) {
         return res.status(400).json({
@@ -195,6 +248,7 @@ export const createEmployee = async (req, res) => {
           message: "User account selection or email is required",
         });
       }
+
 
       // Simple email validation regex
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -217,22 +271,24 @@ export const createEmployee = async (req, res) => {
           const cleanedPhone = String(phone).replace(/\D/g, "");
           if (cleanedPhone) existingUser.phone = cleanedPhone;
         }
-        if (role) {
+        // Only Super Admin can assign HR or other elevated roles.
+        // HR created persons are strictly "Employee".
+        const isSuperAdmin = req.user?.role === "SUPER_ADMIN";
+        if (isSuperAdmin && role) {
           existingUser.role = role;
+        } else {
+          existingUser.role = "Employee";
+        }
+        if (orgId && !existingUser.organizationId) {
+          existingUser.organizationId = orgId;
         }
         await existingUser.save();
       } else {
-        // Auto-create user account
+        // Auto-create user account - HR created persons are ALWAYS "Employee"
+        const isSuperAdmin = req.user?.role === "SUPER_ADMIN";
         const userName = (name || targetEmail.split("@")[0] || "Employee").trim();
         const userPhone = phone ? String(phone).replace(/\D/g, "") : "0000000000";
-        const userRole = role || "Employee";
-
-        // Get department name
-        let deptName = "General";
-        if (mongoose.Types.ObjectId.isValid(department_id)) {
-          const deptDoc = await Department.findById(department_id);
-          if (deptDoc) deptName = deptDoc.departmentName;
-        }
+        const userRole = isSuperAdmin && role ? role : "Employee";
 
         // Generate strong hashed password that matches policy: Emp@12345
         const defaultHash = await bcrypt.hash("Emp@12345", 10);
@@ -244,6 +300,7 @@ export const createEmployee = async (req, res) => {
           password: defaultHash,
           role: userRole,
           department: deptName,
+          organizationId: orgId || null,
         });
 
         resolvedUserId = existingUser._id;
@@ -267,12 +324,21 @@ export const createEmployee = async (req, res) => {
     const employee = await Employee.create({
       user_id: resolvedUserId,
       employee_code,
-      department_id,
+      department_id: resolvedDepartmentId,
       designation: String(designation).trim(),
       manager_id: manager_id && mongoose.Types.ObjectId.isValid(manager_id) ? manager_id : null,
       date_of_joining,
       employment_status: employment_status || "Active",
+      organizationId: orgId || null,
     });
+
+
+    // Automatically sync newly added employee to Candidate collection for CETMS Task Allocation
+    try {
+      await syncEmployeesToCandidates(orgId || null);
+    } catch (syncErr) {
+      console.error("[Candidate Sync] Error syncing new employee:", syncErr.message);
+    }
 
     // Return populated employee data
     const populatedEmployee = await Employee.findById(employee._id)
@@ -350,9 +416,61 @@ export const getAllEmployees = async (req, res) => {
       ];
     }
 
+    // Data Isolation & Role Rules
+    const userRole = (req.user?.role || "").trim().toLowerCase();
+    const isSuperAdmin = userRole === "super_admin" || userRole === "superadmin";
+
+    if (!isSuperAdmin) {
+      const orgId = req.user?.organizationId;
+      if (!orgId) {
+        return res.status(200).json({
+          success: true,
+          message: "No organization assigned",
+          totalEmployees: 0,
+          currentPage: pageNumber,
+          totalPages: 0,
+          employees: [],
+        });
+      }
+
+      // Exclude HR and Super Admin users from the operational employees directory
+      const excludedUsers = await User.find({
+        role: {
+          $in: [
+            "SUPER_ADMIN",
+            "super_admin",
+            "Super Admin",
+            "HR",
+            "HR Manager",
+            "hr_manager",
+            "hr",
+            "Human Resources",
+          ],
+        },
+      }).select("_id");
+      const excludedUserIds = excludedUsers.map((u) => u._id);
+
+      const orgUsers = await User.find({
+        organizationId: orgId,
+        _id: { $nin: excludedUserIds },
+      }).select("_id");
+      const orgUserIds = orgUsers.map((u) => u._id);
+
+      filter.$and = filter.$and || [];
+      filter.$and.push({
+        $or: [
+          { organizationId: orgId },
+          { user_id: { $in: orgUserIds } },
+        ],
+        user_id: { $in: orgUserIds },
+      });
+    } else if (req.query.organizationId) {
+      filter.organizationId = req.query.organizationId;
+    }
+
     const totalEmployees = await Employee.countDocuments(filter);
 
-    const employees = await Employee.find(filter)
+    let queryBuilder = Employee.find(filter)
       .populate("user_id", "name email role phone")
       .populate(
         "department_id",
@@ -362,6 +480,13 @@ export const getAllEmployees = async (req, res) => {
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limitNumber);
+
+    // If caller is regular Employee, strip private compensation/banking details
+    if (userRole === "employee") {
+      queryBuilder = queryBuilder.select("-month_salary -account_number -ifsc_code -pan_number -aadhaar_number");
+    }
+
+    const employees = await queryBuilder;
 
     return res.status(200).json({
       success: true,
@@ -409,6 +534,19 @@ export const getEmployeeById = async (req, res) => {
         success: false,
         message: "Employee not found",
       });
+    }
+
+    const userRole = (req.user?.role || "").trim().toLowerCase();
+    const isSuperAdmin = userRole === "super_admin" || userRole === "superadmin";
+    if (!isSuperAdmin) {
+      const orgId = req.user?.organizationId?.toString();
+      const empOrgId = employee.organizationId?.toString();
+      if (!orgId || (empOrgId && orgId !== empOrgId)) {
+        return res.status(403).json({
+          success: false,
+          message: "Access denied: Employee does not belong to your organization",
+        });
+      }
     }
 
     return res.status(200).json({
@@ -463,9 +601,38 @@ export const updateEmployee = async (req, res) => {
       });
     }
 
+    const userRole = (req.user?.role || "").trim().toLowerCase();
+    const isSuperAdmin = userRole === "super_admin" || userRole === "superadmin";
+    if (!isSuperAdmin) {
+      const orgId = req.user?.organizationId?.toString();
+      const empOrgId = employee.organizationId?.toString();
+      if (!orgId || (empOrgId && orgId !== empOrgId)) {
+        return res.status(403).json({
+          success: false,
+          message: "Access denied: Employee does not belong to your organization",
+        });
+      }
+    }
+
     // Update Employee document fields
     if (department_id !== undefined && department_id) {
-      employee.department_id = department_id;
+      if (mongoose.Types.ObjectId.isValid(department_id)) {
+        employee.department_id = department_id;
+      } else {
+        let foundDept = await Department.findOne({
+          departmentName: { $regex: new RegExp(`^${String(department_id).trim()}$`, "i") },
+        });
+        if (!foundDept) {
+          const nextId = await generateNextDepartmentId();
+          foundDept = await Department.create({
+            departmentId: nextId,
+            departmentName: String(department_id).trim(),
+            description: `${String(department_id).trim()} Department`,
+            status: "Active",
+          });
+        }
+        employee.department_id = foundDept._id;
+      }
     }
     if (designation !== undefined && String(designation).trim()) {
       employee.designation = String(designation).trim();
@@ -514,7 +681,12 @@ export const updateEmployee = async (req, res) => {
         }
 
         if (role !== undefined && String(role).trim()) {
-          user.role = String(role).trim();
+          const isSuperAdmin = req.user?.role === "SUPER_ADMIN";
+          if (isSuperAdmin) {
+            user.role = String(role).trim();
+          } else {
+            user.role = "Employee";
+          }
         }
 
         if (department_id !== undefined && department_id && mongoose.Types.ObjectId.isValid(department_id)) {
@@ -524,6 +696,12 @@ export const updateEmployee = async (req, res) => {
 
         await user.save();
       }
+    }
+
+    try {
+      await syncEmployeesToCandidates(employee.organizationId || null);
+    } catch (syncErr) {
+      console.error("[Candidate Sync] Error syncing updated employee:", syncErr.message);
     }
 
     const updatedEmployee = await Employee.findById(employee._id)
@@ -578,6 +756,19 @@ export const deleteEmployee = async (req, res) => {
         success: false,
         message: "Employee not found",
       });
+    }
+
+    const userRole = (req.user?.role || "").trim().toLowerCase();
+    const isSuperAdmin = userRole === "super_admin" || userRole === "superadmin";
+    if (!isSuperAdmin) {
+      const orgId = req.user?.organizationId?.toString();
+      const empOrgId = employee.organizationId?.toString();
+      if (!orgId || (empOrgId && orgId !== empOrgId)) {
+        return res.status(403).json({
+          success: false,
+          message: "Access denied: Employee does not belong to your organization",
+        });
+      }
     }
 
     // Preserve historical attendance, leave, payroll, and references:

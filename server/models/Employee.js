@@ -69,6 +69,74 @@ const employeeSchema = new mongoose.Schema(
       enum: ["Active", "Inactive"],
       default: "Active",
     },
+
+    // ==========================================
+    // ORGANIZATION REFERENCE
+    // Links Employee with Organization
+    // ==========================================
+    organizationId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Organization",
+      default: null,
+    },
+
+    // ==========================================
+    // PAYROLL & BONUS FIELDS
+    // ==========================================
+    month_salary: {
+      type: Number,
+      default: 50000,
+      min: 0,
+    },
+
+    account_number: {
+      type: String,
+      default: "XXXX6787",
+      trim: true,
+    },
+
+    ifsc_code: {
+      type: String,
+      default: "HDFC0001234",
+      trim: true,
+    },
+
+    bank_name: {
+      type: String,
+      default: "HDFC Bank",
+      trim: true,
+    },
+
+    branch: {
+      type: String,
+      default: "Main Branch",
+      trim: true,
+    },
+
+    upi_id: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
+    last_payment_date: {
+      type: Date,
+      default: null,
+    },
+
+    last_bonus_date: {
+      type: Date,
+      default: null,
+    },
+
+    bonus_history: [
+      {
+        amount: { type: Number, required: true },
+        paidAt: { type: Date, default: Date.now },
+        transactionRef: { type: String, default: "" },
+        note: { type: String, default: "" },
+      },
+    ],
   },
   {
     timestamps: true,

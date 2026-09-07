@@ -25,42 +25,42 @@ router.put("/profile", verifyToken, updateMyProfile);
 router.post(
   "/",
   verifyToken,
-  authorizeRoles("Admin", "HR", "HR Manager"),
+  authorizeRoles("Admin", "super_admin", "HR", "HR Manager"),
   createEmployee
 );
 
 router.get(
   "/",
   verifyToken,
-  authorizeRoles("Admin", "HR", "HR Manager"),
+  authorizeRoles("Admin", "super_admin", "HR", "HR Manager", "Employee"),
   getAllEmployees
 );
 
 router.get(
   "/:id",
   verifyToken,
-  authorizeRoles("Admin", "HR", "HR Manager"),
+  authorizeRoles("Admin", "super_admin", "HR", "HR Manager"),
   getEmployeeById
 );
 
 router.put(
   "/:id",
   verifyToken,
-  authorizeRoles("Admin", "HR", "HR Manager"),
+  authorizeRoles("Admin", "super_admin", "HR", "HR Manager"),
   updateEmployee
 );
 
 router.delete(
   "/:id",
   verifyToken,
-  authorizeRoles("Admin", "HR", "HR Manager"),
+  authorizeRoles("Admin", "super_admin", "HR", "HR Manager"),
   deleteEmployee
 );
 
 router.patch(
   "/:id/status",
   verifyToken,
-  authorizeRoles("Admin", "HR", "HR Manager"),
+  authorizeRoles("Admin", "super_admin", "HR", "HR Manager"),
   updateEmployeeStatus
 );
 
