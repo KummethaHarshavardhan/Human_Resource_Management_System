@@ -1,5 +1,19 @@
 import mongoose from "mongoose";
 
+export const DEPARTMENT_ENUM = [
+  "Human Resource",
+  "HR",
+  "Manager",
+  "Employee",
+  "Sales",
+  "Executive Administration",
+  "Finance",
+  "Marketing",
+  "Engineering",
+  "Operations",
+  "General",
+];
+
 const departmentSchema = new mongoose.Schema(
   {
     departmentId: {
@@ -14,6 +28,10 @@ const departmentSchema = new mongoose.Schema(
       required: true,
       unique: true,
       trim: true,
+      enum: {
+        values: DEPARTMENT_ENUM,
+        message: "{VALUE} is not a supported department",
+      },
     },
 
     description: {
