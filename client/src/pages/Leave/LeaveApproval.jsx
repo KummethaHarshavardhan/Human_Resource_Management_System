@@ -34,7 +34,7 @@ const statusBadge = (status) => {
  *   currentUserId  — used as a safety guard to never show approve/reject on
  *                    the current user's own leave
  */
-export default function LeaveApproval({ leaves = [], refreshLeaves, currentUserId }) {
+export default function LeaveApproval({ leaves = [], refreshLeaves, currentUserId, readOnly = false }) {
   const [processing, setProcessing] = useState({});
   const [messages,   setMessages]   = useState({});
 
@@ -82,9 +82,13 @@ export default function LeaveApproval({ leaves = [], refreshLeaves, currentUserI
       <div className="leave-sub-header">
         <div>
           <h2 className="leave-sub-title">
-            <FiUsers size={18} /> Team Leave Requests
+            <FiUsers size={18} /> {readOnly ? "Team Leave Applications" : "Team Leave Requests"}
           </h2>
-          <p className="leave-sub-subtitle">Review and action pending team leave requests.</p>
+          <p className="leave-sub-subtitle">
+            {readOnly
+              ? "Review your team's submitted leave requests. Approval decisions are handled by Super Admin."
+              : "Review and action pending team leave requests."}
+          </p>
         </div>
         {pendingLeaves.length > 0 && (
           <span className="badge badge-warning">{pendingLeaves.length} Pending</span>
@@ -164,29 +168,36 @@ export default function LeaveApproval({ leaves = [], refreshLeaves, currentUserI
                   </div>
                 )}
 
-                {/* Actions — Approve / Reject (no Cancel) */}
-                <div className="approval-actions-pro">
-                  <button
-                    id={`approval-approve-${leave._id}`}
-                    type="button"
-                    className="btn-primary"
-                    onClick={() => handleApprove(leave._id)}
-                    disabled={isApproving || isRejecting}
-                  >
-                    <FiCheckCircle size={14} />
-                    {isApproving ? "Approving…" : "Approve"}
-                  </button>
-                  <button
-                    id={`approval-reject-${leave._id}`}
-                    type="button"
-                    className="btn-danger"
-                    onClick={() => handleReject(leave._id)}
-                    disabled={isApproving || isRejecting}
-                  >
-                    <FiXCircle size={14} />
-                    {isRejecting ? "Rejecting…" : "Reject"}
-                  </button>
-                </div>
+                {/* Actions — Approve / Reject for Admin, View Only for HR */}
+                {readOnly ? (
+                  <div style={{ marginTop: "12px", padding: "8px 12px", background: "#f8fafc", borderRadius: "6px", fontSize: "0.8rem", color: "#64748b", display: "flex", alignItems: "center", gap: "6px", border: "1px solid #e2e8f0" }}>
+                    <FiCalendar size={13} color="#f59e0b" />
+                    <span>Awaiting Super Admin Decision (View Only)</span>
+                  </div>
+                ) : (
+                  <div className="approval-actions-pro">
+                    <button
+                      id={`approval-approve-${leave._id}`}
+                      type="button"
+                      className="btn-primary"
+                      onClick={() => handleApprove(leave._id)}
+                      disabled={isApproving || isRejecting}
+                    >
+                      <FiCheckCircle size={14} />
+                      {isApproving ? "Approving…" : "Approve"}
+                    </button>
+                    <button
+                      id={`approval-reject-${leave._id}`}
+                      type="button"
+                      className="btn-danger"
+                      onClick={() => handleReject(leave._id)}
+                      disabled={isApproving || isRejecting}
+                    >
+                      <FiXCircle size={14} />
+                      {isRejecting ? "Rejecting…" : "Reject"}
+                    </button>
+                  </div>
+                )}
               </div>
             );
           })}

@@ -19,6 +19,7 @@ import ForgotPassword from "./pages/ForgotPassword/ForgotPassword";
 import VerifyOTP from "./pages/VerifyOTP/VerifyOTP";
 import ResetPassword from "./pages/ResetPassword/ResetPassword";
 import ChangePassword from "./pages/ChangePassword/ChangePassword";
+import ReviewQueuePage from "./pages/TaskMonitoring/Reviews/ReviewQueuePage";
 
 /* ================= SUPER ADMIN ================= */
 
@@ -682,6 +683,15 @@ function AppRoutes() {
           element={
             <ProtectedRoute allowedRoles={["Admin", "HR Manager", "HR"]}>
               <SubmissionListPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/hr/reviews"
+          element={
+            <ProtectedRoute allowedRoles={["Admin", "HR Manager", "HR"]}>
+              <ReviewQueuePage />
             </ProtectedRoute>
           }
         />
