@@ -21,7 +21,8 @@ import assignmentRoutes from "./routes/assignmentRoutes.js";
 import payslipRoutes from "./routes/payslipRoutes.js";
 import reportRoutes from "./routes/reportRoutes.js";
 import analyticsRoutes from "./routes/analyticsRoutes.js";
-
+import reviewRoutes from "./routes/reviewRoutes.js";
+import submissionRoutes from "./routes/submissionRoutes.js";
 import salaryRoutes from "./routes/salaryRoutes.js";
 import payrollRoutes from "./routes/payrollRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
@@ -63,7 +64,8 @@ app.use("/api/assignments", assignmentRoutes);
 app.use("/api/payslips", payslipRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/analytics", analyticsRoutes);
-
+app.use("/api/reviews", reviewRoutes);
+app.use("/api/submissions", submissionRoutes);
 app.use("/api/salaries", salaryRoutes);
 app.use("/api/payrolls", payrollRoutes);
 app.use("/api/notifications", notificationRoutes);
