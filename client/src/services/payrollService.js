@@ -81,8 +81,10 @@ export const deactivateSalary = async (id) => {
 
 // ================= PAYROLL APIs =================
 
-export const getAllPayrolls = async () => {
-  const res = await fetch(`${API_BASE}/payrolls`, {
+export const getAllPayrolls = async (params = {}) => {
+  const query = new URLSearchParams(params).toString();
+  const url = query ? `${API_BASE}/payrolls?${query}` : `${API_BASE}/payrolls`;
+  const res = await fetch(url, {
     method: 'GET',
     headers: getAuthHeaders(),
   });

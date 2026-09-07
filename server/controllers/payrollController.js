@@ -110,7 +110,68 @@ export const generatePayroll = async (req, res) => {
 
 export const getAllPayrolls = async (req, res) => {
   try {
-    const payrolls = await Payroll.find()
+    const userRole = (req.user?.role || '').toLowerCase();
+    const isSuperAdmin = userRole === 'super_admin' || userRole === 'superadmin';
+    let query = {};
+
+    if (!isSuperAdmin) {
+      const isEmployee = userRole === 'employee';
+      if (isEmployee || req.query?.scope === 'my' || req.query?.my === 'true') {
+        const userId = req.user._id || req.user.id;
+        let myEmp = await Employee.findOne({ user_id: userId });
+        if (!myEmp && req.user.email) {
+          const userRecord = await Employee.base.model("Employees").findOne({ email: req.user.email });
+          if (userRecord) {
+            myEmp = await Employee.findOne({ user_id: userRecord._id });
+          }
+        }
+        if (!myEmp) {
+          return res.status(200).json({ success: true, count: 0, data: [] });
+        }
+        query.employeeId = myEmp._id;
+      } else {
+        if (!req.user?.organizationId) {
+          return res.status(200).json({
+            success: true,
+            count: 0,
+            data: [],
+          });
+        }
+
+        if (req.query?.scope === 'employees') {
+          // HR / Admin viewing employees only: exclude HR's own record from the list
+          const userId = req.user._id || req.user.id;
+          let myEmp = await Employee.findOne({ user_id: userId });
+          if (!myEmp && req.user.email) {
+            const userRecord = await Employee.base.model("Employees").findOne({ email: req.user.email });
+            if (userRecord) {
+              myEmp = await Employee.findOne({ user_id: userRecord._id });
+            }
+          }
+
+          const filter = { organizationId: req.user.organizationId };
+          if (myEmp) {
+            filter._id = { $ne: myEmp._id };
+          }
+          const orgEmps = await Employee.find(filter).select("_id");
+          query.employeeId = { $in: orgEmps.map((e) => e._id) };
+        } else {
+          // HR / Org Admin default: see all employees in their organization PLUS their own employee record
+          const orgEmps = await Employee.find({
+            $or: [
+              { organizationId: req.user.organizationId },
+              { user_id: req.user._id || req.user.id }
+            ]
+          }).select("_id");
+          query.employeeId = { $in: orgEmps.map((e) => e._id) };
+        }
+      }
+    } else if (req.query?.organizationId) {
+      const orgEmps = await Employee.find({ organizationId: req.query.organizationId }).select("_id");
+      query.employeeId = { $in: orgEmps.map((e) => e._id) };
+    }
+
+    const payrolls = await Payroll.find(query)
       .populate(populateEmployee)
       .sort({ year: -1, month: -1, createdAt: -1 });
 
@@ -132,6 +193,20 @@ export const getAllPayrolls = async (req, res) => {
 export const getPayrollsByEmployee = async (req, res) => {
   try {
     const { employeeId } = req.params;
+    const userRole = (req.user?.role || '').toLowerCase();
+    const isSuperAdmin = userRole === 'super_admin' || userRole === 'superadmin';
+
+    if (!isSuperAdmin) {
+      const targetEmp = await Employee.findById(employeeId);
+      if (!targetEmp) {
+        return res.status(404).json({ success: false, message: "Employee not found" });
+      }
+      const isOwnRecord = String(targetEmp.user_id) === String(req.user?._id || req.user?.id);
+      const isSameOrg = req.user?.organizationId && String(targetEmp.organizationId) === String(req.user.organizationId);
+      if (!isOwnRecord && !isSameOrg) {
+        return res.status(403).json({ success: false, message: "Access denied: unauthorized organization" });
+      }
+    }
 
     const payrolls = await Payroll.find({ employeeId })
       .populate(populateEmployee)
@@ -154,6 +229,8 @@ export const getPayrollsByEmployee = async (req, res) => {
 export const getPayrollById = async (req, res) => {
   try {
     const { id } = req.params;
+    const userRole = (req.user?.role || '').toLowerCase();
+    const isSuperAdmin = userRole === 'super_admin' || userRole === 'superadmin';
 
     const payroll = await Payroll.findById(id).populate(populateEmployee);
 
@@ -162,6 +239,15 @@ export const getPayrollById = async (req, res) => {
         success: false,
         message: "Payroll record not found",
       });
+    }
+
+    if (!isSuperAdmin) {
+      const emp = await Employee.findById(payroll.employeeId?._id || payroll.employeeId);
+      const isOwnRecord = emp && String(emp.user_id) === String(req.user?._id || req.user?.id);
+      const isSameOrg = emp && req.user?.organizationId && String(emp.organizationId) === String(req.user.organizationId);
+      if (!isOwnRecord && !isSameOrg) {
+        return res.status(403).json({ success: false, message: "Access denied: unauthorized organization" });
+      }
     }
 
     return res.status(200).json({
@@ -181,6 +267,8 @@ export const getPayrollById = async (req, res) => {
 export const markPayrollAsPaid = async (req, res) => {
   try {
     const { id } = req.params;
+    const userRole = (req.user?.role || '').toLowerCase();
+    const isSuperAdmin = userRole === 'super_admin' || userRole === 'superadmin';
 
     const payroll = await Payroll.findById(id);
 
@@ -189,6 +277,14 @@ export const markPayrollAsPaid = async (req, res) => {
         success: false,
         message: "Payroll record not found",
       });
+    }
+
+    if (!isSuperAdmin) {
+      const emp = await Employee.findById(payroll.employeeId);
+      const isSameOrg = emp && req.user?.organizationId && String(emp.organizationId) === String(req.user.organizationId);
+      if (!isSameOrg) {
+        return res.status(403).json({ success: false, message: "Access denied: unauthorized organization" });
+      }
     }
 
     if (payroll.status === "Paid") {
@@ -226,11 +322,22 @@ export const markPayrollAsPaid = async (req, res) => {
 export const downloadPayrollPDF = async (req, res) => {
   try {
     const { id } = req.params;
+    const userRole = (req.user?.role || '').toLowerCase();
+    const isSuperAdmin = userRole === 'super_admin' || userRole === 'superadmin';
 
     const payroll = await Payroll.findById(id).populate(populateEmployee);
 
     if (!payroll) {
       return res.status(404).json({ success: false, message: "Payroll record not found" });
+    }
+
+    if (!isSuperAdmin) {
+      const empDoc = await Employee.findById(payroll.employeeId?._id || payroll.employeeId);
+      const isOwnRecord = empDoc && String(empDoc.user_id) === String(req.user?._id || req.user?.id);
+      const isSameOrg = empDoc && req.user?.organizationId && String(empDoc.organizationId) === String(req.user.organizationId);
+      if (!isOwnRecord && !isSameOrg) {
+        return res.status(403).json({ success: false, message: "Access denied: unauthorized organization" });
+      }
     }
 
     const emp = payroll.employeeId;
