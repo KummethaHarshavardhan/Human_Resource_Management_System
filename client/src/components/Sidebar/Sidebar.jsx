@@ -12,6 +12,12 @@ import {
   FiShield,
   FiSettings,
   FiLogOut,
+  FiLayers,
+  FiCheckSquare,
+  FiTrendingUp,
+  FiFileText,
+  FiCheckCircle,
+  FiUserCheck,
 } from "react-icons/fi";
 
 import "./Sidebar.css";
@@ -28,6 +34,94 @@ const menuItems = [
   { label: "Settings", to: "/settings", feature: "settings", icon: <FiSettings size={18} /> },
 ];
 
+const superAdminMenuItems = [
+  { label: "Dashboard", to: "/super-admin/dashboard", icon: <FiGrid size={18} /> },
+  { label: "Organizations", to: "/super-admin/organizations", icon: <FiLayers size={18} /> },
+  { label: "HR Management", to: "/super-admin/hr-management", icon: <FiUsers size={18} /> },
+  { label: "Organization Usage/Limits", to: "/super-admin/usage-limits", icon: <FiBarChart2 size={18} /> },
+  { label: "Leave Management", to: "/leave", icon: <FiCalendar size={18} /> },
+  { label: "Payroll", to: "/super-admin/payroll", icon: <FiDollarSign size={18} /> },
+  { label: "Profile", to: "/profile", icon: <FiUser size={18} /> },
+];
+
+// Dedicated HR Task Monitoring & Workforce Menu Sections
+const hrMenuSections = [
+  {
+    title: "OVERVIEW",
+    items: [
+      { label: "Dashboard", to: "/dashboard", icon: <FiGrid size={18} /> },
+    ],
+  },
+  {
+    title: "TASK MONITORING",
+    items: [
+      { label: "Candidates", to: "/hr/candidates", icon: <FiUserCheck size={18} /> },
+      { label: "Task Allocation", to: "/hr/tasks", icon: <FiCheckSquare size={18} /> },
+      { label: "Progress Tracking", to: "/hr/progress", icon: <FiTrendingUp size={18} /> },
+      { label: "Submissions", to: "/hr/submissions", icon: <FiFileText size={18} /> },
+      { label: "Review Queue", to: "/hr/reviews", icon: <FiCheckCircle size={18} /> },
+    ],
+  },
+  {
+    title: "WORKFORCE",
+    items: [
+      { label: "Directory", to: "/directory", icon: <FiUsers size={18} /> },
+      { label: "Attendance", to: "/attendance-dashboard", icon: <FiClock size={18} /> },
+      { label: "Leave Management", to: "/leave", icon: <FiCalendar size={18} /> },
+      { label: "Payroll", to: "/payroll", icon: <FiDollarSign size={18} /> },
+    ],
+  },
+  {
+    title: "ANALYTICS",
+    items: [
+      { label: "Reports & Analytics", to: "/hr/reports", icon: <FiBarChart2 size={18} /> },
+      { label: "Workforce Reports", to: "/reports", icon: <FiFileText size={18} /> },
+    ],
+  },
+  {
+    title: "ACCOUNT",
+    items: [
+      { label: "My Profile", to: "/profile", icon: <FiUser size={18} /> },
+      { label: "Settings", to: "/settings", icon: <FiSettings size={18} /> },
+    ],
+  },
+];
+
+// Dedicated Employee Task Monitoring & Self-Service Menu Sections
+const employeeMenuSections = [
+  {
+    title: "OVERVIEW",
+    items: [
+      { label: "Dashboard", to: "/dashboard", icon: <FiGrid size={18} /> },
+    ],
+  },
+  {
+    title: "TASK MONITORING",
+    items: [
+      { label: "My Assigned Tasks", to: "/employee/tasks", icon: <FiCheckSquare size={18} /> },
+      { label: "Progress Tracking", to: "/employee/progress", icon: <FiTrendingUp size={18} /> },
+      { label: "Submit Work", to: "/employee/submissions", icon: <FiFileText size={18} /> },
+      { label: "Performance Reports", to: "/employee/reports", icon: <FiBarChart2 size={18} /> },
+    ],
+  },
+  {
+    title: "SELF SERVICE",
+    items: [
+      { label: "Directory", to: "/directory", icon: <FiUsers size={18} /> },
+      { label: "Attendance", to: "/attendance-dashboard", icon: <FiClock size={18} /> },
+      { label: "Leave Management", to: "/leave", icon: <FiCalendar size={18} /> },
+      { label: "Payroll", to: "/payroll", icon: <FiDollarSign size={18} /> },
+    ],
+  },
+  {
+    title: "ACCOUNT",
+    items: [
+      { label: "My Profile", to: "/profile", icon: <FiUser size={18} /> },
+      { label: "Settings", to: "/settings", icon: <FiSettings size={18} /> },
+    ],
+  },
+];
+
 export default function Sidebar({
   isCollapsed = true,
   isMobileOpen = false,
@@ -36,18 +130,22 @@ export default function Sidebar({
 }) {
   const { user, logout } = useAuth();
   const role = user?.role || "";
+  const normRole = normalizeRole(role);
+  const isSuperAdmin = normRole === "super_admin";
+  const isHR = normRole === "hr_manager";
+  const isEmployee = normRole === "employee";
 
   const displayRole = (() => {
-    const norm = normalizeRole(role);
-    if (norm === "admin") return "Admin";
-    if (norm === "hr_manager") return "HR Manager";
-    if (norm === "employee") return "Employee";
+    if (normRole === "super_admin") return "Super Admin";
+    if (normRole === "admin") return "Admin";
+    if (normRole === "hr_manager") return "HR Manager";
+    if (normRole === "employee") return "Employee";
     return role;
   })();
 
-  const visibleItems = menuItems.filter((item) =>
-    canAccessFeature(role, item.feature)
-  );
+  const visibleItems = isSuperAdmin
+    ? superAdminMenuItems
+    : menuItems.filter((item) => canAccessFeature(role, item.feature));
 
   const handleLinkClick = () => {
     if (onCloseMobile) {
@@ -82,7 +180,53 @@ export default function Sidebar({
         )}
 
         <nav className="sidebar-nav" aria-label="Main Navigation">
-          {visibleItems.length === 0 ? (
+          {isHR ? (
+            hrMenuSections.map((section, idx) => (
+              <div key={section.title || idx} className="sidebar-section-group">
+                {!isCollapsed && section.title && (
+                  <div className="sidebar-section-title">{section.title}</div>
+                )}
+                {section.items.map((item) => (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    onClick={handleLinkClick}
+                    title={isCollapsed ? item.label : undefined}
+                    aria-label={item.label}
+                    className={({ isActive }) =>
+                      `sidebar-link ${isActive ? "active" : ""}`
+                    }
+                  >
+                    <span className="sidebar-icon">{item.icon}</span>
+                    {!isCollapsed && <span className="sidebar-label">{item.label}</span>}
+                  </NavLink>
+                ))}
+              </div>
+            ))
+          ) : isEmployee ? (
+            employeeMenuSections.map((section, idx) => (
+              <div key={section.title || idx} className="sidebar-section-group">
+                {!isCollapsed && section.title && (
+                  <div className="sidebar-section-title">{section.title}</div>
+                )}
+                {section.items.map((item) => (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    onClick={handleLinkClick}
+                    title={isCollapsed ? item.label : undefined}
+                    aria-label={item.label}
+                    className={({ isActive }) =>
+                      `sidebar-link ${isActive ? "active" : ""}`
+                    }
+                  >
+                    <span className="sidebar-icon">{item.icon}</span>
+                    {!isCollapsed && <span className="sidebar-label">{item.label}</span>}
+                  </NavLink>
+                ))}
+              </div>
+            ))
+          ) : visibleItems.length === 0 ? (
             <div className="sidebar-no-items">
               {!isCollapsed && "No menu items available."}
             </div>

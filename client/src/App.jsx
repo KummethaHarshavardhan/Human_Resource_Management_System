@@ -55,6 +55,14 @@ import EditRole from "./pages/Employee/roles/EditRole";
 
 import LeaveDashboard from "./pages/Leave/LeaveDashboard";
 
+/* ================= TASK MONITORING ================= */
+
+import CandidateListPage from "./pages/TaskMonitoring/Candidates/CandidateListPage";
+import CandidateDetailsPage from "./pages/TaskMonitoring/Candidates/CandidateDetailsPage";
+import TaskListPage from "./pages/TaskMonitoring/Tasks/TaskListPage";
+import CreateTaskPage from "./pages/TaskMonitoring/Tasks/CreateTaskPage";
+import TaskDetailsPage from "./pages/TaskMonitoring/Tasks/TaskDetailsPage";
+
 
 function ProtectedLayout() {
   const { isAuthenticated } = useAuth();
@@ -584,6 +592,85 @@ function AppRoutes() {
             >
               <ChangePassword />
             </ProtectedRoute>
+          }
+        />
+
+
+        {/* ================================================= */}
+        {/* TASK MONITORING - CANDIDATES */}
+        {/* ================================================= */}
+
+        <Route
+          path="/hr/candidates"
+          element={
+            <ProtectedRoute
+              allowedRoles={["HR Manager", "Admin"]}
+            >
+              <CandidateListPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/hr/candidates/:id"
+          element={
+            <ProtectedRoute
+              allowedRoles={["HR Manager", "Admin"]}
+            >
+              <CandidateDetailsPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/candidates"
+          element={
+            <Navigate to="/hr/candidates" replace />
+          }
+        />
+
+
+        {/* ================================================= */}
+        {/* TASK MONITORING - TASKS */}
+        {/* ================================================= */}
+
+        <Route
+          path="/hr/tasks"
+          element={
+            <ProtectedRoute
+              allowedRoles={["HR Manager", "Admin"]}
+            >
+              <TaskListPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/hr/tasks/create"
+          element={
+            <ProtectedRoute
+              allowedRoles={["HR Manager", "Admin"]}
+            >
+              <CreateTaskPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/hr/tasks/:id"
+          element={
+            <ProtectedRoute
+              allowedRoles={["HR Manager", "Admin"]}
+            >
+              <TaskDetailsPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/hr/task-allocation"
+          element={
+            <Navigate to="/hr/tasks" replace />
           }
         />
 
