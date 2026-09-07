@@ -62,6 +62,7 @@ import CandidateDetailsPage from "./pages/TaskMonitoring/Candidates/CandidateDet
 import TaskListPage from "./pages/TaskMonitoring/Tasks/TaskListPage";
 import CreateTaskPage from "./pages/TaskMonitoring/Tasks/CreateTaskPage";
 import TaskDetailsPage from "./pages/TaskMonitoring/Tasks/TaskDetailsPage";
+import SubmissionListPage from "./pages/TaskMonitoring/Submissions/SubmissionListPage";
 
 
 function ProtectedLayout() {
@@ -675,6 +676,15 @@ function AppRoutes() {
         />
 
       </Route>
+
+        <Route
+          path="/hr/submissions"
+          element={
+            <ProtectedRoute allowedRoles={["Admin", "HR Manager", "HR"]}>
+              <SubmissionListPage />
+            </ProtectedRoute>
+          }
+        />
 
 
       {/* ================================================= */}
