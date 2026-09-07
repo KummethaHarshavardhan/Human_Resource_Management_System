@@ -1,7 +1,12 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
+import { normalizeRole } from "./permission.js";
 
-export default function ProtectedRoute({ children, allowedRoles }) {
+export default function ProtectedRoute({ 
+  children, 
+  allowedRoles = [] 
+}) {
+
   const { isAuthenticated, user, loading } = useAuth();
 
   if (loading) {
@@ -12,14 +17,17 @@ export default function ProtectedRoute({ children, allowedRoles }) {
     return <Navigate to="/login" replace />;
   }
 
-  const normalizedRole = user?.role?.toString().toLowerCase() || "";
-  const normalizedAllowed = Array.isArray(allowedRoles)
-    ? allowedRoles.map((role) => role.toString().toLowerCase())
-    : [];
+  const userRole = normalizeRole(user?.role);
 
-  if (allowedRoles && normalizedAllowed.length && !normalizedAllowed.includes(normalizedRole)) {
-    return <Navigate to="/" replace />;
+  if (
+    allowedRoles.length > 0 &&
+    !allowedRoles
+      .map(role => normalizeRole(role))
+      .includes(userRole)
+  ) {
+    return <Navigate to={userRole === "super_admin" ? "/super-admin/dashboard" : "/dashboard"} replace />;
   }
+
 
   return children;
 }

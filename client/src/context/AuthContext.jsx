@@ -1,89 +1,141 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useContext, useMemo, useState, useEffect } from "react";
 
 const AuthContext = createContext(null);
-const STORAGE_KEY = "hrms-auth";
 
-const DEFAULT_USER = {
-  name: "Vamsi",
-  role: "admin",
-  email: "vamsi@company.com",
-};
 
 export function AuthProvider({ children }) {
+
+
   const [user, setUser] = useState(() => {
     try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const data = JSON.parse(stored);
-        return data.user || DEFAULT_USER;
-      }
-    } catch (e) {
-      /* ignore */
+      const savedUser = localStorage.getItem("user");
+      return savedUser ? JSON.parse(savedUser) : null;
+    } catch {
+      return null;
     }
-    return DEFAULT_USER;
   });
 
   const [token, setToken] = useState(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const data = JSON.parse(stored);
-        return data.token || "dev-token";
-      }
-    } catch (e) {
-      /* ignore */
-    }
-    return "dev-token";
+    return localStorage.getItem("token") || null;
   });
+
+
 
   const [loading, setLoading] = useState(false);
 
-  const persistAuth = (nextUser, nextToken) => {
-    setUser(nextUser);
-    setToken(nextToken);
-    try {
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify({ user: nextUser, token: nextToken })
-      );
-    } catch (e) {
-      /* ignore */
-    }
+
+
+  const login = ({ user, token }) => {
+
+    setUser(user);
+    setToken(token);
+
+    localStorage.setItem(
+      "user",
+      JSON.stringify(user)
+    );
+
+    localStorage.setItem(
+      "token",
+      token
+    );
   };
 
-  const login = ({ user: nextUser, token: nextToken }) => {
-    persistAuth(nextUser, nextToken);
-  };
+
 
   const logout = () => {
+
     setUser(null);
     setToken(null);
-    try {
-      localStorage.removeItem(STORAGE_KEY);
-    } catch (e) {
-      /* ignore */
-    }
+
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+
   };
 
-  const value = useMemo(
-    () => ({
-      user,
-      token,
-      loading,
-      isAuthenticated: Boolean(user && token),
-      login,
-      logout,
-    }),
-    [user, token, loading]
+  const updateUser = (updatedUser) => {
+    setUser(updatedUser);
+    localStorage.setItem("user", JSON.stringify(updatedUser));
+  };
+
+  // Validate token on startup — if token is invalid/expired, clear auth state
+  useEffect(() => {
+    const validateToken = async () => {
+      if (!token) return;
+
+      try {
+        const res = await fetch('/api/profile', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          }
+        });
+
+        if (!res.ok) {
+          // token invalid or expired
+          logout();
+        } else {
+          const data = await res.json();
+          // ensure local user matches server
+          if (data?.user) {
+            setUser(data.user);
+            localStorage.setItem('user', JSON.stringify(data.user));
+          }
+        }
+      } catch (err) {
+        logout();
+      }
+    };
+
+    validateToken();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
+
+  const value = useMemo(()=>({
+
+    user,
+    token,
+    loading,
+
+    isAuthenticated: Boolean(token && user),
+
+    login,
+    logout,
+    updateUser
+
+  }),[user,token,loading]);
+
+
+
+  return (
+
+    <AuthContext.Provider value={value}>
+
+      {children}
+
+    </AuthContext.Provider>
+
   );
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used inside AuthProvider");
-  }
-  return context;
+
+
+export function useAuth(){
+
+ const context = useContext(AuthContext);
+
+
+ if(!context){
+
+  throw new Error(
+    "useAuth must be used inside AuthProvider"
+  );
+
+ }
+
+
+ return context;
+
 }

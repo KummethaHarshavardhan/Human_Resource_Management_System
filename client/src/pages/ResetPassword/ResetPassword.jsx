@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { resetPassword } from '../../api';
+import { resetPassword } from '../../services/api';
 import './ResetPassword.css';
 import logo from '../../assets/infinetra-logo.png';
 
@@ -133,9 +133,6 @@ function ResetPassword() {
 
         <div className="login-form-box">
 
-          <div className="theme-icon">
-            ☾
-          </div>
 
           <h2>Reset Password</h2>
 

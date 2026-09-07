@@ -1,5 +1,4 @@
+import { Navigate } from "react-router-dom";
 export default function Employee() {
-  return <div className="page" >
-   <h2>Employee</h2> 
-    </div>
+  return <Navigate to="/employee" replace />;
 }

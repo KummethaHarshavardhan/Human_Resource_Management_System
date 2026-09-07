@@ -1,6 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { loginUser, googleLoginUser } from '../../api';
+import { loginUser, googleLoginUser } from '../../services/api';
+import { useAuth } from "../../context/AuthContext.jsx";
+import { useToast } from "../../context/ToastContext.jsx";
+import { FiEye, FiEyeOff } from 'react-icons/fi';
+import { normalizeRole } from '../../utils/permission.js';
 import logo from '../../assets/infinetra-logo.png';
 import './Login.css';
 
@@ -8,19 +12,15 @@ function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [toast, setToast] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  const [showPasskeyModal, setShowPasskeyModal] = useState(false);
+
   const navigate = useNavigate();
+  const { login } = useAuth();
+  const { showToast } = useToast();
   const googleButtonRef = useRef(null);
 
-  const showToast = (type, message) => {
-    setToast({ type, message });
-
-    setTimeout(() => {
-      setToast(null);
-    }, 3000);
-  };
 
   useEffect(() => {
     const scriptId = 'google-identity-script';
@@ -69,18 +69,20 @@ function Login() {
 
       const data = await googleLoginUser(response.credential);
 
-      if (data.user) {
-        localStorage.setItem('user', JSON.stringify(data.user));
-      }
-
-      if (data.token) {
-        localStorage.setItem('token', data.token);
-      }
+      login({
+        user: data.user,
+        token: data.token
+      });
 
       showToast('success', 'Google login successful');
 
+      const userRole = normalizeRole(data.user?.role);
       setTimeout(() => {
-        navigate('/dashboard');
+        if (userRole === 'super_admin') {
+          navigate('/super-admin/dashboard');
+        } else {
+          navigate('/dashboard');
+        }
       }, 1200);
     } catch (error) {
       console.error('Google login error:', error);
@@ -116,6 +118,23 @@ function Login() {
     }
   };
 
+  const openPasskeyModal = () => {
+    setShowPasskeyModal(true);
+  };
+
+  const closePasskeyModal = () => {
+    setShowPasskeyModal(false);
+  };
+
+  const handlePasskeySuccess = () => {
+  
+    sessionStorage.setItem('passkeyVerified', 'true');
+
+    setShowPasskeyModal(false);
+    showToast('success', 'Passkey verified');
+    navigate('/register');
+  };
+
   const handleLogin = async (e) => {
     e.preventDefault();
 
@@ -132,18 +151,20 @@ function Login() {
         password
       });
 
-      if (data.user) {
-        localStorage.setItem('user', JSON.stringify(data.user));
-      }
-
-      if (data.token) {
-        localStorage.setItem('token', data.token);
-      }
+      login({
+        user: data.user,
+        token: data.token
+      });
 
       showToast('success', 'Login successful');
 
+      const userRole = normalizeRole(data.user?.role);
       setTimeout(() => {
-        navigate('/dashboard');
+        if (userRole === 'super_admin') {
+          navigate('/super-admin/dashboard');
+        } else {
+          navigate('/dashboard');
+        }
       }, 1200);
     } catch (error) {
       console.error('Login error:', error);
@@ -171,22 +192,6 @@ function Login() {
 
   return (
     <div className="login-container">
-
-      {toast && (
-        <div className={`login-toast ${toast.type}`}>
-          <div className="toast-icon">
-            {toast.type === 'success' ? '✓' : '✕'}
-          </div>
-
-          <div className="toast-content">
-            <strong>
-              {toast.type === 'success' ? 'Success' : 'Error'}
-            </strong>
-            <span>{toast.message}</span>
-          </div>
-        </div>
-      )}
-
       <div className="login-left">
         <div className="brand-section">
 
@@ -259,7 +264,11 @@ function Login() {
       <div className="login-right">
         <div className="login-form-box">
 
-          <div className="theme-icon">☾</div>
+          {/* Mobile-only logo header */}
+          <div className="mobile-logo-header">
+            <img src={logo} alt="Infinetra Logo" className="mobile-logo" />
+            <span className="mobile-brand-name">Infinetra HRMS</span>
+          </div>
 
           <h2>Welcome back</h2>
 
@@ -292,21 +301,22 @@ function Login() {
                   onChange={(e) => setPassword(e.target.value)}
                 />
 
+                <button
+                  type="button"
+                  className="password-toggle-btn"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  title={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+                </button>
+
               </div>
             </div>
 
+
             <div className="form-row">
 
-              <label className="checkbox-label">
-                <input
-                  type="checkbox"
-                  name="remember"
-                  checked={showPassword}
-                  onChange={(e) => setShowPassword(e.target.checked)}
-                />
-
-                Remember Me
-              </label>
 
               <div>
                 <Link
@@ -354,18 +364,7 @@ function Login() {
 
           </form>
 
-          <p className="register-text">
-            New to Infinetra?{' '}
-
-            <Link
-              to="/register"
-              className="link"
-            >
-              Register now
-            </Link>
-          </p>
-
-          <p className="powered-by">
+          <p className="powered-by" style={{ marginTop: '24px' }}>
             POWERED BY INFINETRA TECH
           </p>
 
@@ -376,4 +375,3 @@ function Login() {
 }
 
 export default Login;
-

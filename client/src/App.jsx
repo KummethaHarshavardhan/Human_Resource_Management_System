@@ -1,159 +1,714 @@
+import { useState } from "react";
+import {
+  BrowserRouter,
+  Navigate,
+  Outlet,
+  Route,
+  Routes,
+  useLocation,
+} from "react-router-dom";
 
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useAuth } from "./context/AuthContext";
+import Header from "./components/Header/Header";
+import Sidebar from "./components/Sidebar/Sidebar";
+import ProtectedRoute from "./utils/ProtectedRoute";
 
-function App() {
-  const [count, setCount] = useState(0)
+import Login from "./pages/Login/Login";
+import Register from "./pages/Register/Register";
+import ForgotPassword from "./pages/ForgotPassword/ForgotPassword";
+import VerifyOTP from "./pages/VerifyOTP/VerifyOTP";
+import ResetPassword from "./pages/ResetPassword/ResetPassword";
+import ChangePassword from "./pages/ChangePassword/ChangePassword";
+
+/* ================= SUPER ADMIN ================= */
+
+import SuperAdminDashboard from "./pages/SuperAdmin/SuperAdminDashboard";
+import Organizations from "./pages/SuperAdmin/Organizations";
+import HRManagement from "./pages/SuperAdmin/HRManagement";
+import OrganizationUsage from "./pages/SuperAdmin/OrganizationUsage";
+
+/* ================= EXISTING PAGES ================= */
+
+import Dashboard from "./pages/Dashboard/Dashboard";
+import Profile from "./pages/Profile/Profile";
+
+import AttendanceDashboard from "./pages/Attendance/AttendanceDashboard";
+
+import PayrollRoutes from "./routes/PayrollRoutes";
+import ReportsRoutes from "./routes/ReportsRoutes";
+import Settings from "./pages/Settings/Settings";
+import Users from "./pages/Users/Users";
+
+import EmployeeList from "./pages/Employee/EmployeeList";
+import AddEmployee from "./pages/Employee/AddEmployee";
+import EditEmployee from "./pages/Employee/EditEmployee";
+import EmployeeDetails from "./pages/Employee/EmployeeDetails";
+import EmployeeProfile from "./pages/Employee/EmployeeProfile";
+
+import DepartmentList from "./pages/Employee/departments/DepartmentList";
+import AddDepartment from "./pages/Employee/departments/AddDepartment";
+import EditDepartment from "./pages/Employee/departments/EditDepartment";
+
+import RoleList from "./pages/Employee/roles/RoleList";
+import AddRole from "./pages/Employee/roles/AddRole";
+import EditRole from "./pages/Employee/roles/EditRole";
+
+import LeaveDashboard from "./pages/Leave/LeaveDashboard";
+
+/* ================= TASK MONITORING ================= */
+
+import CandidateListPage from "./pages/TaskMonitoring/Candidates/CandidateListPage";
+import CandidateDetailsPage from "./pages/TaskMonitoring/Candidates/CandidateDetailsPage";
+import TaskListPage from "./pages/TaskMonitoring/Tasks/TaskListPage";
+import CreateTaskPage from "./pages/TaskMonitoring/Tasks/CreateTaskPage";
+import TaskDetailsPage from "./pages/TaskMonitoring/Tasks/TaskDetailsPage";
+
+
+function ProtectedLayout() {
+  const { isAuthenticated } = useAuth();
+
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  const handleToggleSidebar = () => {
+    if (window.innerWidth <= 1024) {
+      setIsMobileOpen((prev) => !prev);
+    } else {
+      setIsSidebarCollapsed((prev) => !prev);
+    }
+  };
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div
+      className={`app-layout ${
+        isSidebarCollapsed ? "sidebar-collapsed" : ""
+      }`}
+    >
+      {isMobileOpen && (
+        <div
+          className="sidebar-backdrop"
+          onClick={() => setIsMobileOpen(false)}
+        />
+      )}
 
-      <div className="ticks"></div>
+      <Sidebar
+        isCollapsed={isSidebarCollapsed}
+        isMobileOpen={isMobileOpen}
+        onToggleSidebar={handleToggleSidebar}
+        onCloseMobile={() => setIsMobileOpen(false)}
+      />
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+      <div className="app-main-wrapper">
+        <Header onToggleSidebar={handleToggleSidebar} />
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+        <main className="app-main-content">
+          <Outlet />
+        </main>
+      </div>
+    </div>
+  );
 }
 
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
-import Login from './pages/Login/Login';
-import Register from './pages/Register/Register';
-import ForgotPassword from './pages/ForgotPassword/ForgotPassword';
-import ResetPassword from './pages/ResetPassword/ResetPassword';
-import Dashboard from './pages/Dashboard/Dashboard';
-import Profile from './pages/Profile/Profile';
+function AppRoutes() {
+  const { isAuthenticated, user } = useAuth();
+  const location = useLocation();
 
-const isAuthenticated = () => {
-  return Boolean(localStorage.getItem('token') || localStorage.getItem('user'));
-};
+  const isSuperAdmin = user?.role === "super_admin";
 
-function ProtectedRoute({ children }) {
-  return isAuthenticated() ? children : <Navigate to="/login" replace />;
+  const publicPaths = [
+    "/login",
+    "/register",
+    "/forgot-password",
+    "/verify-otp",
+    "/reset-password",
+  ];
+
+  if (!isAuthenticated && publicPaths.includes(location.pathname)) {
+    return (
+      <Routes>
+        <Route path="/login" element={<Login />} />
+
+        <Route path="/register" element={<Register />} />
+
+        <Route
+          path="/forgot-password"
+          element={<ForgotPassword />}
+        />
+
+        <Route path="/verify-otp" element={<VerifyOTP />} />
+
+        <Route
+          path="/reset-password"
+          element={<ResetPassword />}
+        />
+
+        <Route
+          path="*"
+          element={<Navigate to="/login" replace />}
+        />
+      </Routes>
+    );
+  }
+
+  return (
+    <Routes>
+
+      {/* ================= LOGIN ================= */}
+
+      <Route
+        path="/login"
+        element={
+          isAuthenticated ? (
+            <Navigate
+              to={
+                isSuperAdmin
+                  ? "/super-admin/dashboard"
+                  : "/dashboard"
+              }
+              replace
+            />
+          ) : (
+            <Login />
+          )
+        }
+      />
+
+      {/* ================= REGISTER ================= */}
+
+      <Route
+        path="/register"
+        element={
+          isAuthenticated ? (
+            <Navigate to="/dashboard" replace />
+          ) : (
+            <Register />
+          )
+        }
+      />
+
+      {/* ================= PASSWORD ROUTES ================= */}
+
+      <Route
+        path="/forgot-password"
+        element={<ForgotPassword />}
+      />
+
+      <Route
+        path="/verify-otp"
+        element={<VerifyOTP />}
+      />
+
+      <Route
+        path="/reset-password"
+        element={<ResetPassword />}
+      />
+
+
+      {/* ================= PROTECTED LAYOUT ================= */}
+
+      <Route
+        element={
+          <ProtectedRoute>
+            <ProtectedLayout />
+          </ProtectedRoute>
+        }
+      >
+
+        {/* ================= DEFAULT ROUTE ================= */}
+
+        <Route
+          path="/"
+          element={
+            <Navigate
+              to={
+                isSuperAdmin
+                  ? "/super-admin/dashboard"
+                  : "/dashboard"
+              }
+              replace
+            />
+          }
+        />
+
+
+        {/* ================================================= */}
+        {/* SUPER ADMIN ROUTES */}
+        {/* ================================================= */}
+
+        {/* 1. Super Admin Dashboard */}
+
+        <Route
+          path="/super-admin/dashboard"
+          element={
+            <ProtectedRoute allowedRoles={["super_admin"]}>
+              <SuperAdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* 2. Organizations */}
+
+        <Route
+          path="/super-admin/organizations"
+          element={
+            <ProtectedRoute allowedRoles={["super_admin"]}>
+              <Organizations />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* 3. HR Management */}
+
+        <Route
+          path="/super-admin/hr-management"
+          element={
+            <ProtectedRoute allowedRoles={["super_admin"]}>
+              <HRManagement />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* 4. Organization Usage */}
+
+        <Route
+          path="/super-admin/usage-limits"
+          element={
+            <ProtectedRoute allowedRoles={["super_admin"]}>
+              <OrganizationUsage />
+            </ProtectedRoute>
+          }
+        />
+
+
+        {/* ================================================= */}
+        {/* DASHBOARD */}
+        {/* ================================================= */}
+
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute
+              allowedRoles={[
+                "Admin",
+                "HR Manager",
+                "Employee",
+              ]}
+            >
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+
+
+        {/* ================================================= */}
+        {/* PROFILE */}
+        {/* ================================================= */}
+
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute
+              allowedRoles={[
+                "Admin",
+                "HR Manager",
+                "Employee",
+              ]}
+            >
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+
+
+        {/* ================================================= */}
+        {/* EMPLOYEE DIRECTORY */}
+        {/* ================================================= */}
+
+        <Route
+          path="/directory"
+          element={
+            <ProtectedRoute
+              allowedRoles={["Admin", "HR Manager"]}
+            >
+              <EmployeeList />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/employee"
+          element={
+            <ProtectedRoute
+              allowedRoles={["Admin", "HR Manager"]}
+            >
+              <EmployeeList />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/employee/add"
+          element={
+            <ProtectedRoute
+              allowedRoles={["Admin", "HR Manager"]}
+            >
+              <AddEmployee />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/employee/profile"
+          element={
+            <ProtectedRoute
+              allowedRoles={[
+                "Admin",
+                "HR Manager",
+                "Employee",
+              ]}
+            >
+              <EmployeeProfile />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/employee/:id"
+          element={
+            <ProtectedRoute
+              allowedRoles={["Admin", "HR Manager"]}
+            >
+              <EmployeeDetails />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/employee/:id/edit"
+          element={
+            <ProtectedRoute
+              allowedRoles={["Admin", "HR Manager"]}
+            >
+              <EditEmployee />
+            </ProtectedRoute>
+          }
+        />
+
+
+        {/* ================================================= */}
+        {/* DEPARTMENTS */}
+        {/* ================================================= */}
+
+        <Route
+          path="/employee/departments"
+          element={
+            <ProtectedRoute allowedRoles={["Admin"]}>
+              <DepartmentList />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/employee/departments/add"
+          element={
+            <ProtectedRoute allowedRoles={["Admin"]}>
+              <AddDepartment />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/employee/departments/edit/:id"
+          element={
+            <ProtectedRoute allowedRoles={["Admin"]}>
+              <EditDepartment />
+            </ProtectedRoute>
+          }
+        />
+
+
+        {/* ================================================= */}
+        {/* ROLES */}
+        {/* ================================================= */}
+
+        <Route
+          path="/employee/roles"
+          element={
+            <ProtectedRoute allowedRoles={["Admin"]}>
+              <RoleList />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/employee/roles/add"
+          element={
+            <ProtectedRoute allowedRoles={["Admin"]}>
+              <AddRole />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/employee/roles/edit/:id"
+          element={
+            <ProtectedRoute allowedRoles={["Admin"]}>
+              <EditRole />
+            </ProtectedRoute>
+          }
+        />
+
+
+        {/* ================================================= */}
+        {/* ATTENDANCE */}
+        {/* ================================================= */}
+
+        <Route
+          path="/attendance-dashboard"
+          element={
+            <ProtectedRoute
+              allowedRoles={[
+                "Admin",
+                "HR Manager",
+                "Employee",
+              ]}
+            >
+              <AttendanceDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+
+        {/* ================================================= */}
+        {/* LEAVE */}
+        {/* ================================================= */}
+
+        <Route
+          path="/leave"
+          element={
+            <ProtectedRoute
+              allowedRoles={[
+                "Admin",
+                "HR Manager",
+                "Employee",
+              ]}
+            >
+              <LeaveDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+
+        {/* ================================================= */}
+        {/* PAYROLL */}
+        {/* ================================================= */}
+
+        <Route
+          path="/payroll/*"
+          element={
+            <ProtectedRoute
+              allowedRoles={[
+                "Admin",
+                "HR Manager",
+              ]}
+            >
+              <PayrollRoutes />
+            </ProtectedRoute>
+          }
+        />
+
+
+        {/* ================================================= */}
+        {/* REPORTS */}
+        {/* ================================================= */}
+
+        <Route
+          path="/reports/*"
+          element={
+            <ProtectedRoute
+              allowedRoles={[
+                "Admin",
+                "HR Manager",
+              ]}
+            >
+              <ReportsRoutes />
+            </ProtectedRoute>
+          }
+        />
+
+
+        {/* ================================================= */}
+        {/* SETTINGS */}
+        {/* ================================================= */}
+
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute
+              allowedRoles={[
+                "Admin",
+                "HR Manager",
+                "Employee",
+              ]}
+            >
+              <Settings />
+            </ProtectedRoute>
+          }
+        />
+
+
+        {/* ================================================= */}
+        {/* USERS */}
+        {/* ================================================= */}
+
+        <Route
+          path="/users"
+          element={
+            <ProtectedRoute allowedRoles={["Admin"]}>
+              <Users />
+            </ProtectedRoute>
+          }
+        />
+
+
+        {/* ================================================= */}
+        {/* CHANGE PASSWORD */}
+        {/* ================================================= */}
+
+        <Route
+          path="/change-password"
+          element={
+            <ProtectedRoute
+              allowedRoles={[
+                "Admin",
+                "HR Manager",
+                "Employee",
+              ]}
+            >
+              <ChangePassword />
+            </ProtectedRoute>
+          }
+        />
+
+
+        {/* ================================================= */}
+        {/* TASK MONITORING - CANDIDATES */}
+        {/* ================================================= */}
+
+        <Route
+          path="/hr/candidates"
+          element={
+            <ProtectedRoute
+              allowedRoles={["HR Manager", "Admin"]}
+            >
+              <CandidateListPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/hr/candidates/:id"
+          element={
+            <ProtectedRoute
+              allowedRoles={["HR Manager", "Admin"]}
+            >
+              <CandidateDetailsPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/candidates"
+          element={
+            <Navigate to="/hr/candidates" replace />
+          }
+        />
+
+
+        {/* ================================================= */}
+        {/* TASK MONITORING - TASKS */}
+        {/* ================================================= */}
+
+        <Route
+          path="/hr/tasks"
+          element={
+            <ProtectedRoute
+              allowedRoles={["HR Manager", "Admin"]}
+            >
+              <TaskListPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/hr/tasks/create"
+          element={
+            <ProtectedRoute
+              allowedRoles={["HR Manager", "Admin"]}
+            >
+              <CreateTaskPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/hr/tasks/:id"
+          element={
+            <ProtectedRoute
+              allowedRoles={["HR Manager", "Admin"]}
+            >
+              <TaskDetailsPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/hr/task-allocation"
+          element={
+            <Navigate to="/hr/tasks" replace />
+          }
+        />
+
+      </Route>
+
+
+      {/* ================================================= */}
+      {/* FALLBACK */}
+      {/* ================================================= */}
+
+      <Route
+        path="*"
+        element={
+          <Navigate
+            to={
+              isAuthenticated
+                ? isSuperAdmin
+                  ? "/super-admin/dashboard"
+                  : "/dashboard"
+                : "/login"
+            }
+            replace
+          />
+        }
+      />
+
+    </Routes>
+  );
 }
+
 
 function App() {
-  const auth = isAuthenticated();
-
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={auth ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />} />
-        <Route path="/login" element={auth ? <Navigate to="/dashboard" replace /> : <Login />} />
-        <Route path="/register" element={auth ? <Navigate to="/dashboard" replace /> : <Register />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password/:token" element={<ResetPassword />} />
-        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-        <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      <AppRoutes />
     </BrowserRouter>
   );
 }
+
 
 export default App;
