@@ -45,9 +45,19 @@ export default function AddEmployee() {
     ])
       .then(([deptData, empData, userData]) => {
         setDepartments(deptData?.departments || deptData?.data || (Array.isArray(deptData) ? deptData : []));
-        setEmployees(empData?.employees || empData?.data || (Array.isArray(empData) ? empData : []));
-        setUsers(Array.isArray(userData) ? userData : userData?.users || []);
+        const empList = empData?.employees || empData?.data || (Array.isArray(empData) ? empData : []);
+        setEmployees(empList);
+        const rawUsers = Array.isArray(userData) ? userData : userData?.users || [];
+        // Only include users who are not yet registered as an employee
+        const existingEmpUserIds = new Set(
+          empList.map((e) => String(e.user_id?._id || e.user_id || ""))
+        );
+        const unlinkedUsers = rawUsers.filter(
+          (u) => !existingEmpUserIds.has(String(u._id || u.id || ""))
+        );
+        setUsers(unlinkedUsers);
       })
+
       .catch((err) => setError(err.message || "Failed to load form data"));
   }, []);
 
@@ -55,22 +65,22 @@ export default function AddEmployee() {
     setLoading(true);
     setError("");
     setSuccess("");
-    try{
+    try {
       await createEmployee(formData);
       const msg = "Employee created successfully!";
       setSuccess(msg);
       showToast('success', msg);
       setTimeout(() => navigate("/employee"), 1400);
-    }catch(err) {
+    } catch (err) {
       const errMsg = err.message || "Failed to create employee";
       setError(errMsg);
       showToast('error', errMsg);
-    }finally {
+    } finally {
       setLoading(false);
     }
   };
 
-  return(
+  return (
     <div className="emp-page">
       <div className="emp-page-header">
         <div className="emp-page-header-text">

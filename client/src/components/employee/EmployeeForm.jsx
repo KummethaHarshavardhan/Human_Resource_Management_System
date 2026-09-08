@@ -32,6 +32,29 @@ export default function EmployeeForm({
   const [userSearch, setUserSearch] = useState("");
   const initialDataStr = JSON.stringify(initialData);
 
+  const DEFAULT_DEPT_NAMES = [
+    "Human Resource",
+    "HR",
+    "Manager",
+    "Employee",
+    "Sales",
+    "Executive Administration",
+  ];
+
+  const availableDepartments = (() => {
+    const list = Array.isArray(departments) ? [...departments] : [];
+    const existingNames = new Set(
+      list.map((d) => (d.departmentName || d.name || "").trim().toLowerCase())
+    );
+    for (const name of DEFAULT_DEPT_NAMES) {
+      if (!existingNames.has(name.toLowerCase())) {
+        list.push({ _id: name, departmentName: name });
+        existingNames.add(name.toLowerCase());
+      }
+    }
+    return list;
+  })();
+
   useEffect(() => {
     if (initialData && Object.keys(initialData).length > 0) {
       setForm((prev) => ({ ...EMPTY, ...initialData }));
@@ -47,9 +70,20 @@ export default function EmployeeForm({
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    setForm((prev) => {
+      const updated = { ...prev, [name]: value };
+      if (name === "email" && prev.user_id) {
+        const selectedUser = users.find((u) => (u._id || u.id) === prev.user_id);
+        if (selectedUser && selectedUser.email?.toLowerCase() !== value.trim().toLowerCase()) {
+          updated.user_id = "";
+          setUserSearch("");
+        }
+      }
+      return updated;
+    });
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
   };
+
 
   const handleUserSelect = (e) => {
     const text = e.target.value;
@@ -119,12 +153,20 @@ export default function EmployeeForm({
       return;
     }
 
+    let finalUserId = form.user_id;
+    if (finalUserId) {
+      const selectedUser = users.find((u) => (u._id || u.id) === finalUserId);
+      if (selectedUser && selectedUser.email?.toLowerCase() !== form.email.trim().toLowerCase()) {
+        finalUserId = undefined;
+      }
+    }
+
     const payload = {
-      user_id: form.user_id || undefined,
+      user_id: finalUserId || undefined,
       name: form.name.trim(),
       email: form.email.trim().toLowerCase(),
       phone: form.phone ? form.phone.trim() : "",
-      role: form.role || "Employee",
+      role: "Employee",
       department_id: form.department_id,
       designation: form.designation.trim(),
       manager_id: form.manager_id || null,
@@ -133,6 +175,7 @@ export default function EmployeeForm({
     };
     onSubmit(payload);
   };
+
 
   const datalistId = "users-datalist";
 
@@ -271,8 +314,8 @@ export default function EmployeeForm({
               onChange={handleChange}
             >
               <option value="">— Select Department —</option>
-              {departments.map((d) => (
-                <option key={d._id || d.id} value={d._id || d.id}>
+              {availableDepartments.map((d) => (
+                <option key={d._id || d.id || d.departmentName} value={d._id || d.id || d.departmentName}>
                   {d.departmentName || d.name}
                 </option>
               ))}
