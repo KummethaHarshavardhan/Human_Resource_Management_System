@@ -116,6 +116,7 @@ export default function EmployeeSubmissionsPage() {
       key: "task",
       header: "Task & Version",
       width: "30%",
+      minWidth: "160px",
       render: (row) => (
         <div>
           <Link
@@ -139,6 +140,7 @@ export default function EmployeeSubmissionsPage() {
       key: "notes",
       header: "Submission Description",
       width: "30%",
+      minWidth: "170px",
       render: (row) => (
         <div>
           <p style={{ margin: "0 0 4px 0", fontSize: "12.5px", color: "#334155", lineHeight: 1.4 }}>
@@ -161,6 +163,7 @@ export default function EmployeeSubmissionsPage() {
       key: "status",
       header: "Review Status",
       width: "15%",
+      minWidth: "110px",
       render: (row) => {
         const s = (row.status || "SUBMITTED").toLowerCase().replace("_", "-");
         return <span className={`etm-badge etm-badge-${s}`}>{row.status}</span>;
@@ -170,6 +173,7 @@ export default function EmployeeSubmissionsPage() {
       key: "feedback",
       header: "Reviewer Feedback",
       width: "25%",
+      minWidth: "160px",
       render: (row) => {
         const latestReview = row.reviews && row.reviews.length > 0 ? row.reviews[0] : null;
         if (!latestReview) {
@@ -281,12 +285,17 @@ export default function EmployeeSubmissionsPage() {
             </button>
           </div>
         ) : (
-          <Table
-            columns={columns}
-            data={submissions}
-            loading={false}
-            emptyText="No deliverables submitted yet. Click 'Submit New Deliverable' above to submit work."
-          />
+          <>
+            <div className="etm-table-scroll-hint">
+              <span>⇄ Swipe horizontally to view all columns</span>
+            </div>
+            <Table
+              columns={columns}
+              data={submissions}
+              loading={false}
+              emptyText="No deliverables submitted yet. Click 'Submit New Deliverable' above to submit work."
+            />
+          </>
         )}
       </div>
 

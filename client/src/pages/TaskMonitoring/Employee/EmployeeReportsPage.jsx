@@ -26,7 +26,35 @@ export default function EmployeeReportsPage() {
   });
   const [tasks, setTasks] = useState([]);
   const [search, setSearch] = useState("");
-  const [tooltip, setTooltip] = useState({ visible: false, x: 0, y: 0, title: "", subtitle: "" });
+  const [hoveredDonut, setHoveredDonut] = useState(null);
+  const [hoveredBar, setHoveredBar] = useState(null);
+  const [tooltip, setTooltip] = useState({
+    visible: false,
+    x: 0,
+    y: 0,
+    title: "",
+    value: "",
+    percentage: "",
+    color: "",
+  });
+
+  const handleMouseMove = (e, title, value, percentage, color) => {
+    setTooltip({
+      visible: true,
+      x: e.clientX,
+      y: e.clientY,
+      title,
+      value,
+      percentage,
+      color,
+    });
+  };
+
+  const handleMouseLeave = () => {
+    setTooltip((prev) => ({ ...prev, visible: false }));
+    setHoveredDonut(null);
+    setHoveredBar(null);
+  };
 
   const fetchReports = async () => {
     try {
@@ -132,6 +160,10 @@ export default function EmployeeReportsPage() {
     ];
   }, [deadlineStats]);
 
+  const totalDeadlineTasks = useMemo(() => {
+    return deadlineBars.reduce((acc, bar) => acc + (bar.count || 0), 0);
+  }, [deadlineBars]);
+
   const maxDeadline = useMemo(() => {
     let max = 4;
     deadlineBars.forEach((b) => {
@@ -145,6 +177,7 @@ export default function EmployeeReportsPage() {
       key: "task",
       header: "Task Title",
       width: "35%",
+      minWidth: "170px",
       render: (row) => (
         <div>
           <strong style={{ fontSize: "13px", color: "#0f172a", display: "block" }}>
@@ -160,6 +193,7 @@ export default function EmployeeReportsPage() {
       key: "status",
       header: "Status",
       width: "15%",
+      minWidth: "110px",
       render: (row) => {
         const s = (row.status || "PENDING").toLowerCase().replace("_", "-");
         return <span className={`etm-badge etm-badge-${s}`}>{row.status}</span>;
@@ -169,6 +203,7 @@ export default function EmployeeReportsPage() {
       key: "deadline",
       header: "Deadline",
       width: "20%",
+      minWidth: "130px",
       render: (row) => (
         <div>
           <span style={{ fontSize: "12px" }}>
@@ -186,6 +221,7 @@ export default function EmployeeReportsPage() {
       key: "review",
       header: "Review Decision & Feedback",
       width: "30%",
+      minWidth: "200px",
       render: (row) => (
         <div>
           <strong
@@ -330,7 +366,7 @@ export default function EmployeeReportsPage() {
           </div>
 
           {/* Charts Row */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 24 }}>
+          <div className="etm-charts-grid">
             {/* Task Status Breakdown Donut */}
             <div className="epr-chart-card">
               <div className="epr-chart-header">
@@ -342,7 +378,12 @@ export default function EmployeeReportsPage() {
 
               <div className="epr-donut-wrapper">
                 <div className="epr-donut-svg-container">
-                  <svg width={donutSize} height={donutSize} viewBox={`0 0 ${donutSize} ${donutSize}`}>
+                  <svg
+                    width={donutSize}
+                    height={donutSize}
+                    viewBox={`0 0 ${donutSize} ${donutSize}`}
+                    style={{ overflow: "visible" }}
+                  >
                     {totalDonutTasks === 0 ? (
                       <circle
                         cx={donutSize / 2}
@@ -362,6 +403,9 @@ export default function EmployeeReportsPage() {
                           const strokeDashoffset = -accumulatedOffset;
                           accumulatedOffset += dash;
 
+                          const isHovered = hoveredDonut?.name === item.name;
+                          const percent = totalDonutTasks > 0 ? Math.round((item.value / totalDonutTasks) * 100) : 0;
+
                           return (
                             <circle
                               key={idx}
@@ -371,21 +415,24 @@ export default function EmployeeReportsPage() {
                               r={donutRadius}
                               fill="transparent"
                               stroke={item.color}
-                              strokeWidth={strokeWidth}
+                              strokeWidth={isHovered ? strokeWidth + 6 : strokeWidth}
                               strokeDasharray={strokeDasharray}
                               strokeDashoffset={strokeDashoffset}
                               transform={`rotate(-90 ${donutSize / 2} ${donutSize / 2})`}
-                              onMouseEnter={(e) => {
-                                const rect = e.currentTarget.getBoundingClientRect();
-                                setTooltip({
-                                  visible: true,
-                                  x: rect.left + rect.width / 2,
-                                  y: rect.top,
-                                  title: item.name,
-                                  subtitle: `Count: ${item.value}`,
-                                });
+                              style={{
+                                opacity: hoveredDonut && !isHovered ? 0.35 : 1,
+                                filter: isHovered ? "drop-shadow(0 4px 10px rgba(0,0,0,0.22))" : "none",
+                                transition: "all 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
+                                cursor: "pointer",
                               }}
-                              onMouseLeave={() => setTooltip({ visible: false, x: 0, y: 0, title: "", subtitle: "" })}
+                              onMouseEnter={(e) => {
+                                setHoveredDonut({ ...item, percentage: percent });
+                                handleMouseMove(e, item.name, `${item.value} Tasks`, `${percent}%`, item.color);
+                              }}
+                              onMouseMove={(e) => {
+                                handleMouseMove(e, item.name, `${item.value} Tasks`, `${percent}%`, item.color);
+                              }}
+                              onMouseLeave={handleMouseLeave}
                             />
                           );
                         });
@@ -393,20 +440,81 @@ export default function EmployeeReportsPage() {
                     )}
                   </svg>
 
-                  <div className="epr-donut-center-label">
-                    <div className="epr-donut-center-count">{totalDonutTasks}</div>
-                    <div className="epr-donut-center-text">Total Tasks</div>
+                  <div className="epr-donut-center-label" style={{ transition: "all 0.25s ease" }}>
+                    <div
+                      className="epr-donut-center-count"
+                      style={{
+                        color: hoveredDonut ? hoveredDonut.color : "#0f172a",
+                        transform: hoveredDonut ? "scale(1.08)" : "scale(1)",
+                        transition: "all 0.25s ease",
+                      }}
+                    >
+                      {hoveredDonut ? hoveredDonut.value : totalDonutTasks}
+                    </div>
+                    <div
+                      className="epr-donut-center-text"
+                      style={{
+                        fontWeight: 700,
+                        color: hoveredDonut ? "#0f172a" : "#64748b",
+                        transition: "color 0.2s ease",
+                      }}
+                    >
+                      {hoveredDonut ? hoveredDonut.name : "Total Tasks"}
+                    </div>
+                    {hoveredDonut && (
+                      <div
+                        style={{
+                          fontSize: "10.5px",
+                          fontWeight: 700,
+                          color: hoveredDonut.color,
+                          marginTop: 2,
+                          animation: "eprFadeIn 0.15s ease",
+                        }}
+                      >
+                        {hoveredDonut.percentage}% of tasks
+                      </div>
+                    )}
                   </div>
                 </div>
 
                 <div className="epr-chart-legend">
-                  {donutItems.map((item) => (
-                    <div key={item.name} className="epr-legend-item">
-                      <span className="epr-legend-dot" style={{ backgroundColor: item.color }} />
-                      <span>{item.name}</span>
-                      <strong style={{ color: "#0f172a", marginLeft: 2 }}>{item.value}</strong>
-                    </div>
-                  ))}
+                  {donutItems.map((item) => {
+                    const isHovered = hoveredDonut?.name === item.name;
+                    const percent = totalDonutTasks > 0 ? Math.round((item.value / totalDonutTasks) * 100) : 0;
+                    return (
+                      <div
+                        key={item.name}
+                        className={`epr-legend-item ${isHovered ? "active" : ""}`}
+                        style={{
+                          cursor: "pointer",
+                          padding: "4px 8px",
+                          borderRadius: 6,
+                          background: isHovered ? "#f1f5f9" : "transparent",
+                          transition: "all 0.2s ease",
+                          transform: isHovered ? "translateY(-1px)" : "none",
+                        }}
+                        onMouseEnter={(e) => {
+                          setHoveredDonut({ ...item, percentage: percent });
+                          handleMouseMove(e, item.name, `${item.value} Tasks`, `${percent}%`, item.color);
+                        }}
+                        onMouseMove={(e) => {
+                          handleMouseMove(e, item.name, `${item.value} Tasks`, `${percent}%`, item.color);
+                        }}
+                        onMouseLeave={handleMouseLeave}
+                      >
+                        <span
+                          className="epr-legend-dot"
+                          style={{
+                            backgroundColor: item.color,
+                            transform: isHovered ? "scale(1.3)" : "scale(1)",
+                            transition: "transform 0.2s ease",
+                          }}
+                        />
+                        <span style={{ fontWeight: isHovered ? 700 : 500 }}>{item.name}</span>
+                        <strong style={{ color: item.color, marginLeft: 2 }}>{item.value}</strong>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -421,7 +529,13 @@ export default function EmployeeReportsPage() {
               </div>
 
               <div className="epr-svg-bar-container">
-                <svg width="100%" height="220" viewBox="0 0 340 220" preserveAspectRatio="none">
+                <svg
+                  width="100%"
+                  height="220"
+                  viewBox="0 0 340 220"
+                  preserveAspectRatio="xMidYMid meet"
+                  style={{ overflow: "visible" }}
+                >
                   {[0, 1, 2, 3, 4].map((step) => {
                     const yVal = Math.round((maxDeadline / 4) * step);
                     const yPos = 180 - (step / 4) * 140;
@@ -439,39 +553,89 @@ export default function EmployeeReportsPage() {
                     const barX = 52 + idx * 70;
                     const chartH = 140;
                     const h = maxDeadline > 0 ? (bar.count / maxDeadline) * chartH : 0;
+                    const isHovered = hoveredBar?.label === bar.label;
+                    const percent = totalDeadlineTasks > 0 ? Math.round((bar.count / totalDeadlineTasks) * 100) : 0;
 
                     return (
                       <g key={bar.label}>
+                        {/* Background Column Highlight on Hover */}
+                        {isHovered && (
+                          <rect
+                            x={barX - 12}
+                            y={30}
+                            width="60"
+                            height="154"
+                            rx="8"
+                            fill="rgba(241, 245, 249, 0.85)"
+                            style={{ transition: "all 0.2s ease" }}
+                          />
+                        )}
+
+                        {/* Visible Data Bar */}
                         <rect
                           className="epr-bar-column"
                           x={barX}
-                          y={180 - h}
+                          y={180 - Math.max(h, 4)}
                           width="36"
-                          height={Math.max(h, 3)}
-                          rx="4"
+                          height={Math.max(h, 4)}
+                          rx="5"
                           fill={bar.color}
-                          onMouseEnter={(e) => {
-                            const rect = e.currentTarget.getBoundingClientRect();
-                            setTooltip({
-                              visible: true,
-                              x: rect.left + rect.width / 2,
-                              y: rect.top,
-                              title: bar.label,
-                              subtitle: `Tasks: ${bar.count}`,
-                            });
+                          style={{
+                            opacity: hoveredBar && !isHovered ? 0.35 : 1,
+                            filter: isHovered ? `drop-shadow(0 4px 10px ${bar.color}99)` : "none",
+                            transformOrigin: `${barX + 18}px 180px`,
+                            transform: isHovered ? "scaleY(1.03)" : "scaleY(1)",
+                            transition: "all 0.22s cubic-bezier(0.16, 1, 0.3, 1)",
+                            cursor: "pointer",
                           }}
-                          onMouseLeave={() => setTooltip({ visible: false, x: 0, y: 0, title: "", subtitle: "" })}
                         />
+
+                        {/* Value Display above bar */}
+                        <text
+                          x={barX + 18}
+                          y={180 - Math.max(h, 4) - 6}
+                          fontSize="11"
+                          fontWeight="800"
+                          fill={isHovered ? bar.color : "#64748b"}
+                          textAnchor="middle"
+                          style={{
+                            opacity: isHovered || bar.count > 0 ? 1 : 0.75,
+                            transition: "all 0.2s ease",
+                          }}
+                        >
+                          {bar.count}
+                        </text>
+
+                        {/* Category Label */}
                         <text
                           x={barX + 18}
                           y="202"
-                          fontSize="10"
-                          fontWeight="600"
-                          fill="#64748b"
+                          fontSize="10.5"
+                          fontWeight={isHovered ? "800" : "600"}
+                          fill={isHovered ? bar.color : "#64748b"}
                           textAnchor="middle"
+                          style={{ transition: "all 0.2s ease" }}
                         >
                           {bar.label}
                         </text>
+
+                        {/* Full Column Hit Target Area for Easy Hovering */}
+                        <rect
+                          x={barX - 12}
+                          y={20}
+                          width="60"
+                          height="190"
+                          fill="transparent"
+                          cursor="pointer"
+                          onMouseEnter={(e) => {
+                            setHoveredBar({ ...bar, percentage: percent });
+                            handleMouseMove(e, bar.label, `${bar.count} Deliverables`, `${percent}%`, bar.color);
+                          }}
+                          onMouseMove={(e) => {
+                            handleMouseMove(e, bar.label, `${bar.count} Deliverables`, `${percent}%`, bar.color);
+                          }}
+                          onMouseLeave={handleMouseLeave}
+                        />
                       </g>
                     );
                   })}
@@ -486,7 +650,7 @@ export default function EmployeeReportsPage() {
               <h3 style={{ margin: 0, fontSize: "1.1rem", fontWeight: 700, color: "#0f172a" }}>
                 Task Performance Log ({tasks.length})
               </h3>
-              <div className="etm-search-wrapper" style={{ maxWidth: 280 }}>
+              <div className="etm-search-wrapper etm-table-search">
                 <FiSearch className="etm-search-icon" />
                 <input
                   type="text"
@@ -496,6 +660,11 @@ export default function EmployeeReportsPage() {
                   onChange={(e) => setSearch(e.target.value)}
                 />
               </div>
+            </div>
+
+            {/* Mobile swipe hint */}
+            <div className="etm-table-scroll-hint">
+              <span>⇄ Swipe horizontally to view all columns</span>
             </div>
 
             <Table
@@ -508,7 +677,7 @@ export default function EmployeeReportsPage() {
         </>
       )}
 
-      {/* Floating Tooltip */}
+      {/* Dynamic Cursor-Tracking Floating Tooltip */}
       {tooltip.visible && (
         <div
           className="epr-floating-tooltip"
@@ -516,10 +685,43 @@ export default function EmployeeReportsPage() {
             position: "fixed",
             left: `${tooltip.x}px`,
             top: `${tooltip.y}px`,
+            transform: "translate(-50%, -100%)",
+            marginTop: "-14px",
+            pointerEvents: "none",
+            zIndex: 9999,
+            display: "flex",
+            alignItems: "center",
+            gap: "10px",
+            background: "rgba(15, 23, 42, 0.96)",
+            backdropFilter: "blur(12px)",
+            border: "1px solid rgba(255, 255, 255, 0.16)",
+            borderRadius: "10px",
+            padding: "8px 14px",
+            boxShadow: "0 10px 28px -4px rgba(0, 0, 0, 0.45)",
+            color: "#ffffff",
+            whiteSpace: "nowrap",
           }}
         >
-          <strong>{tooltip.title}</strong>
-          <span>{tooltip.subtitle}</span>
+          {tooltip.color && (
+            <span
+              style={{
+                width: 10,
+                height: 10,
+                borderRadius: "50%",
+                backgroundColor: tooltip.color,
+                boxShadow: `0 0 8px ${tooltip.color}`,
+                flexShrink: 0,
+              }}
+            />
+          )}
+          <div>
+            <strong style={{ fontSize: "12px", display: "block", color: "#f8fafc", lineHeight: 1.2 }}>
+              {tooltip.title}
+            </strong>
+            <span style={{ fontSize: "11px", color: "#cbd5e1" }}>
+              {tooltip.value} {tooltip.percentage ? `(${tooltip.percentage})` : ""}
+            </span>
+          </div>
         </div>
       )}
     </div>

@@ -116,6 +116,7 @@ export default function EmployeeTasksPage() {
       key: "task",
       header: "Task Information",
       width: "35%",
+      minWidth: "170px",
       render: (row) => (
         <div>
           <Link
@@ -141,6 +142,7 @@ export default function EmployeeTasksPage() {
       key: "deadline",
       header: "Deadline & Schedule",
       width: "20%",
+      minWidth: "130px",
       render: (row) => (
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: "12.5px", fontWeight: 600 }}>
@@ -163,6 +165,7 @@ export default function EmployeeTasksPage() {
       key: "status",
       header: "Task Status",
       width: "15%",
+      minWidth: "110px",
       render: (row) => {
         const s = (row.status || "PENDING").toLowerCase().replace("_", "-");
         return <span className={`etm-badge etm-badge-${s}`}>{row.status}</span>;
@@ -172,6 +175,7 @@ export default function EmployeeTasksPage() {
       key: "progress",
       header: "Completion",
       width: "15%",
+      minWidth: "120px",
       render: (row) => (
         <div className="etm-progress-container">
           <div className="etm-progress-track">
@@ -198,6 +202,7 @@ export default function EmployeeTasksPage() {
       key: "actions",
       header: "Actions",
       width: "15%",
+      minWidth: "85px",
       render: (row) => (
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           <button
@@ -376,12 +381,17 @@ export default function EmployeeTasksPage() {
             </button>
           </div>
         ) : (
-          <Table
-            columns={columns}
-            data={assignments}
-            loading={false}
-            emptyText="No tasks currently assigned to you."
-          />
+          <>
+            <div className="etm-table-scroll-hint">
+              <span>⇄ Swipe horizontally to view all columns</span>
+            </div>
+            <Table
+              columns={columns}
+              data={assignments}
+              loading={false}
+              emptyText="No tasks currently assigned to you."
+            />
+          </>
         )}
       </div>
 
