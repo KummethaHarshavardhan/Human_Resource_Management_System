@@ -14,21 +14,17 @@ import Sidebar from "./components/Sidebar/Sidebar";
 import ProtectedRoute from "./utils/ProtectedRoute";
 
 import Login from "./pages/Login/Login";
-import Register from "./pages/Register/Register";
 import ForgotPassword from "./pages/ForgotPassword/ForgotPassword";
 import VerifyOTP from "./pages/VerifyOTP/VerifyOTP";
 import ResetPassword from "./pages/ResetPassword/ResetPassword";
 import ChangePassword from "./pages/ChangePassword/ChangePassword";
-import ReviewQueuePage from "./pages/TaskMonitoring/Reviews/ReviewQueuePage";
-
-/* ================= SUPER ADMIN ================= */
 
 import SuperAdminDashboard from "./pages/SuperAdmin/SuperAdminDashboard";
 import Organizations from "./pages/SuperAdmin/Organizations";
 import HRManagement from "./pages/SuperAdmin/HRManagement";
 import OrganizationUsage from "./pages/SuperAdmin/OrganizationUsage";
-
-/* ================= EXISTING PAGES ================= */
+import SuperAdminPayroll from "./pages/SuperAdmin/SuperAdminPayroll";
+import { normalizeRole } from "./utils/permission";
 
 import Dashboard from "./pages/Dashboard/Dashboard";
 import Profile from "./pages/Profile/Profile";
@@ -54,21 +50,29 @@ import RoleList from "./pages/Employee/roles/RoleList";
 import AddRole from "./pages/Employee/roles/AddRole";
 import EditRole from "./pages/Employee/roles/EditRole";
 
+
 import LeaveDashboard from "./pages/Leave/LeaveDashboard";
 
-/* ================= TASK MONITORING ================= */
-
+// Task Monitoring System Pages
 import CandidateListPage from "./pages/TaskMonitoring/Candidates/CandidateListPage";
 import CandidateDetailsPage from "./pages/TaskMonitoring/Candidates/CandidateDetailsPage";
 import TaskListPage from "./pages/TaskMonitoring/Tasks/TaskListPage";
 import CreateTaskPage from "./pages/TaskMonitoring/Tasks/CreateTaskPage";
 import TaskDetailsPage from "./pages/TaskMonitoring/Tasks/TaskDetailsPage";
+import ProgressDashboardPage from "./pages/TaskMonitoring/Progress/ProgressDashboardPage";
 import SubmissionListPage from "./pages/TaskMonitoring/Submissions/SubmissionListPage";
+import ReviewQueuePage from "./pages/TaskMonitoring/Reviews/ReviewQueuePage";
+import ReportsOverviewPage from "./pages/TaskMonitoring/Reports/ReportsOverviewPage";
 
+// Employee Task Monitoring System Pages
+import EmployeeTasksPage from "./pages/TaskMonitoring/Employee/EmployeeTasksPage";
+import EmployeeTaskDetailsPage from "./pages/TaskMonitoring/Employee/EmployeeTaskDetailsPage";
+import EmployeeProgressPage from "./pages/TaskMonitoring/Employee/EmployeeProgressPage";
+import EmployeeSubmissionsPage from "./pages/TaskMonitoring/Employee/EmployeeSubmissionsPage";
+import EmployeeReportsPage from "./pages/TaskMonitoring/Employee/EmployeeReportsPage";
 
 function ProtectedLayout() {
   const { isAuthenticated } = useAuth();
-
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
@@ -85,11 +89,7 @@ function ProtectedLayout() {
   };
 
   return (
-    <div
-      className={`app-layout ${
-        isSidebarCollapsed ? "sidebar-collapsed" : ""
-      }`}
-    >
+    <div className={`app-layout ${isSidebarCollapsed ? "sidebar-collapsed" : ""}`}>
       {isMobileOpen && (
         <div
           className="sidebar-backdrop"
@@ -106,112 +106,61 @@ function ProtectedLayout() {
 
       <div className="app-main-wrapper">
         <Header onToggleSidebar={handleToggleSidebar} />
-
         <main className="app-main-content">
           <Outlet />
         </main>
       </div>
+
     </div>
   );
 }
 
-
 function AppRoutes() {
   const { isAuthenticated, user } = useAuth();
   const location = useLocation();
-
-  const isSuperAdmin = user?.role === "super_admin";
+  const isSuperAdmin = normalizeRole(user?.role) === "super_admin";
 
   const publicPaths = [
     "/login",
-    "/register",
     "/forgot-password",
     "/verify-otp",
     "/reset-password",
   ];
 
-  if (!isAuthenticated && publicPaths.includes(location.pathname)) {
+  if (!isAuthenticated && (publicPaths.includes(location.pathname) || location.pathname === "/register")) {
     return (
       <Routes>
         <Route path="/login" element={<Login />} />
-
-        <Route path="/register" element={<Register />} />
-
-        <Route
-          path="/forgot-password"
-          element={<ForgotPassword />}
-        />
-
+        <Route path="/register" element={<Navigate to="/login" replace />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/verify-otp" element={<VerifyOTP />} />
-
-        <Route
-          path="/reset-password"
-          element={<ResetPassword />}
-        />
-
-        <Route
-          path="*"
-          element={<Navigate to="/login" replace />}
-        />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     );
   }
 
   return (
     <Routes>
-
-      {/* ================= LOGIN ================= */}
-
       <Route
         path="/login"
         element={
           isAuthenticated ? (
-            <Navigate
-              to={
-                isSuperAdmin
-                  ? "/super-admin/dashboard"
-                  : "/dashboard"
-              }
-              replace
-            />
+            <Navigate to={isSuperAdmin ? "/super-admin/dashboard" : "/dashboard"} replace />
           ) : (
             <Login />
           )
         }
       />
 
-      {/* ================= REGISTER ================= */}
-
       <Route
         path="/register"
-        element={
-          isAuthenticated ? (
-            <Navigate to="/dashboard" replace />
-          ) : (
-            <Register />
-          )
-        }
+        element={<Navigate to="/login" replace />}
       />
 
-      {/* ================= PASSWORD ROUTES ================= */}
-
-      <Route
-        path="/forgot-password"
-        element={<ForgotPassword />}
-      />
-
-      <Route
-        path="/verify-otp"
-        element={<VerifyOTP />}
-      />
-
-      <Route
-        path="/reset-password"
-        element={<ResetPassword />}
-      />
-
-
-      {/* ================= PROTECTED LAYOUT ================= */}
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/verify-otp" element={<VerifyOTP />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
 
       <Route
         element={
@@ -220,30 +169,14 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       >
-
-        {/* ================= DEFAULT ROUTE ================= */}
-
         <Route
           path="/"
           element={
-            <Navigate
-              to={
-                isSuperAdmin
-                  ? "/super-admin/dashboard"
-                  : "/dashboard"
-              }
-              replace
-            />
+            <Navigate to={isSuperAdmin ? "/super-admin/dashboard" : "/dashboard"} replace />
           }
         />
 
-
-        {/* ================================================= */}
-        {/* SUPER ADMIN ROUTES */}
-        {/* ================================================= */}
-
-        {/* 1. Super Admin Dashboard */}
-
+        {/* Super Admin Specific Routes */}
         <Route
           path="/super-admin/dashboard"
           element={
@@ -252,9 +185,6 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         />
-
-        {/* 2. Organizations */}
-
         <Route
           path="/super-admin/organizations"
           element={
@@ -263,9 +193,6 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         />
-
-        {/* 3. HR Management */}
-
         <Route
           path="/super-admin/hr-management"
           element={
@@ -274,9 +201,6 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         />
-
-        {/* 4. Organization Usage */}
-
         <Route
           path="/super-admin/usage-limits"
           element={
@@ -285,58 +209,42 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         />
-
-
-        {/* ================================================= */}
-        {/* DASHBOARD */}
-        {/* ================================================= */}
-
         <Route
-          path="/dashboard"
+          path="/super-admin/payroll"
           element={
-            <ProtectedRoute
-              allowedRoles={[
-                "Admin",
-                "HR Manager",
-                "Employee",
-              ]}
-            >
-              <Dashboard />
+            <ProtectedRoute allowedRoles={["super_admin"]}>
+              <SuperAdminPayroll />
             </ProtectedRoute>
           }
         />
 
-
-        {/* ================================================= */}
-        {/* PROFILE */}
-        {/* ================================================= */}
+        {/* Existing Routes */}
+        <Route
+          path="/dashboard"
+          element={
+            isSuperAdmin ? (
+              <Navigate to="/super-admin/dashboard" replace />
+            ) : (
+              <ProtectedRoute allowedRoles={["Admin", "HR Manager", "Employee"]}>
+                <Dashboard />
+              </ProtectedRoute>
+            )
+          }
+        />
 
         <Route
           path="/profile"
           element={
-            <ProtectedRoute
-              allowedRoles={[
-                "Admin",
-                "HR Manager",
-                "Employee",
-              ]}
-            >
+            <ProtectedRoute allowedRoles={["super_admin", "Admin", "HR Manager", "Employee"]}>
               <Profile />
             </ProtectedRoute>
           }
         />
 
-
-        {/* ================================================= */}
-        {/* EMPLOYEE DIRECTORY */}
-        {/* ================================================= */}
-
         <Route
           path="/directory"
           element={
-            <ProtectedRoute
-              allowedRoles={["Admin", "HR Manager"]}
-            >
+            <ProtectedRoute allowedRoles={["Admin", "HR Manager"]}>
               <EmployeeList />
             </ProtectedRoute>
           }
@@ -345,9 +253,7 @@ function AppRoutes() {
         <Route
           path="/employee"
           element={
-            <ProtectedRoute
-              allowedRoles={["Admin", "HR Manager"]}
-            >
+            <ProtectedRoute allowedRoles={["Admin", "HR Manager"]}>
               <EmployeeList />
             </ProtectedRoute>
           }
@@ -356,9 +262,7 @@ function AppRoutes() {
         <Route
           path="/employee/add"
           element={
-            <ProtectedRoute
-              allowedRoles={["Admin", "HR Manager"]}
-            >
+            <ProtectedRoute allowedRoles={["Admin", "HR Manager"]}>
               <AddEmployee />
             </ProtectedRoute>
           }
@@ -367,13 +271,7 @@ function AppRoutes() {
         <Route
           path="/employee/profile"
           element={
-            <ProtectedRoute
-              allowedRoles={[
-                "Admin",
-                "HR Manager",
-                "Employee",
-              ]}
-            >
+            <ProtectedRoute allowedRoles={["Admin", "HR Manager", "Employee"]}>
               <EmployeeProfile />
             </ProtectedRoute>
           }
@@ -382,9 +280,7 @@ function AppRoutes() {
         <Route
           path="/employee/:id"
           element={
-            <ProtectedRoute
-              allowedRoles={["Admin", "HR Manager"]}
-            >
+            <ProtectedRoute allowedRoles={["Admin", "HR Manager"]}>
               <EmployeeDetails />
             </ProtectedRoute>
           }
@@ -393,18 +289,11 @@ function AppRoutes() {
         <Route
           path="/employee/:id/edit"
           element={
-            <ProtectedRoute
-              allowedRoles={["Admin", "HR Manager"]}
-            >
+            <ProtectedRoute allowedRoles={["Admin", "HR Manager"]}>
               <EditEmployee />
             </ProtectedRoute>
           }
         />
-
-
-        {/* ================================================= */}
-        {/* DEPARTMENTS */}
-        {/* ================================================= */}
 
         <Route
           path="/employee/departments"
@@ -433,11 +322,6 @@ function AppRoutes() {
           }
         />
 
-
-        {/* ================================================= */}
-        {/* ROLES */}
-        {/* ================================================= */}
-
         <Route
           path="/employee/roles"
           element={
@@ -465,108 +349,54 @@ function AppRoutes() {
           }
         />
 
-
-        {/* ================================================= */}
-        {/* ATTENDANCE */}
-        {/* ================================================= */}
-
         <Route
           path="/attendance-dashboard"
           element={
-            <ProtectedRoute
-              allowedRoles={[
-                "Admin",
-                "HR Manager",
-                "Employee",
-              ]}
-            >
+            <ProtectedRoute allowedRoles={["Admin", "HR Manager", "Employee"]}>
               <AttendanceDashboard />
             </ProtectedRoute>
           }
         />
 
-
-        {/* ================================================= */}
-        {/* LEAVE */}
-        {/* ================================================= */}
-
         <Route
           path="/leave"
           element={
-            <ProtectedRoute
-              allowedRoles={[
-                "Admin",
-                "HR Manager",
-                "Employee",
-              ]}
-            >
+            <ProtectedRoute allowedRoles={["super_admin", "Admin", "HR Manager", "Employee"]}>
               <LeaveDashboard />
             </ProtectedRoute>
           }
         />
 
-
-        {/* ================================================= */}
-        {/* PAYROLL */}
-        {/* ================================================= */}
-
         <Route
           path="/payroll/*"
           element={
-            <ProtectedRoute
-              allowedRoles={[
-                "Admin",
-                "HR Manager",
-              ]}
-            >
-              <PayrollRoutes />
-            </ProtectedRoute>
+            isSuperAdmin ? (
+              <Navigate to="/super-admin/payroll" replace />
+            ) : (
+              <ProtectedRoute allowedRoles={["Admin", "HR Manager", "Employee"]}>
+                <PayrollRoutes />
+              </ProtectedRoute>
+            )
           }
         />
-
-
-        {/* ================================================= */}
-        {/* REPORTS */}
-        {/* ================================================= */}
 
         <Route
           path="/reports/*"
           element={
-            <ProtectedRoute
-              allowedRoles={[
-                "Admin",
-                "HR Manager",
-              ]}
-            >
+            <ProtectedRoute allowedRoles={["Admin", "HR Manager"]}>
               <ReportsRoutes />
             </ProtectedRoute>
           }
         />
 
-
-        {/* ================================================= */}
-        {/* SETTINGS */}
-        {/* ================================================= */}
-
         <Route
           path="/settings"
           element={
-            <ProtectedRoute
-              allowedRoles={[
-                "Admin",
-                "HR Manager",
-                "Employee",
-              ]}
-            >
+            <ProtectedRoute allowedRoles={["Admin", "HR Manager", "Employee"]}>
               <Settings />
             </ProtectedRoute>
           }
         />
-
-
-        {/* ================================================= */}
-        {/* USERS */}
-        {/* ================================================= */}
 
         <Route
           path="/users"
@@ -577,106 +407,78 @@ function AppRoutes() {
           }
         />
 
-
-        {/* ================================================= */}
-        {/* CHANGE PASSWORD */}
-        {/* ================================================= */}
-
         <Route
           path="/change-password"
           element={
-            <ProtectedRoute
-              allowedRoles={[
-                "Admin",
-                "HR Manager",
-                "Employee",
-              ]}
-            >
+            <ProtectedRoute allowedRoles={["Admin", "HR Manager", "Employee"]}>
               <ChangePassword />
             </ProtectedRoute>
           }
         />
 
-
-        {/* ================================================= */}
-        {/* TASK MONITORING - CANDIDATES */}
-        {/* ================================================= */}
-
+        {/* HR Task Monitoring System Routes */}
         <Route
           path="/hr/candidates"
           element={
-            <ProtectedRoute
-              allowedRoles={["HR Manager", "Admin"]}
-            >
+            <ProtectedRoute allowedRoles={["Admin", "HR Manager", "HR"]}>
               <CandidateListPage />
             </ProtectedRoute>
           }
         />
-
         <Route
           path="/hr/candidates/:id"
           element={
-            <ProtectedRoute
-              allowedRoles={["HR Manager", "Admin"]}
-            >
+            <ProtectedRoute allowedRoles={["Admin", "HR Manager", "HR"]}>
               <CandidateDetailsPage />
             </ProtectedRoute>
           }
         />
-
         <Route
           path="/candidates"
-          element={
-            <Navigate to="/hr/candidates" replace />
-          }
+          element={<Navigate to="/hr/candidates" replace />}
         />
-
-
-        {/* ================================================= */}
-        {/* TASK MONITORING - TASKS */}
-        {/* ================================================= */}
 
         <Route
           path="/hr/tasks"
           element={
-            <ProtectedRoute
-              allowedRoles={["HR Manager", "Admin"]}
-            >
+            <ProtectedRoute allowedRoles={["Admin", "HR Manager", "HR"]}>
               <TaskListPage />
             </ProtectedRoute>
           }
         />
-
         <Route
           path="/hr/tasks/create"
           element={
-            <ProtectedRoute
-              allowedRoles={["HR Manager", "Admin"]}
-            >
+            <ProtectedRoute allowedRoles={["Admin", "HR Manager", "HR"]}>
               <CreateTaskPage />
             </ProtectedRoute>
           }
         />
-
         <Route
           path="/hr/tasks/:id"
           element={
-            <ProtectedRoute
-              allowedRoles={["HR Manager", "Admin"]}
-            >
+            <ProtectedRoute allowedRoles={["Admin", "HR Manager", "HR"]}>
               <TaskDetailsPage />
             </ProtectedRoute>
           }
         />
-
         <Route
           path="/hr/task-allocation"
-          element={
-            <Navigate to="/hr/tasks" replace />
-          }
+          element={<Navigate to="/hr/tasks" replace />}
         />
 
-      </Route>
+        <Route
+          path="/hr/progress"
+          element={
+            <ProtectedRoute allowedRoles={["Admin", "HR Manager", "HR"]}>
+              <ProgressDashboardPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/hr/progress-tracking"
+          element={<Navigate to="/hr/progress" replace />}
+        />
 
         <Route
           path="/hr/submissions"
@@ -695,11 +497,70 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/hr/review-queue"
+          element={<Navigate to="/hr/reviews" replace />}
+        />
 
+        <Route
+          path="/hr/reports"
+          element={
+            <ProtectedRoute allowedRoles={["Admin", "HR Manager", "HR"]}>
+              <ReportsOverviewPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/hr/reports-analytics"
+          element={<Navigate to="/hr/reports" replace />}
+        />
+        <Route
+          path="/hr/dashboard"
+          element={<Navigate to="/dashboard" replace />}
+        />
 
-      {/* ================================================= */}
-      {/* FALLBACK */}
-      {/* ================================================= */}
+        {/* Employee Task Monitoring Routes */}
+        <Route
+          path="/employee/tasks"
+          element={
+            <ProtectedRoute allowedRoles={["Employee", "Admin", "HR Manager", "HR"]}>
+              <EmployeeTasksPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/employee/tasks/:id"
+          element={
+            <ProtectedRoute allowedRoles={["Employee", "Admin", "HR Manager", "HR"]}>
+              <EmployeeTaskDetailsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/employee/progress"
+          element={
+            <ProtectedRoute allowedRoles={["Employee", "Admin", "HR Manager", "HR"]}>
+              <EmployeeProgressPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/employee/submissions"
+          element={
+            <ProtectedRoute allowedRoles={["Employee", "Admin", "HR Manager", "HR"]}>
+              <EmployeeSubmissionsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/employee/reports"
+          element={
+            <ProtectedRoute allowedRoles={["Employee", "Admin", "HR Manager", "HR"]}>
+              <EmployeeReportsPage />
+            </ProtectedRoute>
+          }
+        />
+      </Route>
 
       <Route
         path="*"
@@ -716,7 +577,6 @@ function AppRoutes() {
           />
         }
       />
-
     </Routes>
   );
 }
@@ -729,6 +589,5 @@ function App() {
     </BrowserRouter>
   );
 }
-
 
 export default App;

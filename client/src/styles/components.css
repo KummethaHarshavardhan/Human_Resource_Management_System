@@ -209,6 +209,25 @@ textarea::placeholder {
   padding-left: var(--space-8);
 }
 
+/* Ensure all search inputs have sufficient left padding for search icons */
+input[type="text"].etm-search-input,
+input[type="search"].etm-search-input,
+.etm-search-input,
+input[type="text"].tm-search-input,
+input[type="search"].tm-search-input,
+.tm-search-input,
+input[type="text"].epr-search-input,
+input[type="search"].epr-search-input,
+.epr-search-input,
+input[type="text"].search-input,
+input[type="search"].search-input,
+.search-input,
+input[type="text"].sa-search-input,
+input[type="search"].sa-search-input,
+.sa-search-input {
+  padding-left: 42px !important;
+}
+
 .search-box::before {
   content: '🔍';
   position: absolute;
