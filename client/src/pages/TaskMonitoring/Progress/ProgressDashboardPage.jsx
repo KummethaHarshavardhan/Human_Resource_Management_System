@@ -16,7 +16,7 @@ import {
 } from "react-icons/fi";
 import { progressService } from "../../../services/progressService.js";
 import Loader from "../../../components/Loader/Loader.jsx";
-import "./ProgressDashboard.css";
+import "./ProgressDashboardPage.css";
 
 export default function ProgressDashboardPage() {
   const [loading, setLoading] = useState(true);
