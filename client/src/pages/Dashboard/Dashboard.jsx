@@ -124,6 +124,10 @@ function Dashboard() {
             getAttendanceHistory().catch((err) => {
               console.warn('Attendance history fetch failed:', err.message);
               return { data: [] };
+            }),
+            getAllEmployees({ page: 1, limit: 10 }).catch((err) => {
+              console.error('Co-workers fetch error:', err.message);
+              return { employees: [], totalEmployees: 0 };
             })
           );
         }
@@ -188,6 +192,18 @@ function Dashboard() {
             ? attHistRes
             : [];
           setAttendanceHistory(rawHist);
+
+          // 4. Employee Co-workers
+          const empRes = results[3];
+          const empList = Array.isArray(empRes?.employees)
+            ? empRes.employees
+            : Array.isArray(empRes?.data)
+            ? empRes.data
+            : Array.isArray(empRes)
+            ? empRes
+            : [];
+          setEmployees(empList);
+          setEmployeeCount(empRes?.totalEmployees ?? empList.length);
         }
       } catch (error) {
         console.error('Fatal Dashboard data load error:', error);
@@ -432,6 +448,26 @@ function Dashboard() {
           </div>
         </div>
 
+        {/* ── Employee Stat Card 3: Team Members ── */}
+        {isEmployee && (
+          <div className="stat-card-custom">
+            <div className="stat-icon-wrapper stat-icon-blue">
+              <FiUsers size={22} />
+            </div>
+            <div className="stat-details">
+              <p>Team Members</p>
+              {loading ? (
+                <Loader.Spinner size="sm" />
+              ) : (
+                <h2>{employeeCount}</h2>
+              )}
+              <span className="stat-trend stat-trend-up">
+                <FiCheckCircle size={12} /> {employees.length} active colleagues
+              </span>
+            </div>
+          </div>
+        )}
+
         {/* ── HR Manager Card 3: Total Employees ── */}
         {isHR && (
           <div className="stat-card-custom">
@@ -608,6 +644,22 @@ function Dashboard() {
                 loading={loading}
                 emptyText="No employee records found in system database."
                 maxHeight="380px"
+              />
+            </Card>
+          )}
+
+          {/* My Team / Co-Workers Table — Employee only */}
+          {isEmployee && (
+            <Card
+              title="My Team / Co-Workers"
+              subtitle="Colleagues in your organization"
+            >
+              <Table
+                columns={employeeColumns}
+                data={employees}
+                loading={loading}
+                emptyText="No teammates found in your organization."
+                maxHeight="350px"
               />
             </Card>
           )}
