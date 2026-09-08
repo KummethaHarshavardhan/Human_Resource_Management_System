@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "../../context/AuthContext";
+import { normalizeRole } from "../../utils/permission";
 
 import AdminLeaveManagement from "./AdminLeaveManagement";
 import ApplyLeave           from "./ApplyLeave";
@@ -16,9 +17,11 @@ export default function LeaveDashboard() {
   const role     = user?.role || "";
   const userId   = user?.id || user?._id || "";
 
-  const isAdmin    = role === "Admin";
-  const isHR       = role === "HR";
-  const isEmployee = role === "Employee";
+  const normRole   = normalizeRole(role);
+  const isSuperAdmin = normRole === "super_admin";
+  const isAdmin    = role === "Admin" || isSuperAdmin;
+  const isHR       = role === "HR" || normRole === "hr_manager";
+  const isEmployee = role === "Employee" || normRole === "employee";
 
   // For Admin: all leaves for management
   const [adminLeaves, setAdminLeaves] = useState([]);
@@ -153,13 +156,14 @@ export default function LeaveDashboard() {
           />
         </div>
 
-        {/* HR approval section — shows other employees' Pending requests */}
+        {/* HR view section — shows other employees' Pending requests in read-only mode */}
         {hrOthersLeaves.some((l) => l.status === "Pending") && (
           <div className="leave-section-card">
             <LeaveApproval
               leaves={hrOthersLeaves}
               refreshLeaves={() => { fetchOwnLeaves(); fetchHRAllLeaves(); }}
               currentUserId={userId}
+              readOnly={true}
             />
           </div>
         )}

@@ -1,10 +1,11 @@
 import React from 'react';
-import { FiX } from 'react-icons/fi';
+import { FiSearch, FiX } from 'react-icons/fi';
 import './SearchBar.css';
 
 export default function SearchBar({ value, onChange, placeholder = 'Search by Employee Code or Name...' }) {
   return (
     <div className="payroll-search-bar">
+      <FiSearch className="search-icon" size={16} />
       <input
         type="text"
         className="search-input"

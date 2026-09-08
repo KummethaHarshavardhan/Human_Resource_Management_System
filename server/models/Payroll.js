@@ -12,8 +12,9 @@ const payrollSchema = new mongoose.Schema(
     salaryId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Salary',
-      required: [true, 'Salary reference is required'],
+      default: null,
     },
+    accountNumber: { type: String, default: '' },
     month: { type: Number, required: true, min: 1, max: 12 },
     year: { type: Number, required: true, min: 2000 },
     daysPresent: { type: Number, required: true, min: 0 },

@@ -23,22 +23,22 @@ router.get("/history", verifyToken, getLeaveHistory);
 router.get(
   "/admin/all",
   verifyToken,
-  authorizeRoles("Admin", "HR"),
+  authorizeRoles("Admin", "HR", "super_admin"),
   getAllLeaves
 );
 
-// HR/Admin approval and rejection
+// Super Admin approval and rejection only
 router.put(
   "/approve/:id",
   verifyToken,
-  authorizeRoles("Admin", "HR"),
+  authorizeRoles("Admin", "super_admin"),
   approveLeave
 );
 
 router.put(
   "/reject/:id",
   verifyToken,
-  authorizeRoles("Admin", "HR"),
+  authorizeRoles("Admin", "super_admin"),
   rejectLeave
 );
 

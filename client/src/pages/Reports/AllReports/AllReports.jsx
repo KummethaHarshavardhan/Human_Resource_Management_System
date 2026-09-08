@@ -109,7 +109,7 @@ export default function AllReports() {
                 id="reportSearchInput"
                 type="text"
                 className="control-search-input"
-                style={{ paddingLeft: 32 }}
+                style={{ paddingLeft: 36 }}
                 placeholder="Search Employee, Code, Dept, Year..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}

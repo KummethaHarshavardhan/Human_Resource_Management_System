@@ -17,39 +17,39 @@ const router = express.Router();
 // ── Admin-only write operations ─────────────────────────────────────────────
 router.post('/generate',
   verifyToken,
-  authorizeRoles('Admin'),
+  authorizeRoles('Admin', 'super_admin'),
   validateGeneratePayroll,
   generatePayroll
 );
 
 router.patch('/:id/mark-paid',
   verifyToken,
-  authorizeRoles('Admin'),
+  authorizeRoles('Admin', 'super_admin'),
   markPayrollAsPaid
 );
 
-// ── Admin + HR Manager read operations ──────────────────────────────────────
+// ── Admin + HR Manager + Employee read operations ─────────────────────────
 router.get('/',
   verifyToken,
-  authorizeRoles('Admin', 'HR'),
+  authorizeRoles('Admin', 'super_admin', 'HR', 'Employee'),
   getAllPayrolls
 );
 
 router.get('/employee/:employeeId',
   verifyToken,
-  authorizeRoles('Admin', 'HR'),
+  authorizeRoles('Admin', 'super_admin', 'HR', 'Employee'),
   getPayrollsByEmployee
 );
 
 router.get('/:id/download',
   verifyToken,
-  authorizeRoles('Admin', 'HR'),
+  authorizeRoles('Admin', 'super_admin', 'HR', 'Employee'),
   downloadPayrollPDF
 );
 
 router.get('/:id',
   verifyToken,
-  authorizeRoles('Admin', 'HR'),
+  authorizeRoles('Admin', 'super_admin', 'HR', 'Employee'),
   getPayrollById
 );
 

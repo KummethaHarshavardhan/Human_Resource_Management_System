@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useToast } from '../../../context/ToastContext';
+import { useAuth } from '../../../context/AuthContext';
+import { normalizeRole } from '../../../utils/permission';
 import { getPayrollById, markPayrollAsPaid, downloadPayslip } from '../../../services/payrollService';
 import StatusBadge from '../../../components/Payroll/StatusBadge';
 import LoadingState from '../../../components/Payroll/LoadingState';
@@ -15,6 +17,8 @@ export default function PayrollDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { showToast } = useToast();
+  const { user } = useAuth();
+  const isAdmin = ['admin', 'super_admin'].includes(normalizeRole(user?.role));
 
   const [payroll, setPayroll] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -91,10 +95,10 @@ export default function PayrollDetails() {
           <button
             type="button"
             className="pr-btn pr-btn-secondary"
-            onClick={() => navigate('/payroll/history')}
-            aria-label="Back to Payroll History"
+            onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/payroll/history'))}
+            aria-label="Back"
           >
-            <FiArrowLeft size={14} style={{ marginRight: 4 }} /> Back to History
+            <FiArrowLeft size={14} style={{ marginRight: 4 }} /> Back
           </button>
           <button
             type="button"
@@ -106,7 +110,7 @@ export default function PayrollDetails() {
             <FiDownload size={14} style={{ marginRight: 6 }} />
             {downloading ? 'Downloading...' : 'Download Payslip PDF'}
           </button>
-          {payroll.status === 'Generated' && (
+          {isAdmin && payroll.status === 'Generated' && (
             <button
               type="button"
               className="pr-btn pr-btn-success"
