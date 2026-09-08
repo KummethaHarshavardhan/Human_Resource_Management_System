@@ -379,6 +379,14 @@
 .epr-bar-column {
   transition: opacity 0.15s ease, transform 0.15s ease;
   cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.epr-donut-segment,
+.epr-legend-item {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .epr-bar-column:hover {

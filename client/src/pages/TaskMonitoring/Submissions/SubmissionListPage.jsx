@@ -117,8 +117,7 @@ export default function SubmissionListPage() {
             href={row.attachmentUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="tm-action-btn"
-            style={{ fontSize: "11px", color: "#2563eb" }}
+            className="tm-link-btn"
           >
             <FiExternalLink size={12} /> Repository / URL
           </a>

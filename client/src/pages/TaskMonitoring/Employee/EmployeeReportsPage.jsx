@@ -32,17 +32,36 @@ export default function EmployeeReportsPage() {
     visible: false,
     x: 0,
     y: 0,
+    placement: "top",
     title: "",
     value: "",
     percentage: "",
     color: "",
   });
 
+  const getEventCoords = (e) => {
+    if (e.touches && e.touches.length > 0) {
+      return { clientX: e.touches[0].clientX, clientY: e.touches[0].clientY };
+    }
+    if (e.changedTouches && e.changedTouches.length > 0) {
+      return { clientX: e.changedTouches[0].clientX, clientY: e.changedTouches[0].clientY };
+    }
+    return { clientX: e.clientX, clientY: e.clientY };
+  };
+
   const handleMouseMove = (e, title, value, percentage, color) => {
+    const coords = getEventCoords(e);
+    if (coords.clientX === undefined || coords.clientY === undefined) return;
+
+    const winWidth = typeof window !== "undefined" ? window.innerWidth : 400;
+    const clampedX = Math.max(100, Math.min(winWidth - 100, coords.clientX));
+    const showBelow = coords.clientY < 130;
+
     setTooltip({
       visible: true,
-      x: e.clientX,
-      y: e.clientY,
+      x: clampedX,
+      y: coords.clientY,
+      placement: showBelow ? "bottom" : "top",
       title,
       value,
       percentage,
@@ -433,6 +452,13 @@ export default function EmployeeReportsPage() {
                                 handleMouseMove(e, item.name, `${item.value} Tasks`, `${percent}%`, item.color);
                               }}
                               onMouseLeave={handleMouseLeave}
+                              onTouchStart={(e) => {
+                                setHoveredDonut({ ...item, percentage: percent });
+                                handleMouseMove(e, item.name, `${item.value} Tasks`, `${percent}%`, item.color);
+                              }}
+                              onTouchMove={(e) => {
+                                handleMouseMove(e, item.name, `${item.value} Tasks`, `${percent}%`, item.color);
+                              }}
                             />
                           );
                         });
@@ -501,6 +527,10 @@ export default function EmployeeReportsPage() {
                           handleMouseMove(e, item.name, `${item.value} Tasks`, `${percent}%`, item.color);
                         }}
                         onMouseLeave={handleMouseLeave}
+                        onTouchStart={(e) => {
+                          setHoveredDonut({ ...item, percentage: percent });
+                          handleMouseMove(e, item.name, `${item.value} Tasks`, `${percent}%`, item.color);
+                        }}
                       >
                         <span
                           className="epr-legend-dot"
@@ -635,6 +665,13 @@ export default function EmployeeReportsPage() {
                             handleMouseMove(e, bar.label, `${bar.count} Deliverables`, `${percent}%`, bar.color);
                           }}
                           onMouseLeave={handleMouseLeave}
+                          onTouchStart={(e) => {
+                            setHoveredBar({ ...bar, percentage: percent });
+                            handleMouseMove(e, bar.label, `${bar.count} Deliverables`, `${percent}%`, bar.color);
+                          }}
+                          onTouchMove={(e) => {
+                            handleMouseMove(e, bar.label, `${bar.count} Deliverables`, `${percent}%`, bar.color);
+                          }}
                         />
                       </g>
                     );
@@ -685,8 +722,8 @@ export default function EmployeeReportsPage() {
             position: "fixed",
             left: `${tooltip.x}px`,
             top: `${tooltip.y}px`,
-            transform: "translate(-50%, -100%)",
-            marginTop: "-14px",
+            transform: tooltip.placement === "bottom" ? "translate(-50%, 20px)" : "translate(-50%, -100%)",
+            marginTop: tooltip.placement === "bottom" ? "0px" : "-14px",
             pointerEvents: "none",
             zIndex: 9999,
             display: "flex",
@@ -700,6 +737,7 @@ export default function EmployeeReportsPage() {
             boxShadow: "0 10px 28px -4px rgba(0, 0, 0, 0.45)",
             color: "#ffffff",
             whiteSpace: "nowrap",
+            maxWidth: "calc(100vw - 24px)",
           }}
         >
           {tooltip.color && (

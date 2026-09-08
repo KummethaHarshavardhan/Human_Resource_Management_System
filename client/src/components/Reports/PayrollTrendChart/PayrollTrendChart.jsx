@@ -13,17 +13,36 @@ export default function PayrollTrendChart({ data = [], loading = false, error = 
     visible: false,
     x: 0,
     y: 0,
+    placement: "top",
     monthName: "",
     gross: 0,
     net: 0,
     empCount: 0,
   });
 
+  const getEventCoords = (e) => {
+    if (e.touches && e.touches.length > 0) {
+      return { clientX: e.touches[0].clientX, clientY: e.touches[0].clientY };
+    }
+    if (e.changedTouches && e.changedTouches.length > 0) {
+      return { clientX: e.changedTouches[0].clientX, clientY: e.changedTouches[0].clientY };
+    }
+    return { clientX: e.clientX, clientY: e.clientY };
+  };
+
   const handleMouseMove = (e, d, monthName) => {
+    const coords = getEventCoords(e);
+    if (coords.clientX === undefined || coords.clientY === undefined) return;
+
+    const winWidth = typeof window !== "undefined" ? window.innerWidth : 400;
+    const clampedX = Math.max(120, Math.min(winWidth - 120, coords.clientX));
+    const showBelow = coords.clientY < 140;
+
     setTooltip({
       visible: true,
-      x: e.clientX,
-      y: e.clientY,
+      x: clampedX,
+      y: coords.clientY,
+      placement: showBelow ? "bottom" : "top",
       monthName,
       gross: d.totalGrossPay || 0,
       net: d.totalNetPay || 0,
@@ -226,7 +245,7 @@ export default function PayrollTrendChart({ data = [], loading = false, error = 
                   width={colWidth}
                   height={graphHeight}
                   fill="transparent"
-                  style={{ cursor: "pointer" }}
+                  style={{ cursor: "pointer", touchAction: "manipulation" }}
                   onMouseEnter={(e) => {
                     setHoveredIdx(idx);
                     handleMouseMove(e, d, monthName);
@@ -235,6 +254,13 @@ export default function PayrollTrendChart({ data = [], loading = false, error = 
                     handleMouseMove(e, d, monthName);
                   }}
                   onMouseLeave={handleMouseLeave}
+                  onTouchStart={(e) => {
+                    setHoveredIdx(idx);
+                    handleMouseMove(e, d, monthName);
+                  }}
+                  onTouchMove={(e) => {
+                    handleMouseMove(e, d, monthName);
+                  }}
                 />
               </g>
             );
@@ -270,8 +296,8 @@ export default function PayrollTrendChart({ data = [], loading = false, error = 
             position: "fixed",
             left: `${tooltip.x}px`,
             top: `${tooltip.y}px`,
-            transform: "translate(-50%, -100%)",
-            marginTop: "-14px",
+            transform: tooltip.placement === "bottom" ? "translate(-50%, 20px)" : "translate(-50%, -100%)",
+            marginTop: tooltip.placement === "bottom" ? "0px" : "-14px",
             pointerEvents: "none",
             zIndex: 9999,
             display: "flex",
@@ -285,6 +311,7 @@ export default function PayrollTrendChart({ data = [], loading = false, error = 
             boxShadow: "0 10px 28px -4px rgba(0, 0, 0, 0.45)",
             color: "#ffffff",
             whiteSpace: "nowrap",
+            maxWidth: "calc(100vw - 24px)",
           }}
         >
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px", borderBottom: "1px solid rgba(255,255,255,0.12)", paddingBottom: "4px" }}>

@@ -39,6 +39,7 @@ export default function DepartmentBreakdownChart({ data = [], loading = false, e
             <div
               key={deptName + idx}
               className={`dept-bar-item ${isHovered ? "active" : ""}`}
+              onClick={() => setHoveredDept(hoveredDept === idx ? null : idx)}
               onMouseEnter={() => setHoveredDept(idx)}
               onMouseLeave={() => setHoveredDept(null)}
               style={{

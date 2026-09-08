@@ -50,17 +50,36 @@ export default function ReportsOverviewPage() {
     visible: false,
     x: 0,
     y: 0,
+    placement: "top",
     title: "",
     value: "",
     percentage: "",
     color: "",
   });
 
+  const getEventCoords = (e) => {
+    if (e.touches && e.touches.length > 0) {
+      return { clientX: e.touches[0].clientX, clientY: e.touches[0].clientY };
+    }
+    if (e.changedTouches && e.changedTouches.length > 0) {
+      return { clientX: e.changedTouches[0].clientX, clientY: e.changedTouches[0].clientY };
+    }
+    return { clientX: e.clientX, clientY: e.clientY };
+  };
+
   const handleMouseMove = (e, title, value, percentage, color) => {
+    const coords = getEventCoords(e);
+    if (coords.clientX === undefined || coords.clientY === undefined) return;
+
+    const winWidth = typeof window !== "undefined" ? window.innerWidth : 400;
+    const clampedX = Math.max(100, Math.min(winWidth - 100, coords.clientX));
+    const showBelow = coords.clientY < 130;
+
     setTooltip({
       visible: true,
-      x: e.clientX,
-      y: e.clientY,
+      x: clampedX,
+      y: coords.clientY,
+      placement: showBelow ? "bottom" : "top",
       title,
       value,
       percentage,
@@ -662,6 +681,13 @@ export default function ReportsOverviewPage() {
                                 handleMouseMove(e, item.name, `${item.value} Tasks`, `${percent}%`, item.color);
                               }}
                               onMouseLeave={handleMouseLeave}
+                              onTouchStart={(e) => {
+                                setHoveredDonut({ ...item, percentage: percent });
+                                handleMouseMove(e, item.name, `${item.value} Tasks`, `${percent}%`, item.color);
+                              }}
+                              onTouchMove={(e) => {
+                                handleMouseMove(e, item.name, `${item.value} Tasks`, `${percent}%`, item.color);
+                              }}
                             />
                           );
                         });
@@ -731,6 +757,10 @@ export default function ReportsOverviewPage() {
                           handleMouseMove(e, item.name, `${item.value} Tasks`, `${percent}%`, item.color);
                         }}
                         onMouseLeave={handleMouseLeave}
+                        onTouchStart={(e) => {
+                          setHoveredDonut({ ...item, percentage: percent });
+                          handleMouseMove(e, item.name, `${item.value} Tasks`, `${percent}%`, item.color);
+                        }}
                       >
                         <span
                           className="epr-legend-dot"
@@ -809,7 +839,7 @@ export default function ReportsOverviewPage() {
                 <svg
                   width="100%"
                   height="220"
-                  viewBox="0 0 380 220"
+                  viewBox={`0 0 ${Math.max(380, 50 + teamVelocityData.length * 80)} 220`}
                   preserveAspectRatio="xMidYMid meet"
                   style={{ overflow: "visible" }}
                 >
@@ -819,7 +849,7 @@ export default function ReportsOverviewPage() {
                     const yPos = 180 - (step / 4) * 140;
                     return (
                       <g key={step}>
-                        <line x1="36" y1={yPos} x2="370" y2={yPos} stroke="#f1f5f9" strokeDasharray="3 3" />
+                        <line x1="36" y1={yPos} x2={Math.max(370, 40 + teamVelocityData.length * 80)} y2={yPos} stroke="#f1f5f9" strokeDasharray="3 3" />
                         <text x="24" y={yPos + 4} fontSize="10" fill="#94a3b8" textAnchor="end">
                           {yVal}
                         </text>
@@ -904,6 +934,13 @@ export default function ReportsOverviewPage() {
                                   handleMouseMove(e, `${team.name} • Total Tasks`, `${team.total} Tasks`, `${percent}%`, "#38bdf8");
                                 }}
                                 onMouseLeave={handleMouseLeave}
+                                onTouchStart={(e) => {
+                                  setHoveredVelocity({ teamName: team.name, barType: "total" });
+                                  handleMouseMove(e, `${team.name} • Total Tasks`, `${team.total} Tasks`, `${percent}%`, "#38bdf8");
+                                }}
+                                onTouchMove={(e) => {
+                                  handleMouseMove(e, `${team.name} • Total Tasks`, `${team.total} Tasks`, `${percent}%`, "#38bdf8");
+                                }}
                               />
                             </g>
                           );
@@ -960,6 +997,13 @@ export default function ReportsOverviewPage() {
                                   handleMouseMove(e, `${team.name} • Completed Tasks`, `${team.completed} Tasks`, `${percent}% of total`, "#10b981");
                                 }}
                                 onMouseLeave={handleMouseLeave}
+                                onTouchStart={(e) => {
+                                  setHoveredVelocity({ teamName: team.name, barType: "completed" });
+                                  handleMouseMove(e, `${team.name} • Completed Tasks`, `${team.completed} Tasks`, `${percent}% of total`, "#10b981");
+                                }}
+                                onTouchMove={(e) => {
+                                  handleMouseMove(e, `${team.name} • Completed Tasks`, `${team.completed} Tasks`, `${percent}% of total`, "#10b981");
+                                }}
                               />
                             </g>
                           );
@@ -1016,6 +1060,13 @@ export default function ReportsOverviewPage() {
                                   handleMouseMove(e, `${team.name} • Overdue Tasks`, `${team.overdue} Tasks`, `${percent}% of total`, "#ef4444");
                                 }}
                                 onMouseLeave={handleMouseLeave}
+                                onTouchStart={(e) => {
+                                  setHoveredVelocity({ teamName: team.name, barType: "overdue" });
+                                  handleMouseMove(e, `${team.name} • Overdue Tasks`, `${team.overdue} Tasks`, `${percent}% of total`, "#ef4444");
+                                }}
+                                onTouchMove={(e) => {
+                                  handleMouseMove(e, `${team.name} • Overdue Tasks`, `${team.overdue} Tasks`, `${percent}% of total`, "#ef4444");
+                                }}
                               />
                             </g>
                           );
@@ -1158,6 +1209,13 @@ export default function ReportsOverviewPage() {
                             handleMouseMove(e, bar.label, `${bar.count} Tasks`, `${percent}%`, bar.color);
                           }}
                           onMouseLeave={handleMouseLeave}
+                          onTouchStart={(e) => {
+                            setHoveredDeadlineBar({ ...bar, percentage: percent });
+                            handleMouseMove(e, bar.label, `${bar.count} Tasks`, `${percent}%`, bar.color);
+                          }}
+                          onTouchMove={(e) => {
+                            handleMouseMove(e, bar.label, `${bar.count} Tasks`, `${percent}%`, bar.color);
+                          }}
                         />
                       </g>
                     );
@@ -1343,8 +1401,8 @@ export default function ReportsOverviewPage() {
             position: "fixed",
             left: `${tooltip.x}px`,
             top: `${tooltip.y}px`,
-            transform: "translate(-50%, -100%)",
-            marginTop: "-14px",
+            transform: tooltip.placement === "bottom" ? "translate(-50%, 20px)" : "translate(-50%, -100%)",
+            marginTop: tooltip.placement === "bottom" ? "0px" : "-14px",
             pointerEvents: "none",
             zIndex: 9999,
             display: "flex",
@@ -1358,6 +1416,7 @@ export default function ReportsOverviewPage() {
             boxShadow: "0 10px 28px -4px rgba(0, 0, 0, 0.45)",
             color: "#ffffff",
             whiteSpace: "nowrap",
+            maxWidth: "calc(100vw - 24px)",
           }}
         >
           {tooltip.color && (

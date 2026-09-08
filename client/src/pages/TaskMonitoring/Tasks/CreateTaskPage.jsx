@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import {
   FiArrowLeft,
   FiCheckSquare,
+  FiUser,
   FiUsers,
   FiCalendar,
   FiAlertCircle,
@@ -201,26 +202,24 @@ export default function CreateTaskPage() {
           </div>
 
           {/* Allocation Mode Selector */}
-          <div style={{ marginTop: 10 }}>
-            <label style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--slate-700, #334155)" }}>
-              Allocation Mode
-            </label>
-            <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
+          <div className="tm-form-group" style={{ marginTop: 4 }}>
+            <label>Allocation Mode</label>
+            <div className="tm-mode-selector">
               <button
                 type="button"
-                className={`tm-action-btn ${allocationMode === "SINGLE" ? "tm-action-btn-primary" : ""}`}
-                style={{ padding: "8px 16px" }}
+                className={`tm-mode-btn ${allocationMode === "SINGLE" ? "active" : ""}`}
                 onClick={() => setAllocationMode("SINGLE")}
               >
-                Single Candidate
+                <FiUser size={15} />
+                <span>Single Candidate</span>
               </button>
               <button
                 type="button"
-                className={`tm-action-btn ${allocationMode === "BULK" ? "tm-action-btn-primary" : ""}`}
-                style={{ padding: "8px 16px" }}
+                className={`tm-mode-btn ${allocationMode === "BULK" ? "active" : ""}`}
                 onClick={() => setAllocationMode("BULK")}
               >
-                Bulk / Team Allocation
+                <FiUsers size={15} />
+                <span>Bulk / Team Allocation</span>
               </button>
             </div>
           </div>
@@ -247,13 +246,12 @@ export default function CreateTaskPage() {
                 <label style={{ fontSize: "0.85rem", fontWeight: 700 }}>
                   Select Candidates for Bulk Assignment ({selectedCandidateIds.length} selected)
                 </label>
-                <div style={{ display: "flex", gap: 6 }}>
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                   {teamsList.map((tm) => (
                     <button
                       key={tm}
                       type="button"
-                      className="tm-action-btn"
-                      style={{ fontSize: "11px", padding: "3px 8px" }}
+                      className="tm-team-tag-btn"
                       onClick={() => handleSelectTeam(tm)}
                     >
                       + {tm}

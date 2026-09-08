@@ -372,14 +372,14 @@ export default function ReviewQueuePage() {
             <Button variant="outline" size="sm" type="button" onClick={() => setIsReworkModalOpen(false)}>
               Cancel
             </Button>
-            <button
+            <Button
+              variant="warning"
+              size="sm"
               type="submit"
-              className="tm-action-btn tm-action-btn-warning"
-              style={{ padding: "8px 16px" }}
-              disabled={submitting}
+              loading={submitting}
             >
-              {submitting ? "Submitting..." : "Send Rework Request"}
-            </button>
+              Send Rework Request
+            </Button>
           </div>
         </form>
       </Modal>
