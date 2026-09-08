@@ -10,7 +10,20 @@ const NotificationSchema = new mongoose.Schema(
 
     type: {
       type: String,
-      enum: ["leave_applied", "leave_approved", "leave_rejected", "leave_cancelled", "general"],
+      enum: [
+        "leave_applied",
+        "leave_approved",
+        "leave_rejected",
+        "leave_cancelled",
+        "payroll",
+        "bonus",
+        "general",
+        "task_assigned",
+        "task_submitted",
+        "task_approved",
+        "task_rework",
+        "task_reassigned",
+      ],
       default: "general",
     },
 
@@ -25,9 +38,31 @@ const NotificationSchema = new mongoose.Schema(
       default: false,
     },
 
+    link: {
+      type: String,
+      default: "",
+    },
+
+    attachmentUrl: {
+      type: String,
+      default: "",
+    },
+
     relatedLeave: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Leave",
+      default: null,
+    },
+
+    relatedTask: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Task",
+      default: null,
+    },
+
+    relatedAssignment: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "TaskAssignment",
       default: null,
     },
   },

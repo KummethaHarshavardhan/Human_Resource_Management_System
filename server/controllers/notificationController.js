@@ -5,6 +5,15 @@ export const getNotifications = async (req, res) => {
   try {
     const userId = req.user?.id || req.user?._id;
     const notifications = await Notification.find({ recipient: userId })
+      .populate({
+        path: "relatedLeave",
+        populate: { path: "employee", select: "name email role" },
+      })
+      .populate("relatedTask", "title priority")
+      .populate({
+        path: "relatedAssignment",
+        populate: { path: "task", select: "title priority" },
+      })
       .sort({ createdAt: -1 })
       .limit(50);
 

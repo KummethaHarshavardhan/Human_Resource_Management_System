@@ -27,6 +27,12 @@ import salaryRoutes from "./routes/salaryRoutes.js";
 import payrollRoutes from "./routes/payrollRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import progressRoutes from "./routes/progressRoutes.js";
+import taskReportRoutes from "./routes/taskReportRoutes.js";
+import superAdminRoutes from "./routes/superAdminRoutes.js";
+import { seedDefaultDepartments } from "./services/departmentService.js";
+import { seedSuperAdmin } from "./controllers/superAdminController.js";
+import { seedInitialTaskData } from "./scripts/seedTaskData.js";
+import { syncEmployeesToCandidates } from "./controllers/candidateController.js";
 import { errorHandler, notFoundHandler } from "./middlewares/errorHandler.js";
 
 const app = express();
@@ -41,8 +47,12 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 connectDB().then(async () => {
+     await seedDefaultDepartments();
+    await seedSuperAdmin();
     await syncUsersToEmployees();
     await backfillEmployeeCodes();
+    await syncEmployeesToCandidates();
+    await seedInitialTaskData();
 });
 
 app.get("/", (req, res) => {
@@ -71,6 +81,8 @@ app.use("/api/salaries", salaryRoutes);
 app.use("/api/payrolls", payrollRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/progress", progressRoutes);
+app.use("/api/super-admin", superAdminRoutes);
+app.use("/api/task-reports", taskReportRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
