@@ -66,13 +66,13 @@ export default function ReportSummary({ summary = {} }) {
   return (
     <div className="report-summary-grid">
       {cards.map((card, idx) => (
-        <div key={idx} className={`summary-card summary-card-${card.color}`}>
-          <div className="summary-card-header">
-            <span className="summary-card-title">{card.title}</span>
-            <div className="summary-card-icon">{card.icon}</div>
+        <div key={idx} className={`report-summary-card report-summary-card-${card.color}`}>
+          <div className="report-summary-card-header">
+            <span className="report-summary-card-title">{card.title}</span>
+            <div className="report-summary-card-icon">{card.icon}</div>
           </div>
-          <div className="summary-card-value" title={card.fullValue}>{card.value}</div>
-          <div className="summary-card-subtitle">{card.subtitle}</div>
+          <div className="report-summary-card-value" title={card.fullValue}>{card.value}</div>
+          <div className="report-summary-card-subtitle">{card.subtitle}</div>
         </div>
       ))}
     </div>

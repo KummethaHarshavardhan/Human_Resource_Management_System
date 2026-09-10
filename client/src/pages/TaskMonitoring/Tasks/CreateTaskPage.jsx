@@ -242,7 +242,7 @@ export default function CreateTaskPage() {
             </div>
           ) : (
             <div style={{ marginTop: 10 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, flexWrap: "wrap", gap: 8 }}>
                 <label style={{ fontSize: "0.85rem", fontWeight: 700 }}>
                   Select Candidates for Bulk Assignment ({selectedCandidateIds.length} selected)
                 </label>
@@ -268,7 +268,7 @@ export default function CreateTaskPage() {
                   borderRadius: 8,
                   padding: 10,
                   display: "grid",
-                  gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(min(240px, 100%), 1fr))",
                   gap: 8,
                   background: "#f8fafc",
                 }}
