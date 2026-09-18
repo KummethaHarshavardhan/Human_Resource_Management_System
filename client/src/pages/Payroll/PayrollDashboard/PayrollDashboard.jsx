@@ -47,12 +47,15 @@ export default function PayrollDashboard() {
     try {
       const [payrollsRes, empsRes, salariesRes] = await Promise.all([
         getAllPayrolls(),
-        getAllEmployees(),
+        getAllEmployees({ status: "Active" }),
         getAllSalaries(),
       ]);
 
       if (payrollsRes?.success) setPayrolls(payrollsRes.data || []);
-      if (empsRes?.success) setEmployees(empsRes.data || empsRes.employees || []);
+      if (empsRes?.success) {
+        const rawEmps = empsRes.data || empsRes.employees || [];
+        setEmployees(rawEmps.filter((e) => e.employment_status !== "Inactive"));
+      }
       if (salariesRes?.success) setSalaries(salariesRes.data || []);
     } catch (err) {
       setError(err.message || 'Failed to load payroll dashboard');

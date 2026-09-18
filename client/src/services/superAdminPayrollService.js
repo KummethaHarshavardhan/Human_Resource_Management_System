@@ -23,10 +23,11 @@ const handleResponse = async (res) => {
 };
 
 // Fetch all employees and HR payroll summary for Super Admin
-export const getSuperAdminPayroll = async (month, year) => {
+export const getSuperAdminPayroll = async (month, year, organizationId) => {
   const params = new URLSearchParams();
   if (month) params.append("month", month);
   if (year) params.append("year", year);
+  if (organizationId && organizationId !== "all") params.append("organizationId", organizationId);
 
   const query = params.toString() ? `?${params.toString()}` : "";
   const res = await fetch(`${API_BASE}${query}`, {

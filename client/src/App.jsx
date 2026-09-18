@@ -52,6 +52,8 @@ import EditRole from "./pages/Employee/roles/EditRole";
 
 
 import LeaveDashboard from "./pages/Leave/LeaveDashboard";
+import OffboardingList from "./pages/Offboarding/OffboardingList";
+import OffboardingDetails from "./pages/Offboarding/OffboardingDetails";
 
 // Task Monitoring System Pages
 import CandidateListPage from "./pages/TaskMonitoring/Candidates/CandidateListPage";
@@ -605,6 +607,30 @@ function AppRoutes() {
           element={
             <ProtectedRoute allowedRoles={["Employee", "Admin", "HR Manager"]}>
               <OnboardingDetails />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/offboarding"
+          element={
+            <ProtectedRoute allowedRoles={["Admin", "HR Manager"]}>
+              <OffboardingList />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/offboarding/:id"
+          element={
+            <ProtectedRoute allowedRoles={["Admin", "HR Manager", "Employee"]}>
+              <OffboardingDetails />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/employee/offboarding"
+          element={
+            <ProtectedRoute allowedRoles={["Employee", "Admin", "HR Manager"]}>
+              <OffboardingDetails />
             </ProtectedRoute>
           }
         />
