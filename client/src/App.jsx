@@ -52,6 +52,8 @@ import EditRole from "./pages/Employee/roles/EditRole";
 
 
 import LeaveDashboard from "./pages/Leave/LeaveDashboard";
+import HolidayCalendar from "./pages/Holidays/HolidayCalendar";
+import HolidayManagement from "./pages/Holidays/HolidayManagement";
 import OffboardingList from "./pages/Offboarding/OffboardingList";
 import OffboardingDetails from "./pages/Offboarding/OffboardingDetails";
 import WFHRequests from "./pages/WFH/WFHRequests";
@@ -585,7 +587,25 @@ function AppRoutes() {
           />
         }
       />
-
+      
+      {/* Holiday Calendar Routes */}
+        <Route
+          path="/holidays"
+          element={
+            <ProtectedRoute allowedRoles={["super_admin", "Admin", "HR Manager", "Employee"]}>
+              <HolidayCalendar />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/holidays/manage"
+          element={
+            <ProtectedRoute allowedRoles={["super_admin", "Admin", "HR Manager"]}>
+              <HolidayManagement />
+            </ProtectedRoute>
+          }
+        />
+        
       {/* Onboarding & Offboarding Routes */}
         <Route
           path="/onboarding"
