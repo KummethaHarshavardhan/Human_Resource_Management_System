@@ -63,6 +63,9 @@ import TaskListPage from "./pages/TaskMonitoring/Tasks/TaskListPage";
 import CreateTaskPage from "./pages/TaskMonitoring/Tasks/CreateTaskPage";
 import TaskDetailsPage from "./pages/TaskMonitoring/Tasks/TaskDetailsPage";
 
+import OnboardingList from "./pages/Onboarding/OnboardingList";
+import OnboardingDetails from "./pages/Onboarding/OnboardingDetails";
+
 
 function ProtectedLayout() {
   const { isAuthenticated } = useAuth();
@@ -696,6 +699,31 @@ function AppRoutes() {
           />
         }
       />
+      {/* Onboarding & Offboarding Routes */}
+        <Route
+          path="/onboarding"
+          element={
+            <ProtectedRoute allowedRoles={["Admin", "HR Manager"]}>
+              <OnboardingList />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/onboarding/:id"
+          element={
+            <ProtectedRoute allowedRoles={["Admin", "HR Manager", "Employee"]}>
+              <OnboardingDetails />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/employee/onboarding"
+          element={
+            <ProtectedRoute allowedRoles={["Employee", "Admin", "HR Manager"]}>
+              <OnboardingDetails />
+            </ProtectedRoute>
+          }
+        />
 
     </Routes>
   );
