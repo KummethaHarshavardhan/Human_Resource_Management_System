@@ -21,7 +21,7 @@ import assignmentRoutes from "./routes/assignmentRoutes.js";
 import payslipRoutes from "./routes/payslipRoutes.js";
 import reportRoutes from "./routes/reportRoutes.js";
 import analyticsRoutes from "./routes/analyticsRoutes.js";
-
+import holidayRoutes from "./routes/holidayRoutes.js";
 import reviewRoutes from "./routes/reviewRoutes.js";
 import submissionRoutes from "./routes/submissionRoutes.js";
 
@@ -53,6 +53,7 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
 
 connectDB().then(async () => {
     await seedDefaultDepartments();
@@ -101,6 +102,7 @@ app.use("/api/super-admin", superAdminRoutes);
 app.use("/api/task-reports", taskReportRoutes);
 app.use("/api/offboarding", offboardingRoutes);
 app.use("/api/wfh-requests", wfhRoutes);
+app.use("/api/holidays", holidayRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
