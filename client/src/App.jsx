@@ -64,12 +64,17 @@ import SubmissionListPage from "./pages/TaskMonitoring/Submissions/SubmissionLis
 import ReviewQueuePage from "./pages/TaskMonitoring/Reviews/ReviewQueuePage";
 import ReportsOverviewPage from "./pages/TaskMonitoring/Reports/ReportsOverviewPage";
 
+
 // Employee Task Monitoring System Pages
 import EmployeeTasksPage from "./pages/TaskMonitoring/Employee/EmployeeTasksPage";
 import EmployeeTaskDetailsPage from "./pages/TaskMonitoring/Employee/EmployeeTaskDetailsPage";
 import EmployeeProgressPage from "./pages/TaskMonitoring/Employee/EmployeeProgressPage";
 import EmployeeSubmissionsPage from "./pages/TaskMonitoring/Employee/EmployeeSubmissionsPage";
 import EmployeeReportsPage from "./pages/TaskMonitoring/Employee/EmployeeReportsPage";
+
+import OnboardingList from "./pages/Onboarding/OnboardingList";
+import OnboardingDetails from "./pages/Onboarding/OnboardingDetails";
+
 
 function ProtectedLayout() {
   const { isAuthenticated } = useAuth();
@@ -577,6 +582,34 @@ function AppRoutes() {
           />
         }
       />
+
+      {/* Onboarding & Offboarding Routes */}
+        <Route
+          path="/onboarding"
+          element={
+            <ProtectedRoute allowedRoles={["Admin", "HR Manager"]}>
+              <OnboardingList />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/onboarding/:id"
+          element={
+            <ProtectedRoute allowedRoles={["Admin", "HR Manager", "Employee"]}>
+              <OnboardingDetails />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/employee/onboarding"
+          element={
+            <ProtectedRoute allowedRoles={["Employee", "Admin", "HR Manager"]}>
+              <OnboardingDetails />
+            </ProtectedRoute>
+          }
+        />
+
+
     </Routes>
   );
 }
