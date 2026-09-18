@@ -599,3 +599,135 @@ export const deleteDocument = async (req, res) => {
     });
   }
 };
+
+/**
+ * 6. Verify or Reject Document
+ * PATCH /api/documents/:id/verify
+ * Body: { decision: "Verified" | "Rejected", rejection_reason }
+ */
+export const verifyDocument = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { decision, rejection_reason } = req.body;
+    const userId = req.user?.id || req.user?._id;
+    const userRole = normalizeRole(req.user?.role);
+
+    // Only admin, hr_manager, and super_admin can verify or reject documents
+    if (userRole !== "admin" && userRole !== "hr_manager" && userRole !== "super_admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Only HR Managers, Admins, and Super Admin can verify or reject documents.",
+      });
+    }
+
+    if (!decision || !["Verified", "Rejected"].includes(decision)) {
+      return res.status(400).json({
+        success: false,
+        message: "Decision must be either 'Verified' or 'Rejected'.",
+      });
+    }
+
+    if (decision === "Rejected" && (!rejection_reason || !rejection_reason.trim())) {
+      return res.status(400).json({
+        success: false,
+        message: "A rejection reason is required when rejecting a document.",
+      });
+    }
+
+    const docQuery = Document.findById(id);
+    const doc = await (typeof docQuery.populate === "function"
+      ? docQuery.populate([{ path: "employee_id" }, { path: "uploaded_by" }])
+      : docQuery);
+    if (!doc) {
+      return res.status(404).json({
+        success: false,
+        message: "Document not found.",
+      });
+    }
+
+    // Check if the document was uploaded by HR/Admin
+    const uploaderRole = normalizeRole(doc.uploader_role || doc.uploaded_by?.role);
+    const isHrUploaded = uploaderRole === "admin" || uploaderRole === "hr_manager";
+
+    if (userRole === "super_admin") {
+      // Super admin can ONLY verify documents uploaded by HR/Admin users
+      if (!isHrUploaded) {
+        return res.status(403).json({
+          success: false,
+          message: "Super Admin can only verify documents uploaded by HR/Admin users.",
+        });
+      }
+    } else {
+      // HR/Admin can ONLY verify employee-uploaded documents (not HR-uploaded)
+      if (isHrUploaded) {
+        return res.status(403).json({
+          success: false,
+          message: "HR Managers cannot verify HR-uploaded documents. Only platform admin can verify them.",
+        });
+      }
+
+      // Organization scoping: must belong to the same organization
+      if (req.user?.organizationId) {
+        if (doc.organizationId && String(doc.organizationId) !== String(req.user.organizationId)) {
+          return res.status(403).json({
+            success: false,
+            message: "Access denied. Document belongs to another organization.",
+          });
+        }
+      }
+    }
+
+    // Update document
+    doc.status = decision;
+    doc.verified_by = userId;
+    doc.verified_at = new Date();
+    doc.rejection_reason = decision === "Rejected" ? rejection_reason.trim() : null;
+
+    await doc.save();
+
+    // Trigger notifications
+    if (userRole === "super_admin") {
+      // Notifies that specific HR/admin uploader (not the whole org):
+      const recipientId = doc.uploaded_by?._id || doc.uploaded_by;
+      if (recipientId) {
+        await sendDocumentVerificationNotification({
+          recipient: recipientId,
+          category: doc.category,
+          decision,
+          rejectionReason: doc.rejection_reason || "",
+          link: "/profile",
+          isPlatformAdmin: true,
+          fileName: doc.file_name,
+        });
+      }
+    } else {
+      // HR notifies the employee
+      const employee = doc.employee_id;
+      const recipientId = employee?.user_id?._id || employee?.user_id || doc.uploaded_by;
+      if (recipientId) {
+        await sendDocumentVerificationNotification({
+          recipient: recipientId,
+          category: doc.category,
+          decision,
+          rejectionReason: doc.rejection_reason || "",
+          link: "/profile",
+          isPlatformAdmin: false,
+          fileName: doc.file_name,
+        });
+      }
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: `Document has been ${decision.toLowerCase()} successfully.`,
+      document: doc,
+    });
+  } catch (error) {
+    console.error("verifyDocument error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to verify document.",
+      error: error.message,
+    });
+  }
+};
