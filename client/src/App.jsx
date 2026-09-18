@@ -54,6 +54,7 @@ import EditRole from "./pages/Employee/roles/EditRole";
 import LeaveDashboard from "./pages/Leave/LeaveDashboard";
 import OffboardingList from "./pages/Offboarding/OffboardingList";
 import OffboardingDetails from "./pages/Offboarding/OffboardingDetails";
+import WFHRequests from "./pages/WFH/WFHRequests";
 
 // Task Monitoring System Pages
 import CandidateListPage from "./pages/TaskMonitoring/Candidates/CandidateListPage";
@@ -631,6 +632,15 @@ function AppRoutes() {
           element={
             <ProtectedRoute allowedRoles={["Employee", "Admin", "HR Manager"]}>
               <OffboardingDetails />
+            </ProtectedRoute>
+          }
+        />
+        {/* Work From Home Requests (HR/Admin view-only) */}
+        <Route
+          path="/wfh-requests"
+          element={
+            <ProtectedRoute allowedRoles={["Admin", "HR Manager", "HR", "Employee", "employee"]}>
+              <WFHRequests />
             </ProtectedRoute>
           }
         />

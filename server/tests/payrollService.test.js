@@ -1,4 +1,11 @@
+import { describe, test } from 'node:test';
+import assert from 'node:assert';
 import { calculatePayroll } from '../services/payrollService.js';
+
+const expect = (actual) => ({
+  toBe: (expected) => assert.strictEqual(actual, expected),
+  toThrow: (msg) => assert.throws(actual, msg ? new RegExp(msg) : undefined),
+});
 
 describe('calculatePayroll', () => {
   test('calculates correctly with full attendance (no proration needed)', () => {

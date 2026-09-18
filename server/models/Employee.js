@@ -89,6 +89,19 @@ const employeeSchema = new mongoose.Schema(
       min: 0,
     },
 
+    pf_percentage: {
+      type: Number,
+      default: 12,
+      min: 0,
+      max: 100,
+    },
+
+    bank_account_number: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
     account_number: {
       type: String,
       default: "XXXX6787",
@@ -137,6 +150,27 @@ const employeeSchema = new mongoose.Schema(
         note: { type: String, default: "" },
       },
     ],
+
+    bonus_months_count: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
+    // ==========================================
+    // SHIFT & ROSTER FIELDS
+    // ==========================================
+    current_shift_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Shift",
+      default: null,
+    },
+
+    current_shift_group_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "ShiftGroup",
+      default: null,
+    },
   },
   {
     timestamps: true,
