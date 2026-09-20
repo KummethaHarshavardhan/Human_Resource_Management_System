@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { applyLeave } from "../../services/leaveService";
+import { getAllHolidays } from "../../services/holidayService";
 import { useToast } from "../../context/ToastContext";
-import { FiCalendar, FiFileText, FiSend, FiCheckCircle, FiAlertCircle } from "react-icons/fi";
+import { FiCalendar, FiFileText, FiSend, FiCheckCircle, FiAlertCircle, FiInfo } from "react-icons/fi";
 
 export default function ApplyLeave({ refreshLeaves }) {
   const { showToast } = useToast();
@@ -12,8 +13,25 @@ export default function ApplyLeave({ refreshLeaves }) {
     reason: "",
   });
 
+  const [upcomingHolidays, setUpcomingHolidays] = useState([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: "", text: "" });
+
+  useEffect(() => {
+    getAllHolidays({ year: new Date().getFullYear() })
+      .then((data) => {
+        const now = new Date();
+        const futureOpt = (data?.holidays || [])
+          .filter(
+            (h) =>
+              (h.type === "Optional" || h.type === "Restricted") &&
+              new Date(h.date) >= new Date(now.getFullYear(), now.getMonth(), now.getDate())
+          )
+          .slice(0, 4);
+        setUpcomingHolidays(futureOpt);
+      })
+      .catch(() => {});
+  }, []);
 
   const handleChange = (e) => {
     setFormData((prev) => ({
@@ -67,10 +85,43 @@ export default function ApplyLeave({ refreshLeaves }) {
         <h2 className="leave-sub-title">
           <FiCalendar size={18} /> Apply for Leave
         </h2>
-        <p className="leave-sub-subtitle">Submit a new leave request for approval.</p>
       </div>
 
-
+      {upcomingHolidays.length > 0 && (
+        <div
+          style={{
+            background: "#f5f3ff",
+            border: "1px solid #ddd6fe",
+            borderRadius: 10,
+            padding: "12px 16px",
+            marginBottom: 16,
+            fontSize: 13,
+            color: "#5b21b6",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 6, fontWeight: 700, marginBottom: 6 }}>
+            <FiInfo size={15} /> Upcoming Optional / Restricted Holidays:
+          </div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {upcomingHolidays.map((h) => (
+              <span
+                key={h._id}
+                style={{
+                  background: "#ffffff",
+                  border: "1px solid #c4b5fd",
+                  padding: "4px 10px",
+                  borderRadius: 20,
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: "#6d28d9",
+                }}
+              >
+                {h.name} — {new Date(h.date).toLocaleDateString("en-IN", { day: "2-digit", month: "short" })} ({h.type})
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
 
       <form className="leave-apply-form" onSubmit={handleSubmit}>
         <div className="leave-form-grid">

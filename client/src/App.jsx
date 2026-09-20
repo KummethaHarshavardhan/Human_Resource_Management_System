@@ -52,8 +52,12 @@ import EditRole from "./pages/Employee/roles/EditRole";
 
 
 import LeaveDashboard from "./pages/Leave/LeaveDashboard";
+import HolidayCalendar from "./pages/Holidays/HolidayCalendar";
+import HolidayManagement from "./pages/Holidays/HolidayManagement";
 import OffboardingList from "./pages/Offboarding/OffboardingList";
 import OffboardingDetails from "./pages/Offboarding/OffboardingDetails";
+import AssetInventory from "./pages/Assets/AssetInventory";
+import AssetAssignment from "./pages/Assets/AssetAssignment";
 import WFHRequests from "./pages/WFH/WFHRequests";
 
 // Task Monitoring System Pages
@@ -585,7 +589,25 @@ function AppRoutes() {
           />
         }
       />
-
+      
+      {/* Holiday Calendar Routes */}
+        <Route
+          path="/holidays"
+          element={
+            <ProtectedRoute allowedRoles={["super_admin", "Admin", "HR Manager", "Employee"]}>
+              <HolidayCalendar />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/holidays/manage"
+          element={
+            <ProtectedRoute allowedRoles={["super_admin", "Admin", "HR Manager"]}>
+              <HolidayManagement />
+            </ProtectedRoute>
+          }
+        />
+        
       {/* Onboarding & Offboarding Routes */}
         <Route
           path="/onboarding"
@@ -632,6 +654,23 @@ function AppRoutes() {
           element={
             <ProtectedRoute allowedRoles={["Employee", "Admin", "HR Manager"]}>
               <OffboardingDetails />
+            </ProtectedRoute>
+          }
+        />
+        {/* Asset Management Routes */}
+        <Route
+          path="/assets"
+          element={
+            <ProtectedRoute allowedRoles={["Admin", "HR Manager"]}>
+              <AssetInventory />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/assets/assignments"
+          element={
+            <ProtectedRoute allowedRoles={["Admin", "HR Manager"]}>
+              <AssetAssignment />
             </ProtectedRoute>
           }
         />

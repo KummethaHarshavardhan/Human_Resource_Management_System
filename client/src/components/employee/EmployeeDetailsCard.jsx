@@ -15,7 +15,8 @@ function formatDate(d) {
 function StatusBadge({ status }) {
   const cls =
     status === "Active" ? "active" : status === "Inactive" ? "inactive" : "on-leave";
-  return <span className={`emp-badge ${cls}`}>{status || "—"}</span>;
+  const label = status === "Inactive" ? "Relieved / Inactive" : status || "—";
+  return <span className={`emp-badge ${cls}`}>{label}</span>;
 }
 
 export default function EmployeeDetailsCard({ employee, onEdit, onDelete, onBack, canEdit = true }) {
@@ -66,6 +67,7 @@ export default function EmployeeDetailsCard({ employee, onEdit, onDelete, onBack
 
   const joinDate = formatDate(employee.date_of_joining || employee.createdAt);
   const status = employee.employment_status || employee.status || "Active";
+  const isInactive = status === "Inactive";
   const createdAt = formatDate(employee.createdAt);
 
   return (
@@ -105,7 +107,29 @@ export default function EmployeeDetailsCard({ employee, onEdit, onDelete, onBack
         </div>
       </div>
 
-      <div className="emp-detail-hero">
+      {isInactive && (
+        <div
+          style={{
+            background: "#fef2f2",
+            border: "1px solid #fca5a5",
+            borderRadius: "10px",
+            padding: "12px 16px",
+            color: "#991b1b",
+            fontSize: "14px",
+            display: "flex",
+            alignItems: "center",
+            gap: "10px",
+            fontWeight: 500,
+          }}
+        >
+          <span style={{ fontSize: "18px" }}>⚠️</span>
+          <span>
+            <strong>Account Deactivated / Relieved:</strong> This employee has completed offboarding and is inactive. Login, active task assignment, payroll generation, and asset allocation are disabled. Historical records remain fully preserved.
+          </span>
+        </div>
+      )}
+
+      <div className="emp-detail-hero" style={isInactive ? { background: "linear-gradient(135deg, #64748b 0%, #475569 100%)" } : undefined}>
         <div className="emp-detail-avatar">
           {name.charAt(0).toUpperCase()}
         </div>

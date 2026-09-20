@@ -197,7 +197,11 @@ export const getAllAttendanceAdmin = async (req, res) => {
   try {
     const { page = 1, limit = 50, status, employeeId } = req.query;
 
-    const records = await getAllAttendanceAdminService({ status, employeeId });
+    const records = await getAllAttendanceAdminService({
+      status,
+      employeeId,
+      organizationId: req.user?.organizationId,
+    });
 
     // Multi-tenant scope: filter records to acting organization
     let scopedRecords = records;
