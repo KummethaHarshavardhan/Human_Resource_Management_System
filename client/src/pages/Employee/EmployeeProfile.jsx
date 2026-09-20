@@ -8,7 +8,9 @@ import {
 import { getAllDepartments } from "../../services/profileService.js";
 import "../../components/employee/emp.shared.css";
 import "../../components/employee/EmployeeDetailsCard.css";
-import { FiArrowLeft, FiEdit2, FiUser } from "react-icons/fi";
+import { FiArrowLeft, FiEdit2, FiUser, FiFileText, FiBox, FiInfo } from "react-icons/fi";
+import DocumentManager from "../../components/employee/DocumentManager.jsx";
+import EmployeeAssetsTab from "../../components/employee/EmployeeAssetsTab.jsx";
 
 function formatDate(d) {
   if (!d) return "—";
@@ -51,6 +53,7 @@ export default function EmployeeProfile() {
   const [success, setSuccess] = useState("");
 
   const [form, setForm] = useState({ designation: "", date_of_joining: "" });
+  const [activeTab, setActiveTab] = useState("details");
 
   useEffect(() => {
     setLoading(true);
@@ -201,14 +204,41 @@ export default function EmployeeProfile() {
             </div>
           </div>
 
-          <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
-            <StatPill label="Employee Code" value={code} />
-            <StatPill label="Department" value={dept} />
-            <StatPill label="Tenure" value={`${tenureYears} yr${tenureYears !== 1 ? "s" : ""}`} />
-            <StatPill label="Role" value={roleLabel} />
+          {/* Profile Navigation Tabs */}
+          <div className="asset-nav-tabs" style={{ margin: "16px 0 8px 0" }}>
+            <button
+              type="button"
+              className={`asset-nav-tab ${activeTab === "details" ? "active" : ""}`}
+              onClick={() => setActiveTab("details")}
+            >
+              <FiInfo size={16} /> Employment Details
+            </button>
+            <button
+              type="button"
+              className={`asset-nav-tab ${activeTab === "documents" ? "active" : ""}`}
+              onClick={() => setActiveTab("documents")}
+            >
+              <FiFileText size={16} /> Documents
+            </button>
+            <button
+              type="button"
+              className={`asset-nav-tab ${activeTab === "assets" ? "active" : ""}`}
+              onClick={() => setActiveTab("assets")}
+            >
+              <FiBox size={16} /> Assigned Assets
+            </button>
           </div>
 
-          <div className="emp-details-grid">
+          {activeTab === "details" && (
+            <>
+              <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 16 }}>
+                <StatPill label="Employee Code" value={code} />
+                <StatPill label="Department" value={dept} />
+                <StatPill label="Tenure" value={`${tenureYears} yr${tenureYears !== 1 ? "s" : ""}`} />
+                <StatPill label="Role" value={roleLabel} />
+              </div>
+
+              <div className="emp-details-grid">
             <div className="emp-details-section">
               <h3>Employment Details</h3>
 
@@ -344,6 +374,20 @@ export default function EmployeeProfile() {
               )}
             </div>
           </div>
+          </>
+          )}
+
+          {activeTab === "documents" && (
+            <div style={{ marginTop: 12 }}>
+              <DocumentManager employeeId={profile._id} canManage={true} />
+            </div>
+          )}
+
+          {activeTab === "assets" && (
+            <div style={{ marginTop: 12 }}>
+              <EmployeeAssetsTab employeeId={profile._id} />
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -18,6 +18,10 @@ import {
   FiFileText,
   FiCheckCircle,
   FiUserCheck,
+  FiSun,
+  FiBox,
+  FiUserMinus,
+  FiHome,
 } from "react-icons/fi";
 
 import "./Sidebar.css";
@@ -28,7 +32,13 @@ const menuItems = [
   { label: "Directory", to: "/directory", feature: "employee", icon: <FiUsers size={18} /> },
   { label: "Attendance", to: "/attendance-dashboard", feature: "attendance", icon: <FiClock size={18} /> },
   { label: "Leave Management", to: "/leave", feature: "leave", icon: <FiCalendar size={18} /> },
+  { label: "Holiday Calendar", to: "/holidays", feature: "holidays", icon: <FiSun size={18} /> },
+  { label: "Asset Management", to: "/assets", feature: "assets", icon: <FiBox size={18} /> },
+  { label: "Shifts & Timings", to: "/shifts", feature: "shifts", icon: <FiClock size={18} /> },
   { label: "WFH Requests", to: "/wfh-requests", feature: "wfh_requests", icon: <FiHome size={18} /> },
+  { label: "Document Verification", to: "/hr/document-verification", feature: "documents", icon: <FiFileText size={18} /> },
+  { label: "Onboarding", to: "/onboarding", feature: "onboarding", icon: <FiUserCheck size={18} /> },
+  { label: "Offboarding", to: "/offboarding", feature: "offboarding", icon: <FiUserMinus size={18} /> },
   { label: "Payroll", to: "/payroll", feature: "payroll", icon: <FiDollarSign size={18} /> },
   { label: "Reports", to: "/reports", feature: "reports", icon: <FiBarChart2 size={18} /> },
   { label: "Users", to: "/users", feature: "users", icon: <FiShield size={18} /> },
@@ -41,6 +51,8 @@ const superAdminMenuItems = [
   { label: "HR Management", to: "/super-admin/hr-management", icon: <FiUsers size={18} /> },
   { label: "Organization Usage/Limits", to: "/super-admin/usage-limits", icon: <FiBarChart2 size={18} /> },
   { label: "Leave Management", to: "/leave", icon: <FiCalendar size={18} /> },
+  { label: "Holiday Calendar", to: "/holidays", icon: <FiSun size={18} /> },
+  { label: "Document Verification", to: "/super-admin/document-verification", icon: <FiFileText size={18} /> },
   { label: "WFH Requests", to: "/super-admin/wfh-requests", icon: <FiHome size={18} /> },
   { label: "Payroll", to: "/super-admin/payroll", icon: <FiDollarSign size={18} /> },
   { label: "Profile", to: "/profile", icon: <FiUser size={18} /> },
@@ -57,7 +69,13 @@ const hrMenuSections = [
   {
     title: "HR OPERATIONS",
     items: [
+      { label: "Shifts & Timings", to: "/shifts", icon: <FiClock size={18} /> },
       { label: "WFH Requests", to: "/wfh-requests", icon: <FiHome size={18} /> },
+      { label: "Document Verification", to: "/hr/document-verification", icon: <FiFileText size={18} /> },
+      { label: "Onboarding", to: "/onboarding", icon: <FiUserCheck size={18} /> },
+      { label: "Offboarding", to: "/offboarding", icon: <FiUserMinus size={18} /> },
+      { label: "Holiday Calendar", to: "/holidays", icon: <FiSun size={18} /> },
+      { label: "Asset Management", to: "/assets", icon: <FiBox size={18} /> },
     ],
   },
   {
@@ -104,22 +122,25 @@ const employeeMenuSections = [
     ],
   },
   {
+    title: "SELF SERVICE",
+    items: [
+      { label: "Directory", to: "/directory", icon: <FiUsers size={18} /> },
+      { label: "Attendance", to: "/attendance-dashboard", icon: <FiClock size={18} /> },
+      { label: "Leave Management", to: "/leave", icon: <FiCalendar size={18} /> },
+      { label: "Holiday Calendar", to: "/holidays", icon: <FiSun size={18} /> },
+      { label: "My Onboarding", to: "/employee/onboarding", icon: <FiUserCheck size={18} /> },
+      { label: "My Offboarding", to: "/employee/offboarding", icon: <FiUserMinus size={18} /> },
+      { label: "WFH Requests", to: "/wfh-requests", icon: <FiHome size={18} /> },
+      { label: "Payroll", to: "/payroll", icon: <FiDollarSign size={18} /> },
+    ],
+  },
+  {
     title: "TASK MONITORING",
     items: [
       { label: "My Assigned Tasks", to: "/employee/tasks", icon: <FiCheckSquare size={18} /> },
       { label: "Progress Tracking", to: "/employee/progress", icon: <FiTrendingUp size={18} /> },
       { label: "Submit Work", to: "/employee/submissions", icon: <FiFileText size={18} /> },
       { label: "Performance Reports", to: "/employee/reports", icon: <FiBarChart2 size={18} /> },
-      { label: "WFH Requests", to: "/wfh-requests", icon: <FiHome size={18} /> },
-    ],
-  },
-  {
-    title: "SELF SERVICE",
-    items: [
-      { label: "Directory", to: "/directory", icon: <FiUsers size={18} /> },
-      { label: "Attendance", to: "/attendance-dashboard", icon: <FiClock size={18} /> },
-      { label: "Leave Management", to: "/leave", icon: <FiCalendar size={18} /> },
-      { label: "Payroll", to: "/payroll", icon: <FiDollarSign size={18} /> },
     ],
   },
   {

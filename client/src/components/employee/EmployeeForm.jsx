@@ -13,6 +13,8 @@ const EMPTY = {
   manager_id: "",
   date_of_joining: "",
   employment_status: "Active",
+  bank_account_number: "",
+  pf_percentage: 12,
 };
 
 export default function EmployeeForm({
@@ -172,6 +174,8 @@ export default function EmployeeForm({
       manager_id: form.manager_id || null,
       date_of_joining: form.date_of_joining,
       employment_status: form.employment_status,
+      bank_account_number: form.bank_account_number ? form.bank_account_number.trim() : "",
+      pf_percentage: form.pf_percentage !== undefined ? Number(form.pf_percentage) : 12,
     };
     onSubmit(payload);
   };
@@ -364,6 +368,36 @@ export default function EmployeeForm({
             )}
           </div>
 
+          {/* Bank Account Number */}
+          <div className="emp-form-group">
+            <label className="emp-form-label">Bank Account Number</label>
+            <input
+              type="text"
+              name="bank_account_number"
+              className="emp-form-input"
+              placeholder="e.g. 123456789012"
+              value={form.bank_account_number || ""}
+              onChange={handleChange}
+              style={{ fontFamily: "monospace" }}
+            />
+          </div>
+
+          {/* Provident Fund (PF) Contribution % */}
+          <div className="emp-form-group">
+            <label className="emp-form-label">PF Contribution (%)</label>
+            <input
+              type="number"
+              name="pf_percentage"
+              min="0"
+              max="100"
+              step="0.5"
+              className="emp-form-input"
+              placeholder="12"
+              value={form.pf_percentage !== undefined ? form.pf_percentage : 12}
+              onChange={handleChange}
+            />
+          </div>
+
           {/* Employment Status */}
           <div className="emp-form-group">
             <label className="emp-form-label">Employment Status</label>
@@ -372,10 +406,23 @@ export default function EmployeeForm({
               className="emp-form-select"
               value={form.employment_status}
               onChange={handleChange}
+              disabled={isEditMode && initialData?.employment_status === "Inactive"}
+              title={
+                isEditMode && initialData?.employment_status === "Inactive"
+                  ? "Relieved employees can only be reactivated via rejoin/onboarding"
+                  : undefined
+              }
             >
-              <option value="Active">Active</option>
+              {!(isEditMode && initialData?.employment_status === "Inactive") && (
+                <option value="Active">Active</option>
+              )}
               <option value="Inactive">Inactive</option>
             </select>
+            {isEditMode && initialData?.employment_status === "Inactive" && (
+              <span style={{ fontSize: "0.8rem", color: "#dc2626", marginTop: 4, display: "block" }}>
+                ⚠️ Relieved employees can only be reactivated via rejoin/onboarding. Direct toggle is disabled.
+              </span>
+            )}
           </div>
         </div>
       </div>

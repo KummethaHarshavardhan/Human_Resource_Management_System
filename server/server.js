@@ -27,7 +27,7 @@ import submissionRoutes from "./routes/submissionRoutes.js";
 
 import onboardingRoutes from "./routes/onboardingRoutes.js";
 import { shiftRouter, shiftGroupRouter } from "./routes/shiftRoutes.js";
-
+import assetRoutes from "./routes/assetRoutes.js";
 
 import salaryRoutes from "./routes/salaryRoutes.js";
 import payrollRoutes from "./routes/payrollRoutes.js";
@@ -92,7 +92,7 @@ app.use("/api/submissions", submissionRoutes);
 app.use("/api/onboarding", onboardingRoutes);
 app.use("/api/shifts", shiftRouter);
 app.use("/api/shift-groups", shiftGroupRouter);
-
+app.use("/api/assets", assetRoutes);
 
 app.use("/api/salaries", salaryRoutes);
 app.use("/api/payrolls", payrollRoutes);

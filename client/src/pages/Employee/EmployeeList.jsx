@@ -58,7 +58,7 @@ export default function EmployeeList() {
 
   // Search, Filter & Sort States
   const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("");
+  const [status, setStatus] = useState("Active");
   const [roleFilter, setRoleFilter] = useState("");
   const [deptFilter, setDeptFilter] = useState("All Departments");
   const [sortField, setSortField] = useState("name");
@@ -88,7 +88,7 @@ export default function EmployeeList() {
   const fetchStats = useCallback(async () => {
     try {
       const [allData, activeData, inactiveData] = await Promise.all([
-        getAllEmployees({ page: 1, limit: 1 }),
+        getAllEmployees({ status: "all", page: 1, limit: 1 }),
         getAllEmployees({ status: "Active", page: 1, limit: 1 }),
         getAllEmployees({ status: "Inactive", page: 1, limit: 1 }),
       ]);
@@ -355,17 +355,41 @@ export default function EmployeeList() {
           />
         </div>
 
-        <div className="emp-directory-filters">
+        <div className="emp-directory-filters" style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
           <select
             className="emp-directory-filter-select"
             value={status}
             onChange={handleStatusChange}
             aria-label="Filter by Employment Status"
           >
-            <option value="">All Statuses</option>
-            <option value="Active">Active</option>
-            <option value="Inactive">Inactive</option>
+            <option value="Active">Active Employees (Default)</option>
+            <option value="Inactive">Inactive / Relieved</option>
+            <option value="all">All Employees (Include Relieved)</option>
           </select>
+
+          <label
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              fontSize: 13,
+              cursor: "pointer",
+              color: "var(--text-secondary, #64748b)",
+              userSelect: "none",
+            }}
+          >
+            <input
+              type="checkbox"
+              id="show-inactive-toggle"
+              checked={status === "all" || status === "Inactive"}
+              onChange={(e) => {
+                const nextStatus = e.target.checked ? "all" : "Active";
+                setStatus(nextStatus);
+                setCurrentPage(1);
+              }}
+            />
+            Show inactive/relieved employees
+          </label>
 
           <select
             className="emp-directory-filter-select"

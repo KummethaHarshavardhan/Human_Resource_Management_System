@@ -26,6 +26,8 @@ const permissions = {
     "payroll",
     "super_admin_payroll",
     "profile",
+    "holidays",
+    "wfh_requests",
   ],
 
   admin: [
@@ -37,9 +39,15 @@ const permissions = {
     "payroll",
     "reports",
     "settings",
-    "users"
+    "users",
+    "documents",
+    "onboarding",
+    "offboarding",
+    "holidays",
+    "assets",
+    "shifts",
+    "wfh_requests",
   ],
-
 
   hr_manager: [
     "dashboard",
@@ -49,7 +57,14 @@ const permissions = {
     "leave",
     "payroll",
     "reports",
-    "settings"
+    "settings",
+    "documents",
+    "onboarding",
+    "offboarding",
+    "holidays",
+    "assets",
+    "shifts",
+    "wfh_requests",
   ],
 
   employee: [
@@ -63,8 +78,12 @@ const permissions = {
     "progress",
     "submissions",
     "reports",
-    "settings"
-  ]
+    "settings",
+    "documents",
+    "onboarding",
+    "holidays",
+    "assets",
+  ],
 };
 
 export const canAccessFeature = (role, feature) => {

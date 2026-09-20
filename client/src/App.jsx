@@ -56,6 +56,8 @@ import HolidayCalendar from "./pages/Holidays/HolidayCalendar";
 import HolidayManagement from "./pages/Holidays/HolidayManagement";
 import OffboardingList from "./pages/Offboarding/OffboardingList";
 import OffboardingDetails from "./pages/Offboarding/OffboardingDetails";
+import AssetInventory from "./pages/Assets/AssetInventory";
+import AssetAssignment from "./pages/Assets/AssetAssignment";
 import WFHRequests from "./pages/WFH/WFHRequests";
 
 // Task Monitoring System Pages
@@ -652,6 +654,23 @@ function AppRoutes() {
           element={
             <ProtectedRoute allowedRoles={["Employee", "Admin", "HR Manager"]}>
               <OffboardingDetails />
+            </ProtectedRoute>
+          }
+        />
+        {/* Asset Management Routes */}
+        <Route
+          path="/assets"
+          element={
+            <ProtectedRoute allowedRoles={["Admin", "HR Manager"]}>
+              <AssetInventory />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/assets/assignments"
+          element={
+            <ProtectedRoute allowedRoles={["Admin", "HR Manager"]}>
+              <AssetAssignment />
             </ProtectedRoute>
           }
         />

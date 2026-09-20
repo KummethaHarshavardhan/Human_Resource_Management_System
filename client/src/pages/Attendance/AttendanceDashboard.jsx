@@ -17,6 +17,8 @@ import {
   getAllAttendanceAdmin,
 } from "../../services/attendanceService";
 import { getLeaveHistory as getOwnLeaves } from "../../services/leaveService";
+import { getMyShift } from "../../services/shiftService";
+import { FiClock, FiMoon } from "react-icons/fi";
 
 import "./AttendanceDashboard.css";
 
@@ -38,6 +40,8 @@ function AttendanceDashboard() {
   const [monthlyAttendance, setMonthlyAttendance] = useState([]);
   const [calendarAttendance, setCalendarAttendance] = useState([]);
   const [approvedLeaves, setApprovedLeaves]       = useState([]);
+  const [myShift, setMyShift]                     = useState(null);
+  const [myShiftGroup, setMyShiftGroup]           = useState(null);
 
   // Admin monitoring state
   const [adminRecords,      setAdminRecords]      = useState([]);
@@ -57,13 +61,14 @@ function AttendanceDashboard() {
       const year  = today.getFullYear();
       const month = today.getMonth() + 1;
 
-      const [todayData, historyData, monthlyData, calendarData, ownLeaveRes] =
+      const [todayData, historyData, monthlyData, calendarData, ownLeaveRes, shiftRes] =
         await Promise.all([
           getTodayAttendance(),
           getAttendanceHistory(),
           getMonthlyAttendance(year, month),
           getAttendanceCalendar(year, month),
           getOwnLeaves().catch(() => ({ leaves: [] })),
+          getMyShift().catch(() => null),
         ]);
 
       setTodayAttendance(todayData?.data || null);
@@ -75,6 +80,13 @@ function AttendanceDashboard() {
       setApprovedLeaves(
         (ownLeaveRes?.leaves || []).filter((l) => l.status === "Approved")
       );
+      if (shiftRes?.hasShift && shiftRes?.shift) {
+        setMyShift(shiftRes.shift);
+        setMyShiftGroup(shiftRes.group);
+      } else {
+        setMyShift(null);
+        setMyShiftGroup(null);
+      }
     } catch (error) {
       console.error("Failed to load personal attendance:", error);
     }
@@ -169,7 +181,63 @@ function AttendanceDashboard() {
 
       {/* ── HR MANAGER & EMPLOYEE VIEW: PERSONAL ATTENDANCE GRID ─────────── */}
       {!isAdmin && (
-        <div className="attendance-grid-layout">
+        <>
+          {/* Assigned Shift Banner */}
+          <div className="attendance-shift-banner">
+            <div className="shift-banner-left">
+              <div
+                className="shift-banner-icon"
+                style={{
+                  backgroundColor: myShift?.color ? `${myShift.color}15` : "#eef2ff",
+                  color: myShift?.color || "#4f46e5",
+                  borderColor: myShift?.color ? `${myShift.color}40` : "#c7d2fe",
+                }}
+              >
+                <FiClock size={20} />
+              </div>
+              <div className="shift-banner-text">
+                <div className="shift-banner-title">
+                  {myShift ? (
+                    <>
+                      Assigned Shift: <strong style={{ color: myShift.color || "#4f46e5" }}>{myShift.name}</strong>
+                      {myShiftGroup && <span className="shift-banner-group"> ({myShiftGroup.name})</span>}
+                    </>
+                  ) : (
+                    <>Standard General Hours (Default)</>
+                  )}
+                </div>
+                <div className="shift-banner-desc">
+                  {myShift ? (
+                    <>
+                      Working Hours: <strong>{myShift.start_time} – {myShift.end_time}</strong>
+                      {(() => {
+                        const [sH, sM] = myShift.start_time.split(":").map(Number);
+                        const [eH, eM] = myShift.end_time.split(":").map(Number);
+                        if (eH * 60 + eM <= sH * 60 + sM) {
+                          return <span className="shift-banner-overnight"> · 🌙 Overnight (+1 day)</span>;
+                        }
+                        return null;
+                      })()}
+                    </>
+                  ) : (
+                    <>No custom roster assigned. Standard schedule: 09:00 – 18:00 (Mon – Fri)</>
+                  )}
+                </div>
+              </div>
+            </div>
+            {myShift && (
+              <div
+                className="shift-banner-badge"
+                style={{
+                  backgroundColor: myShift.color || "#4f46e5",
+                }}
+              >
+                Active Schedule
+              </div>
+            )}
+          </div>
+
+          <div className="attendance-grid-layout">
           <div className="col-span-6">
             <div className="attendance-section-box">
               <CheckInCard
@@ -207,6 +275,7 @@ function AttendanceDashboard() {
             </div>
           </div>
         </div>
+      </>
       )}
 
       {/* ── HR MANAGER ORG MONITORING SECTION ───────────────────────────────── */}
