@@ -54,6 +54,7 @@ import EditRole from "./pages/Employee/roles/EditRole";
 import LeaveDashboard from "./pages/Leave/LeaveDashboard";
 import HolidayCalendar from "./pages/Holidays/HolidayCalendar";
 import HolidayManagement from "./pages/Holidays/HolidayManagement";
+import DocumentVerification from "./pages/Documents/DocumentVerification";
 import OffboardingList from "./pages/Offboarding/OffboardingList";
 import OffboardingDetails from "./pages/Offboarding/OffboardingDetails";
 import AssetInventory from "./pages/Assets/AssetInventory";
@@ -654,6 +655,15 @@ function AppRoutes() {
           element={
             <ProtectedRoute allowedRoles={["Employee", "Admin", "HR Manager"]}>
               <OffboardingDetails />
+            </ProtectedRoute>
+          }
+        />
+        {/* Document Verification Route */}
+        <Route
+          path="/hr/document-verification"
+          element={
+            <ProtectedRoute allowedRoles={["Admin", "HR Manager"]}>
+              <DocumentVerification />
             </ProtectedRoute>
           }
         />
