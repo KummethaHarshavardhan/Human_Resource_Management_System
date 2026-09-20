@@ -52,6 +52,11 @@ import EditRole from "./pages/Employee/roles/EditRole";
 
 
 import LeaveDashboard from "./pages/Leave/LeaveDashboard";
+import HolidayCalendar from "./pages/Holidays/HolidayCalendar";
+import HolidayManagement from "./pages/Holidays/HolidayManagement";
+import OffboardingList from "./pages/Offboarding/OffboardingList";
+import OffboardingDetails from "./pages/Offboarding/OffboardingDetails";
+import WFHRequests from "./pages/WFH/WFHRequests";
 
 // Task Monitoring System Pages
 import CandidateListPage from "./pages/TaskMonitoring/Candidates/CandidateListPage";
@@ -64,12 +69,17 @@ import SubmissionListPage from "./pages/TaskMonitoring/Submissions/SubmissionLis
 import ReviewQueuePage from "./pages/TaskMonitoring/Reviews/ReviewQueuePage";
 import ReportsOverviewPage from "./pages/TaskMonitoring/Reports/ReportsOverviewPage";
 
+
 // Employee Task Monitoring System Pages
 import EmployeeTasksPage from "./pages/TaskMonitoring/Employee/EmployeeTasksPage";
 import EmployeeTaskDetailsPage from "./pages/TaskMonitoring/Employee/EmployeeTaskDetailsPage";
 import EmployeeProgressPage from "./pages/TaskMonitoring/Employee/EmployeeProgressPage";
 import EmployeeSubmissionsPage from "./pages/TaskMonitoring/Employee/EmployeeSubmissionsPage";
 import EmployeeReportsPage from "./pages/TaskMonitoring/Employee/EmployeeReportsPage";
+
+import OnboardingList from "./pages/Onboarding/OnboardingList";
+import OnboardingDetails from "./pages/Onboarding/OnboardingDetails";
+
 
 function ProtectedLayout() {
   const { isAuthenticated } = useAuth();
@@ -577,6 +587,85 @@ function AppRoutes() {
           />
         }
       />
+      
+      {/* Holiday Calendar Routes */}
+        <Route
+          path="/holidays"
+          element={
+            <ProtectedRoute allowedRoles={["super_admin", "Admin", "HR Manager", "Employee"]}>
+              <HolidayCalendar />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/holidays/manage"
+          element={
+            <ProtectedRoute allowedRoles={["super_admin", "Admin", "HR Manager"]}>
+              <HolidayManagement />
+            </ProtectedRoute>
+          }
+        />
+        
+      {/* Onboarding & Offboarding Routes */}
+        <Route
+          path="/onboarding"
+          element={
+            <ProtectedRoute allowedRoles={["Admin", "HR Manager"]}>
+              <OnboardingList />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/onboarding/:id"
+          element={
+            <ProtectedRoute allowedRoles={["Admin", "HR Manager", "Employee"]}>
+              <OnboardingDetails />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/employee/onboarding"
+          element={
+            <ProtectedRoute allowedRoles={["Employee", "Admin", "HR Manager"]}>
+              <OnboardingDetails />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/offboarding"
+          element={
+            <ProtectedRoute allowedRoles={["Admin", "HR Manager"]}>
+              <OffboardingList />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/offboarding/:id"
+          element={
+            <ProtectedRoute allowedRoles={["Admin", "HR Manager", "Employee"]}>
+              <OffboardingDetails />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/employee/offboarding"
+          element={
+            <ProtectedRoute allowedRoles={["Employee", "Admin", "HR Manager"]}>
+              <OffboardingDetails />
+            </ProtectedRoute>
+          }
+        />
+        {/* Work From Home Requests (HR/Admin view-only) */}
+        <Route
+          path="/wfh-requests"
+          element={
+            <ProtectedRoute allowedRoles={["Admin", "HR Manager", "HR", "Employee", "employee"]}>
+              <WFHRequests />
+            </ProtectedRoute>
+          }
+        />
+
+
     </Routes>
   );
 }

@@ -23,6 +23,8 @@ const payrollSchema = new mongoose.Schema(
     hra: { type: Number, default: 0, min: 0 },
     allowances: { type: Number, default: 0, min: 0 },
     deductions: { type: Number, default: 0, min: 0 },
+    pf_percentage: { type: Number, default: 12, min: 0 },
+    pf_amount: { type: Number, default: 0, min: 0 },
     bonus: { type: Number, default: 0, min: 0 },
     grossSalary: { type: Number, default: 0 },
     netSalary: { type: Number, default: 0 },

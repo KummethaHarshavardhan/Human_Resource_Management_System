@@ -25,6 +25,7 @@ import {
   FiCreditCard,
   FiLayers,
   FiAlertCircle,
+  FiShield,
 } from "react-icons/fi";
 import "./SuperAdminPayroll.css";
 
@@ -69,6 +70,7 @@ export default function SuperAdminPayroll() {
 
   const [editConfigModalData, setEditConfigModalData] = useState(null);
   const [editSalaryVal, setEditSalaryVal] = useState(50000);
+  const [editPfPercentage, setEditPfPercentage] = useState(12);
   const [editAccountVal, setEditAccountVal] = useState("");
   const [editIfscVal, setEditIfscVal] = useState("");
   const [editBankNameVal, setEditBankNameVal] = useState("");
@@ -80,7 +82,7 @@ export default function SuperAdminPayroll() {
   const fetchPayroll = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await getSuperAdminPayroll(selectedMonth, selectedYear);
+      const res = await getSuperAdminPayroll(selectedMonth, selectedYear, selectedOrgFilter);
       if (res && res.success) {
         const rawRecords = res.records || res.data?.records || res.data?.employees || [];
         const normalizedEmployees = rawRecords.map((r) => ({
@@ -99,12 +101,18 @@ export default function SuperAdminPayroll() {
           organizationName: r.organizationName || r.organization?.name || "Infinetra Technologies",
           accountNumber: r.accountNumber || "XXXX6787",
           rawAccountNumber: r.rawAccountNumber || r.accountNumber || "XXXX6787",
+          bankAccountNumber: r.bankAccountNumber || r.rawAccountNumber || r.accountNumber || "",
+          hasBankAccount: Boolean(r.hasBankAccount),
           ifscCode: r.ifscCode || "HDFC0001234",
           bankName: r.bankName || "HDFC Bank",
           branch: r.branch || "Main Branch",
           upiId: r.upiId || "",
           monthSalary: Number(r.monthSalary) || 50000,
           yearlySalary: Number(r.yearlySalary) || (Number(r.monthSalary) || 50000) * 12,
+          pfPercentage: r.pfPercentage !== undefined ? Number(r.pfPercentage) : (r.pf_percentage !== undefined ? Number(r.pf_percentage) : 12),
+          pfAmount: r.pfAmount !== undefined ? Number(r.pfAmount) : Math.round(((Number(r.monthSalary) || 50000) * (r.pfPercentage !== undefined ? Number(r.pfPercentage) : 12)) / 100),
+          totalPf: r.total_pf !== undefined ? Number(r.total_pf) : (r.totalPf !== undefined ? Number(r.totalPf) : (Number(r.totalAccumulatedPf) || 0)),
+          netSalary: r.netSalary !== undefined ? Number(r.netSalary) : ((Number(r.monthSalary) || 50000) - (r.pfAmount || Math.round(((Number(r.monthSalary) || 50000) * 12) / 100))),
           remainingSalary: r.remainingSalary !== undefined ? Number(r.remainingSalary) : (Number(r.monthSalary) || 50000) * 12,
           paidCountThisYear: r.monthsPaidCount || r.paidCountThisYear || 0,
           paidThisYearAmount: r.totalPaidThisYear || 0,
@@ -126,6 +134,13 @@ export default function SuperAdminPayroll() {
           ? res.totalPaidAmount
           : normalizedEmployees.filter(e => e.status === "Sending").reduce((s, e) => s + e.monthSalary, 0);
 
+        // Compute or read PF statistics
+        const computedCurrentMonthPf = res.current_month_total_pf !== undefined
+          ? Number(res.current_month_total_pf)
+          : normalizedEmployees.reduce((sum, e) => sum + (e.pfAmount || 0), 0);
+        const computedAccumulatedPf = Number(res.total_accumulated_pf_active || 0);
+        const computedSettledPf = Number(res.total_pf_settled_offboarded || 0);
+
         setPayrollData({
           monthName: res.monthName || "Current Month",
           year: res.selectedYear || selectedYear,
@@ -135,6 +150,10 @@ export default function SuperAdminPayroll() {
           totalEmployeesCount: res.totalEmployees || normalizedEmployees.length,
           pendingCount: res.pendingCount !== undefined ? res.pendingCount : normalizedEmployees.filter(e => e.status === "Pending").length,
           paidCount: res.sentCount !== undefined ? res.sentCount : normalizedEmployees.filter(e => e.status === "Sending").length,
+          current_month_total_pf: computedCurrentMonthPf,
+          total_accumulated_pf_active: computedAccumulatedPf,
+          total_pf_settled_offboarded: computedSettledPf,
+          serverOrganizations: res.organizations || [],
           employees: normalizedEmployees,
         });
       }
@@ -144,7 +163,7 @@ export default function SuperAdminPayroll() {
     } finally {
       setLoading(false);
     }
-  }, [selectedMonth, selectedYear, showToast]);
+  }, [selectedMonth, selectedYear, selectedOrgFilter, showToast]);
 
   useEffect(() => {
     fetchPayroll();
@@ -152,13 +171,19 @@ export default function SuperAdminPayroll() {
 
   // Extract unique organizations for filter
   const organizationsList = useMemo(() => {
-    if (!payrollData?.employees) return [];
     const orgMap = new Map();
-    payrollData.employees.forEach((emp) => {
-      if (emp.organization?._id) {
-        orgMap.set(emp.organization._id, emp.organization.name);
-      }
-    });
+    if (payrollData?.serverOrganizations?.length > 0) {
+      payrollData.serverOrganizations.forEach((org) => {
+        if (org._id) orgMap.set(String(org._id), org.name);
+      });
+    }
+    if (payrollData?.employees) {
+      payrollData.employees.forEach((emp) => {
+        if (emp.organization?._id) {
+          orgMap.set(String(emp.organization._id), emp.organization.name);
+        }
+      });
+    }
     return Array.from(orgMap.entries()).map(([id, name]) => ({ id, name }));
   }, [payrollData]);
 
@@ -193,6 +218,12 @@ export default function SuperAdminPayroll() {
   // Action handlers
   const handleOpenPaySalaryModal = (employee) => {
     setPaySalaryModalData(employee);
+    if (!employee.hasBankAccount) {
+      showToast(
+        `Notice: No bank account number is set for ${employee.name}. Default payment route will be used.`,
+        "warning"
+      );
+    }
   };
 
   const handleConfirmPaySalary = async () => {
@@ -210,7 +241,7 @@ export default function SuperAdminPayroll() {
       if (res && res.success) {
         showToast(
           res.message ||
-            `Salary of ₹${paySalaryModalData.monthSalary.toLocaleString()} credited successfully! Email and notifications sent.`,
+            `Salary of ₹${(paySalaryModalData.netSalary || paySalaryModalData.monthSalary).toLocaleString()} credited successfully! Email and notifications sent.`,
           "success"
         );
         setPaySalaryModalData(null);
@@ -293,7 +324,8 @@ export default function SuperAdminPayroll() {
   const handleOpenConfigModal = (employee) => {
     setEditConfigModalData(employee);
     setEditSalaryVal(employee.monthSalary || 50000);
-    setEditAccountVal(employee.rawAccountNumber || employee.accountNumber || "");
+    setEditPfPercentage(employee.pfPercentage !== undefined ? employee.pfPercentage : 12);
+    setEditAccountVal(employee.bankAccountNumber || employee.rawAccountNumber || employee.accountNumber || "");
     setEditIfscVal(employee.ifscCode || "");
     setEditBankNameVal(employee.bankName || "");
     setEditBranchVal(employee.branch || "");
@@ -306,6 +338,8 @@ export default function SuperAdminPayroll() {
       setSubmittingConfig(true);
       const res = await updateEmployeePayrollConfig(editConfigModalData.employeeId, {
         month_salary: Number(editSalaryVal),
+        pf_percentage: Number(editPfPercentage),
+        bank_account_number: editAccountVal,
         account_number: editAccountVal,
         ifsc_code: editIfscVal,
         bank_name: editBankNameVal,
@@ -327,7 +361,7 @@ export default function SuperAdminPayroll() {
   };
 
   // Table column configuration matching exact user request:
-  // EmpID | Employeename | month_salary | display yearly salary | year-month salary / remaing amount | pay button Month salary | Bonus | status
+  // EmpID | Employeename | month_salary | display yearly salary | year-month salary / remaing amount | PF | pay button Month salary | Bonus | status
   const columns = [
     {
       key: "code",
@@ -417,6 +451,42 @@ export default function SuperAdminPayroll() {
           </div>
         </div>
       ),
+    },
+    {
+      key: "pf_amount",
+      header: "PF",
+      width: "130px",
+      render: (row) => {
+        const pfVal = row.pfAmount !== undefined ? row.pfAmount : Math.round(((row.monthSalary || 50000) * (row.pfPercentage || 12)) / 100);
+        return (
+          <div>
+            <div style={{ fontWeight: "700", color: "#6366f1", fontSize: "14px" }}>
+              ₹{Number(pfVal).toLocaleString("en-IN")}/-
+            </div>
+            <div style={{ fontSize: "11px", color: "#64748b" }}>
+              ({row.pfPercentage || 12}% PF)
+            </div>
+          </div>
+        );
+      },
+    },
+    {
+      key: "total_pf",
+      header: "Total PF",
+      width: "135px",
+      render: (row) => {
+        const totalPfVal = row.totalPf !== undefined ? row.totalPf : (row.total_pf !== undefined ? row.total_pf : 0);
+        return (
+          <div>
+            <div style={{ fontWeight: "700", color: "#059669", fontSize: "14px" }}>
+              ₹{Number(totalPfVal || 0).toLocaleString("en-IN")}/-
+            </div>
+            <div style={{ fontSize: "11px", color: "#64748b" }}>
+              Accumulated
+            </div>
+          </div>
+        );
+      },
     },
     {
       key: "pay_salary_action",
@@ -642,23 +712,21 @@ export default function SuperAdminPayroll() {
           </div>
 
           {/* Organization Filter */}
-          {organizationsList.length > 1 && (
-            <div className="sa-filter-group">
-              <label className="sa-filter-label">Organization:</label>
-              <select
-                className="sa-select-input"
-                value={selectedOrgFilter}
-                onChange={(e) => setSelectedOrgFilter(e.target.value)}
-              >
-                <option value="all">All Organizations</option>
-                {organizationsList.map((org) => (
-                  <option key={org.id} value={org.id}>
-                    {org.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
+          <div className="sa-filter-group">
+            <label className="sa-filter-label">Organization:</label>
+            <select
+              className="sa-select-input"
+              value={selectedOrgFilter}
+              onChange={(e) => setSelectedOrgFilter(e.target.value)}
+            >
+              <option value="all">All Organizations</option>
+              {organizationsList.map((org) => (
+                <option key={org.id} value={org.id}>
+                  {org.name}
+                </option>
+              ))}
+            </select>
+          </div>
 
           {/* Status Filter */}
           <div className="sa-filter-group">
@@ -770,12 +838,27 @@ export default function SuperAdminPayroll() {
                 <span className="modal-detail-label">Salary Month:</span>
                 <span className="modal-detail-value">{payrollData?.monthName} {payrollData?.year}</span>
               </div>
-              <div className="modal-detail-row" style={{ paddingTop: "12px", borderTop: "2px solid #e2e8f0" }}>
-                <span className="modal-detail-label" style={{ fontSize: "15px", fontWeight: 700 }}>Total Disbursement:</span>
-                <span className="modal-amount-highlight">
-                  ₹{Number(paySalaryModalData.monthSalary).toLocaleString("en-IN")}/-
+              <div className="modal-detail-row">
+                <span className="modal-detail-label">Monthly Gross Salary:</span>
+                <span className="modal-detail-value">₹{Number(paySalaryModalData.monthSalary).toLocaleString("en-IN")}/-</span>
+              </div>
+              <div className="modal-detail-row">
+                <span className="modal-detail-label">PF Deduction ({paySalaryModalData.pfPercentage || 12}%):</span>
+                <span className="modal-detail-value" style={{ color: "#dc2626", fontWeight: 600 }}>
+                  - ₹{Number(paySalaryModalData.pfAmount || Math.round((paySalaryModalData.monthSalary * (paySalaryModalData.pfPercentage || 12)) / 100)).toLocaleString("en-IN")}/-
                 </span>
               </div>
+              <div className="modal-detail-row" style={{ paddingTop: "12px", borderTop: "2px solid #e2e8f0" }}>
+                <span className="modal-detail-label" style={{ fontSize: "15px", fontWeight: 700 }}>Net Disbursement:</span>
+                <span className="modal-amount-highlight">
+                  ₹{Number(paySalaryModalData.netSalary || (paySalaryModalData.monthSalary - (paySalaryModalData.pfAmount || 0))).toLocaleString("en-IN")}/-
+                </span>
+              </div>
+              {!paySalaryModalData.hasBankAccount && (
+                <div style={{ marginTop: "10px", padding: "8px 12px", background: "#fef3c7", border: "1px solid #fde68a", borderRadius: "6px", fontSize: "12px", color: "#92400e" }}>
+                  ⚠️ <strong>Notice:</strong> No custom bank account number is configured for this employee. Payment will proceed using the default account identifier.
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -991,6 +1074,47 @@ export default function SuperAdminPayroll() {
                 ₹{(Number(editSalaryVal || 0) * 12).toLocaleString("en-IN")}/-
               </div>
             </div>
+
+            {/* PF Percentage Input with Live Computed Preview */}
+            <div className="form-field-group">
+              <label className="form-field-label">
+                Provident Fund (PF) % <span style={{ color: "#ef4444" }}>*</span>
+              </label>
+              <input
+                type="number"
+                min="0"
+                max="100"
+                step="0.5"
+                value={editPfPercentage}
+                onChange={(e) => setEditPfPercentage(e.target.value === "" ? "" : Number(e.target.value))}
+                placeholder="12"
+                className="form-field-input"
+                style={{ width: "100%", fontSize: "15px", fontWeight: 700 }}
+              />
+            </div>
+
+            {/* Live-computed preview: PF deduction & Net payable */}
+            {(() => {
+              const sal = Number(editSalaryVal || 0);
+              const pct = Number(editPfPercentage || 0);
+              const pfDed = Math.round((sal * pct) / 100);
+              const netPayable = sal - pfDed;
+              return (
+                <div
+                  style={{
+                    background: "#f0fdf4",
+                    border: "1px solid #bbf7d0",
+                    borderRadius: "8px",
+                    padding: "10px 14px",
+                    fontSize: "13px",
+                    color: "#166534",
+                    fontWeight: 600,
+                  }}
+                >
+                  PF deduction: ₹{pfDed.toLocaleString("en-IN")} · Net payable: ₹{netPayable.toLocaleString("en-IN")}
+                </div>
+              );
+            })()}
 
             {/* Banking Details Form Grid */}
             <div className="form-grid-2col">

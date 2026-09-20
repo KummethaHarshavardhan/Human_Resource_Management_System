@@ -56,6 +56,20 @@ export const generatePayroll = async (req, res) => {
       { path: 'department_id', select: 'departmentId departmentName' }
     ]);
 
+    if (!empObj) {
+      return res.status(404).json({
+        success: false,
+        message: "Employee not found.",
+      });
+    }
+
+    if (empObj.employment_status === "Inactive") {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot generate payroll for an inactive/relieved employee.",
+      });
+    }
+
     const snapshot = {
       employeeCode: empObj?.employee_code || '',
       fullName: empObj?.user_id?.name || '',

@@ -28,6 +28,7 @@ const menuItems = [
   { label: "Directory", to: "/directory", feature: "employee", icon: <FiUsers size={18} /> },
   { label: "Attendance", to: "/attendance-dashboard", feature: "attendance", icon: <FiClock size={18} /> },
   { label: "Leave Management", to: "/leave", feature: "leave", icon: <FiCalendar size={18} /> },
+  { label: "WFH Requests", to: "/wfh-requests", feature: "wfh_requests", icon: <FiHome size={18} /> },
   { label: "Payroll", to: "/payroll", feature: "payroll", icon: <FiDollarSign size={18} /> },
   { label: "Reports", to: "/reports", feature: "reports", icon: <FiBarChart2 size={18} /> },
   { label: "Users", to: "/users", feature: "users", icon: <FiShield size={18} /> },
@@ -40,6 +41,7 @@ const superAdminMenuItems = [
   { label: "HR Management", to: "/super-admin/hr-management", icon: <FiUsers size={18} /> },
   { label: "Organization Usage/Limits", to: "/super-admin/usage-limits", icon: <FiBarChart2 size={18} /> },
   { label: "Leave Management", to: "/leave", icon: <FiCalendar size={18} /> },
+  { label: "WFH Requests", to: "/super-admin/wfh-requests", icon: <FiHome size={18} /> },
   { label: "Payroll", to: "/super-admin/payroll", icon: <FiDollarSign size={18} /> },
   { label: "Profile", to: "/profile", icon: <FiUser size={18} /> },
 ];
@@ -50,6 +52,12 @@ const hrMenuSections = [
     title: "OVERVIEW",
     items: [
       { label: "Dashboard", to: "/dashboard", icon: <FiGrid size={18} /> },
+    ],
+  },
+  {
+    title: "HR OPERATIONS",
+    items: [
+      { label: "WFH Requests", to: "/wfh-requests", icon: <FiHome size={18} /> },
     ],
   },
   {
@@ -102,6 +110,7 @@ const employeeMenuSections = [
       { label: "Progress Tracking", to: "/employee/progress", icon: <FiTrendingUp size={18} /> },
       { label: "Submit Work", to: "/employee/submissions", icon: <FiFileText size={18} /> },
       { label: "Performance Reports", to: "/employee/reports", icon: <FiBarChart2 size={18} /> },
+      { label: "WFH Requests", to: "/wfh-requests", icon: <FiHome size={18} /> },
     ],
   },
   {
