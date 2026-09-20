@@ -938,15 +938,31 @@ export const getOrganizationUsage = async (req, res) => {
 
     const breakdown = await Promise.all(
       orgs.map(async (org) => {
-        const memberCount = await UserModel.countDocuments({
+        // Exclude relieved/inactive employees from active headcount and capacity
+        const inactiveEmployees = await Employee.find({
+          organizationId: org._id,
+          employment_status: "Inactive"
+        }).select("user_id");
+        const inactiveUserIds = inactiveEmployees.map((e) => e.user_id).filter(Boolean);
+
+        const memberFilter = {
           organizationId: org._id,
           role: { $ne: "SUPER_ADMIN" }
-        });
+        };
+        if (inactiveUserIds.length > 0) {
+          memberFilter._id = { $nin: inactiveUserIds };
+        }
 
-        const hrCount = await UserModel.countDocuments({
+        const hrFilter = {
           organizationId: org._id,
           role: { $in: ["HR", "HR Manager", "hr_manager", "hr"] }
-        });
+        };
+        if (inactiveUserIds.length > 0) {
+          hrFilter._id = { $nin: inactiveUserIds };
+        }
+
+        const memberCount = await UserModel.countDocuments(memberFilter);
+        const hrCount = await UserModel.countDocuments(hrFilter);
 
         const employeeCount = Math.max(0, memberCount - hrCount);
         const limit = Number(org.memberLimit) || 0;

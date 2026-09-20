@@ -393,8 +393,14 @@ export const getAllEmployees = async (req, res) => {
     // Build filter
     const filter = {};
 
-    if (status) {
+    const rawStatus = (status || "").trim().toLowerCase();
+    if (rawStatus === "all" || req.query.include_inactive === "true" || req.query.includeInactive === "true") {
+      // Return all (including relieved/inactive)
+    } else if (status) {
       filter.employment_status = status;
+    } else {
+      // Default: only show Active employees in directory
+      filter.employment_status = "Active";
     }
 
     // Search employee code, designation, or populated user name/email
@@ -644,6 +650,12 @@ export const updateEmployee = async (req, res) => {
       employee.date_of_joining = date_of_joining;
     }
     if (employment_status !== undefined) {
+      if (employee.employment_status === "Inactive" && employment_status === "Active") {
+        return res.status(400).json({
+          success: false,
+          message: "Cannot reactivate directly. Use the rejoin/onboarding flow.",
+        });
+      }
       employee.employment_status = employment_status;
     }
 
@@ -815,6 +827,21 @@ export const updateEmployeeStatus = async (req, res) => {
       });
     }
 
+    const existingEmployee = await Employee.findById(id);
+    if (!existingEmployee) {
+      return res.status(404).json({
+        success: false,
+        message: "Employee not found",
+      });
+    }
+
+    if (existingEmployee.employment_status === "Inactive" && employment_status === "Active") {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot reactivate directly. Use the rejoin/onboarding flow.",
+      });
+    }
+
     const employee = await Employee.findByIdAndUpdate(
       id,
       { employment_status },
@@ -864,7 +891,9 @@ export const getMyProfile = async (req, res) => {
         "department_id",
         "departmentId departmentName description location status"
       )
-      .populate("manager_id", "employee_code designation");
+      .populate("manager_id", "employee_code designation")
+      .populate("current_shift_id")
+      .populate("current_shift_group_id", "name");
 
     if (!employee) {
       return res.status(404).json({

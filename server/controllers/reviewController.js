@@ -174,6 +174,7 @@ export const approveSubmission = async (req, res, next) => {
               relatedTask: populatedReview.taskAssignment?.task?._id,
               relatedAssignment: populatedReview.taskAssignment?._id,
               link: "/employee/tasks",
+              skipEmail: true,
             });
           }
 
@@ -270,6 +271,7 @@ export const reworkSubmission = async (req, res, next) => {
               relatedTask: populatedReview.taskAssignment?.task?._id,
               relatedAssignment: populatedReview.taskAssignment?._id,
               link: "/employee/tasks",
+              skipEmail: true,
             });
           }
 

@@ -8,6 +8,7 @@ import Organization from "../models/Organization.js";
 import {
   notifyWFHSubmission,
   notifyWFHDecision,
+  notifyWFHWithdrawal,
 } from "../services/notificationService.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -453,3 +454,88 @@ export const downloadAttachment = async (req, res) => {
     });
   }
 };
+
+/**
+ * 6. Withdraw WFH Request (Employee Self-Service Only)
+ * PATCH /api/wfh-requests/:id/withdraw
+ * Only allowed by the owner employee and only while status is "Pending"
+ */
+export const withdrawRequest = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user?.id || req.user?._id;
+    const userRole = normalizeRole(req.user?.role);
+
+    // Self-service check: HR/admin and super_admin are not permitted to withdraw on employee's behalf
+    if (userRole !== "employee") {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied. Only the employee who submitted this request can withdraw it.",
+      });
+    }
+
+    const wfhRequest = await WFHRequest.findById(id)
+      .populate({
+        path: "employee_id",
+        populate: { path: "user_id", select: "name email" },
+      })
+      .populate("organizationId", "name");
+
+    if (!wfhRequest) {
+      return res.status(404).json({
+        success: false,
+        message: "WFH request not found.",
+      });
+    }
+
+    // Ownership check: req.user must match request.employee_id's linked user
+    const linkedUserId =
+      wfhRequest.employee_id?.user_id?._id ||
+      wfhRequest.employee_id?.user_id;
+
+    if (!linkedUserId || String(linkedUserId) !== String(userId)) {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied. Only the employee who submitted this request can withdraw it.",
+      });
+    }
+
+    // Status check: only pending requests can be withdrawn
+    if (wfhRequest.status !== "Pending") {
+      return res.status(400).json({
+        success: false,
+        message: "Only pending requests can be withdrawn",
+      });
+    }
+
+    wfhRequest.status = "Withdrawn";
+    wfhRequest.withdrawn_at = new Date();
+    await wfhRequest.save();
+
+    // Notify HR/admin and Super Admin of withdrawal
+    try {
+      await notifyWFHWithdrawal({
+        employee: wfhRequest.employee_id,
+        organization: wfhRequest.organizationId,
+        startDate: wfhRequest.start_date,
+        endDate: wfhRequest.end_date,
+      });
+    } catch (notifErr) {
+      console.warn("Could not dispatch WFH withdrawal notifications:", notifErr.message);
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Work From Home request withdrawn successfully.",
+      data: wfhRequest,
+    });
+  } catch (error) {
+    console.error("withdrawRequest error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to withdraw WFH request",
+      error: error.message,
+    });
+  }
+};
+

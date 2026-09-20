@@ -176,6 +176,7 @@ export const createTask = async (req, res, next) => {
                                 relatedTask: task._id,
                                 relatedAssignment: candAssigned._id,
                                 link: "/employee/tasks",
+                                skipEmail: true,
                             });
                         }
                         await sendTaskAssignmentEmail({
@@ -238,6 +239,7 @@ export const createTask = async (req, res, next) => {
                                 relatedTask: task._id,
                                 relatedAssignment: created._id,
                                 link: "/employee/tasks",
+                                skipEmail: true,
                             });
                         }
                         await sendTaskAssignmentEmail({

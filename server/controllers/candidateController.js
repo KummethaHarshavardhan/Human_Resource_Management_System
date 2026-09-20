@@ -105,7 +105,12 @@ export const getCandidates = async (req, res, next) => {
         }
 
         if (status) {
-            query.status = status;
+            if (status.toUpperCase() !== "ALL") {
+                query.status = status.toUpperCase() === "INACTIVE" ? "INACTIVE" : status;
+            }
+        } else if (req.query.include_inactive !== "true" && req.query.includeInactive !== "true") {
+            // Default to ACTIVE candidates so inactive/relieved employees are excluded from assignment dropdowns
+            query.status = "ACTIVE";
         }
 
         if (team) {

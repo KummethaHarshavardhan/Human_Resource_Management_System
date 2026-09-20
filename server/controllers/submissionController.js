@@ -234,6 +234,7 @@ export const createSubmission = async (req, res, next) => {
             relatedTask: taskId,
             relatedAssignment: assignment._id,
             link: "/hr/reviews",
+            skipEmail: true,
           });
 
           await sendTaskSubmissionEmail({

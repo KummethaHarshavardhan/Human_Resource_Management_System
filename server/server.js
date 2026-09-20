@@ -42,6 +42,7 @@ import { seedDefaultDepartments } from "./services/departmentService.js";
 import { seedSuperAdmin } from "./controllers/superAdminController.js";
 import { seedInitialTaskData } from "./scripts/seedTaskData.js";
 import { syncEmployeesToCandidates } from "./controllers/candidateController.js";
+import { syncOffboardedEmployees } from "./controllers/offboardingController.js";
 import { errorHandler, notFoundHandler } from "./middlewares/errorHandler.js";
 
 const app = express();

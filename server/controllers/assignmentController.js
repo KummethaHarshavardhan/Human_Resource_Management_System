@@ -199,6 +199,10 @@ export const createAssignment = async (req, res, next) => {
             return errorResponse(res, 404, "Candidate not found");
         }
 
+        if (candidate.status === "INACTIVE") {
+            return errorResponse(res, 400, "Cannot assign tasks to an inactive/relieved employee.");
+        }
+
         const userRole = (req.user?.role || "").trim().toLowerCase();
         const isSuperAdmin = userRole === "super_admin" || userRole === "superadmin";
 
@@ -244,6 +248,7 @@ export const createAssignment = async (req, res, next) => {
                             relatedTask: task._id,
                             relatedAssignment: assignment._id,
                             link: "/employee/tasks",
+                            skipEmail: true,
                         });
                     }
                     await sendTaskAssignmentEmail({
@@ -371,6 +376,7 @@ export const reassignAssignment = async (req, res, next) => {
                             relatedTask: taskObj?._id,
                             relatedAssignment: assignment._id,
                             link: "/employee/tasks",
+                            skipEmail: true,
                         });
                     }
                     await sendTaskAssignmentEmail({

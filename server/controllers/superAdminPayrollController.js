@@ -126,22 +126,20 @@ const sendSalaryCreditedEmail = async ({
           <td style="padding: 10px 14px; border-bottom: 1px solid #e2e8f0; font-weight: bold; color: #475569;">Salary Month:</td>
           <td style="padding: 10px 14px; border-bottom: 1px solid #e2e8f0; color: #0f172a;">${monthName} ${year}</td>
         </tr>
-        ${
-          monthSalary
-            ? `<tr>
+        ${monthSalary
+      ? `<tr>
                 <td style="padding: 10px 14px; border-bottom: 1px solid #e2e8f0; font-weight: bold; color: #475569;">Monthly Salary:</td>
                 <td style="padding: 10px 14px; border-bottom: 1px solid #e2e8f0; color: #0f172a;">₹${monthSalary.toLocaleString("en-IN")}/-</td>
               </tr>`
-            : ""
-        }
-        ${
-          pfAmount
-            ? `<tr>
+      : ""
+    }
+        ${pfAmount
+      ? `<tr>
                 <td style="padding: 10px 14px; border-bottom: 1px solid #e2e8f0; font-weight: bold; color: #475569;">PF Deduction:</td>
                 <td style="padding: 10px 14px; border-bottom: 1px solid #e2e8f0; color: #dc2626;">- ₹${pfAmount.toLocaleString("en-IN")}/-</td>
               </tr>`
-            : ""
-        }
+      : ""
+    }
         <tr>
           <td style="padding: 10px 14px; border-bottom: 1px solid #e2e8f0; font-weight: bold; color: #475569;">Amount Credited:</td>
           <td style="padding: 10px 14px; border-bottom: 1px solid #e2e8f0; color: #16a34a; font-size: 18px; font-weight: bold;">₹${amount.toLocaleString("en-IN")}/-</td>
@@ -401,8 +399,8 @@ export const getSuperAdminPayroll = async (req, res) => {
       // Find current month's payroll record
       const currentMonthPayroll = (allPaidPayrollsList.length > 0 ? allPaidPayrollsList : (yearPayrolls || [])).find(
         (p) => String(p.employeeId?._id || p.employeeId) === String(emp._id) &&
-               Number(p.month) === Number(selectedMonth) &&
-               Number(p.year) === Number(selectedYear)
+          Number(p.month) === Number(selectedMonth) &&
+          Number(p.year) === Number(selectedYear)
       );
       const isPaidThisMonth = !!currentMonthPayroll;
 
@@ -637,7 +635,7 @@ export const getSuperAdminPayroll = async (req, res) => {
     let organizations = [];
     try {
       organizations = await Organization.find({}).select("_id name").lean();
-    } catch (e) {}
+    } catch (e) { }
 
     // Calculate summary statistics
     const totalSendingAmount = records

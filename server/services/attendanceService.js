@@ -1,9 +1,15 @@
 import Attendance from "../models/Attendance.js";
+import Employee from "../models/Employee.js";
 
 
 // ================= CHECK IN SERVICE =================
 
 export const checkInService = async ({ employeeId, location, remarks }) => {
+
+  const emp = await Employee.findById(employeeId);
+  if (emp && emp.employment_status === "Inactive") {
+    throw new Error("Cannot check in: employee account is deactivated/relieved.");
+  }
 
   const today = new Date();
 
@@ -418,7 +424,7 @@ export const getAttendanceCalendarService = async(
 
 // ================= ADMIN: ALL EMPLOYEES ATTENDANCE =================
 
-export const getAllAttendanceAdminService = async ({ status, employeeId } = {}) => {
+export const getAllAttendanceAdminService = async ({ status, employeeId, organizationId } = {}) => {
 
   const query = {};
 
@@ -427,7 +433,16 @@ export const getAllAttendanceAdminService = async ({ status, employeeId } = {}) 
   }
 
   if (employeeId) {
+    // Explicit employee lookup (historical audit/compliance view)
     query.employeeId = employeeId;
+  } else {
+    // Current attendance dashboard / monitoring: exclude inactive employees
+    const empFilter = { employment_status: "Active" };
+    if (organizationId) {
+      empFilter.organizationId = organizationId;
+    }
+    const activeEmps = await Employee.find(empFilter).select("_id");
+    query.employeeId = { $in: activeEmps.map((e) => e._id) };
   }
 
   return await Attendance.find(query).sort({ date: -1 });

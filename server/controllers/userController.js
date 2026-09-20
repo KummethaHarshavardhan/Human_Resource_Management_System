@@ -192,6 +192,15 @@ export const EmpLogin = async (req, res) => {
             });
         }
 
+        // Check if linked employee account is deactivated/relieved
+        const linkedEmployee = await Employee.findOne({ user_id: user._id });
+        if (linkedEmployee && linkedEmployee.employment_status === "Inactive") {
+            return res.status(403).json({
+                success: false,
+                message: "This account has been deactivated. Contact HR for assistance."
+            });
+        }
+
         const secret = process.env.JWT_SECRET || "8f3a9c2e1b7d4f6a0c5e9b2d7f1a4c8e6b3d9f2a5c7e1b4d8f0a3c6e9b2d5f8a";
         const token = jwt.sign(
             {
@@ -252,6 +261,15 @@ export const googleLogin = async (req, res) => {
             return res.status(404).json({
                 success: false,
                 message: `Sorry, no account found for ${email}. Please register first.`
+            });
+        }
+
+        // Check if linked employee account is deactivated/relieved
+        const linkedEmployee = await Employee.findOne({ user_id: user._id });
+        if (linkedEmployee && linkedEmployee.employment_status === "Inactive") {
+            return res.status(403).json({
+                success: false,
+                message: "This account has been deactivated. Contact HR for assistance."
             });
         }
 

@@ -1,5 +1,6 @@
 import Leave from "../models/Leave.js";
 import User from "../models/UserModel.js";
+import Employee from "../models/Employee.js";
 import {
   applyLeaveService,
   getLeaveHistoryService,
@@ -14,6 +15,14 @@ import { sendLeaveEmail } from "../services/notificationService.js";
 // Apply Leave
 export const applyLeave = async (req, res) => {
   try {
+    const emp = await Employee.findOne({ user_id: req.user.id });
+    if (emp && emp.employment_status === "Inactive") {
+      return res.status(403).json({
+        success: false,
+        message: "Cannot apply for leave: employee account is deactivated/relieved.",
+      });
+    }
+
     const leave = await applyLeaveService({
       ...req.body,
       employee: req.user.id,
@@ -53,6 +62,7 @@ export const applyLeave = async (req, res) => {
               type: "leave_applied",
               message: `${applicantName} (${applicantRole}) has applied for ${leaveType} leave (${startDate} – ${endDate}). Reason: ${reason}`,
               relatedLeave: leave._id,
+              skipEmail: true,
             });
 
             await sendLeaveEmail({
@@ -134,6 +144,16 @@ export const getAllLeaves = async (req, res) => {
       });
     }
 
+    // Exclude inactive employees from pending leave approval queues
+    if (req.query.status && req.query.status.toLowerCase() === "pending") {
+      const inactiveEmps = await Employee.find({ employment_status: "Inactive" }).select("user_id");
+      const inactiveUserIds = new Set(inactiveEmps.map((e) => String(e.user_id)));
+      scopedLeaves = scopedLeaves.filter((l) => {
+        const empUserId = String(l.employee?._id || l.employee);
+        return !inactiveUserIds.has(empUserId);
+      });
+    }
+
     return res.status(200).json({
       success: true,
       leaves: scopedLeaves,
@@ -199,6 +219,7 @@ export const approveLeave = async (req, res) => {
         type: "leave_approved",
         message: `Your ${leaveType} leave request (${startDate} – ${endDate}) has been approved by ${approverName}.`,
         relatedLeave: leave._id,
+        skipEmail: true,
       });
 
       // 2. Send email to applicant if email exists
@@ -314,6 +335,7 @@ export const rejectLeave = async (req, res) => {
         type: "leave_rejected",
         message: `Your ${leaveType} leave request (${startDate} – ${endDate}) has been rejected by ${approverName}.`,
         relatedLeave: leave._id,
+        skipEmail: true,
       });
 
       // 2. Send email to applicant if email exists
