@@ -30,7 +30,7 @@ export default function ApplyLeave({ refreshLeaves }) {
           .slice(0, 4);
         setUpcomingHolidays(futureOpt);
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   const handleChange = (e) => {

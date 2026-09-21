@@ -6,13 +6,13 @@ import {
 } from "react-icons/fi";
 
 function CheckInCard({ attendance, setTodayAttendance, loadAttendanceData }) {
-  const [isCheckedIn, setIsCheckedIn]       = useState(false);
-  const [isCheckedOut, setIsCheckedOut]     = useState(false);
-  const [checkInTime, setCheckInTime]       = useState(null);
-  const [checkOutTime, setCheckOutTime]     = useState(null);
+  const [isCheckedIn, setIsCheckedIn] = useState(false);
+  const [isCheckedOut, setIsCheckedOut] = useState(false);
+  const [checkInTime, setCheckInTime] = useState(null);
+  const [checkOutTime, setCheckOutTime] = useState(null);
   const [workingSeconds, setWorkingSeconds] = useState(0);
-  const [loading, setLoading]               = useState(false);
-  const [message, setMessage]               = useState({ type: "", text: "" });
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState({ type: "", text: "" });
 
   // Sync state from backend attendance record
   useEffect(() => {
@@ -86,7 +86,7 @@ function CheckInCard({ attendance, setTodayAttendance, loadAttendanceData }) {
     }
   };
 
-  const hours   = Math.floor(workingSeconds / 3600);
+  const hours = Math.floor(workingSeconds / 3600);
   const minutes = Math.floor((workingSeconds % 3600) / 60);
   const seconds = workingSeconds % 60;
 
@@ -188,8 +188,8 @@ function CheckInCard({ attendance, setTodayAttendance, loadAttendanceData }) {
           {isCheckedOut
             ? "Day completed — Checked out"
             : isCheckedIn
-            ? "Currently checked in"
-            : "Not yet checked in"}
+              ? "Currently checked in"
+              : "Not yet checked in"}
         </span>
       </div>
     </div>

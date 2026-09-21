@@ -24,6 +24,7 @@ import Organizations from "./pages/SuperAdmin/Organizations";
 import HRManagement from "./pages/SuperAdmin/HRManagement";
 import OrganizationUsage from "./pages/SuperAdmin/OrganizationUsage";
 import SuperAdminPayroll from "./pages/SuperAdmin/SuperAdminPayroll";
+import SuperAdminDocumentVerification from "./pages/SuperAdmin/SuperAdminDocumentVerification";
 import { normalizeRole } from "./utils/permission";
 
 import Dashboard from "./pages/Dashboard/Dashboard";
@@ -54,11 +55,14 @@ import EditRole from "./pages/Employee/roles/EditRole";
 import LeaveDashboard from "./pages/Leave/LeaveDashboard";
 import HolidayCalendar from "./pages/Holidays/HolidayCalendar";
 import HolidayManagement from "./pages/Holidays/HolidayManagement";
-import DocumentVerification from "./pages/Documents/DocumentVerification";
+import OnboardingList from "./pages/Onboarding/OnboardingList";
+import OnboardingDetails from "./pages/Onboarding/OnboardingDetails";
 import OffboardingList from "./pages/Offboarding/OffboardingList";
 import OffboardingDetails from "./pages/Offboarding/OffboardingDetails";
 import AssetInventory from "./pages/Assets/AssetInventory";
 import AssetAssignment from "./pages/Assets/AssetAssignment";
+import DocumentVerification from "./pages/Documents/DocumentVerification";
+import ShiftManagement from "./pages/Shifts/ShiftManagement";
 import WFHRequests from "./pages/WFH/WFHRequests";
 
 // Task Monitoring System Pages
@@ -72,17 +76,12 @@ import SubmissionListPage from "./pages/TaskMonitoring/Submissions/SubmissionLis
 import ReviewQueuePage from "./pages/TaskMonitoring/Reviews/ReviewQueuePage";
 import ReportsOverviewPage from "./pages/TaskMonitoring/Reports/ReportsOverviewPage";
 
-
 // Employee Task Monitoring System Pages
 import EmployeeTasksPage from "./pages/TaskMonitoring/Employee/EmployeeTasksPage";
 import EmployeeTaskDetailsPage from "./pages/TaskMonitoring/Employee/EmployeeTaskDetailsPage";
 import EmployeeProgressPage from "./pages/TaskMonitoring/Employee/EmployeeProgressPage";
 import EmployeeSubmissionsPage from "./pages/TaskMonitoring/Employee/EmployeeSubmissionsPage";
 import EmployeeReportsPage from "./pages/TaskMonitoring/Employee/EmployeeReportsPage";
-
-import OnboardingList from "./pages/Onboarding/OnboardingList";
-import OnboardingDetails from "./pages/Onboarding/OnboardingDetails";
-
 
 function ProtectedLayout() {
   const { isAuthenticated } = useAuth();
@@ -230,6 +229,22 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/super-admin/document-verification"
+          element={
+            <ProtectedRoute allowedRoles={["super_admin"]}>
+              <SuperAdminDocumentVerification />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/super-admin/wfh-requests"
+          element={
+            <ProtectedRoute allowedRoles={["super_admin"]}>
+              <WFHRequests />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Existing Routes */}
         <Route
@@ -283,11 +298,7 @@ function AppRoutes() {
 
         <Route
           path="/employee/profile"
-          element={
-            <ProtectedRoute allowedRoles={["Admin", "HR Manager", "Employee"]}>
-              <EmployeeProfile />
-            </ProtectedRoute>
-          }
+          element={<Navigate to="/profile" replace />}
         />
 
         <Route
@@ -376,6 +387,123 @@ function AppRoutes() {
           element={
             <ProtectedRoute allowedRoles={["super_admin", "Admin", "HR Manager", "Employee"]}>
               <LeaveDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Holiday Calendar Routes */}
+        <Route
+          path="/holidays"
+          element={
+            <ProtectedRoute allowedRoles={["super_admin", "Admin", "HR Manager", "Employee"]}>
+              <HolidayCalendar />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/holidays/manage"
+          element={
+            <ProtectedRoute allowedRoles={["super_admin", "Admin", "HR Manager"]}>
+              <HolidayManagement />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Onboarding & Offboarding Routes */}
+        <Route
+          path="/onboarding"
+          element={
+            <ProtectedRoute allowedRoles={["Admin", "HR Manager"]}>
+              <OnboardingList />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/onboarding/:id"
+          element={
+            <ProtectedRoute allowedRoles={["Admin", "HR Manager", "Employee"]}>
+              <OnboardingDetails />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/employee/onboarding"
+          element={
+            <ProtectedRoute allowedRoles={["Employee", "Admin", "HR Manager"]}>
+              <OnboardingDetails />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/offboarding"
+          element={
+            <ProtectedRoute allowedRoles={["Admin", "HR Manager"]}>
+              <OffboardingList />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/offboarding/:id"
+          element={
+            <ProtectedRoute allowedRoles={["Admin", "HR Manager", "Employee"]}>
+              <OffboardingDetails />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/employee/offboarding"
+          element={
+            <ProtectedRoute allowedRoles={["Employee", "Admin", "HR Manager"]}>
+              <OffboardingDetails />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Asset Management Routes */}
+        <Route
+          path="/assets"
+          element={
+            <ProtectedRoute allowedRoles={["Admin", "HR Manager"]}>
+              <AssetInventory />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/assets/assignments"
+          element={
+            <ProtectedRoute allowedRoles={["Admin", "HR Manager"]}>
+              <AssetAssignment />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Shift & Roster Management Route */}
+        <Route
+          path="/shifts"
+          element={
+            <ProtectedRoute allowedRoles={["Admin", "HR Manager"]}>
+              <ShiftManagement />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Document Verification Route */}
+        <Route
+          path="/hr/document-verification"
+          element={
+            <ProtectedRoute allowedRoles={["Admin", "HR Manager"]}>
+              <DocumentVerification />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Work From Home Requests */}
+        <Route
+          path="/wfh-requests"
+          element={
+            <ProtectedRoute allowedRoles={["super_admin", "Admin", "HR Manager", "HR", "Employee", "employee"]}>
+              <WFHRequests />
             </ProtectedRoute>
           }
         />
@@ -590,111 +718,6 @@ function AppRoutes() {
           />
         }
       />
-      
-      {/* Holiday Calendar Routes */}
-        <Route
-          path="/holidays"
-          element={
-            <ProtectedRoute allowedRoles={["super_admin", "Admin", "HR Manager", "Employee"]}>
-              <HolidayCalendar />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/holidays/manage"
-          element={
-            <ProtectedRoute allowedRoles={["super_admin", "Admin", "HR Manager"]}>
-              <HolidayManagement />
-            </ProtectedRoute>
-          }
-        />
-        
-      {/* Onboarding & Offboarding Routes */}
-        <Route
-          path="/onboarding"
-          element={
-            <ProtectedRoute allowedRoles={["Admin", "HR Manager"]}>
-              <OnboardingList />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/onboarding/:id"
-          element={
-            <ProtectedRoute allowedRoles={["Admin", "HR Manager", "Employee"]}>
-              <OnboardingDetails />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/employee/onboarding"
-          element={
-            <ProtectedRoute allowedRoles={["Employee", "Admin", "HR Manager"]}>
-              <OnboardingDetails />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/offboarding"
-          element={
-            <ProtectedRoute allowedRoles={["Admin", "HR Manager"]}>
-              <OffboardingList />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/offboarding/:id"
-          element={
-            <ProtectedRoute allowedRoles={["Admin", "HR Manager", "Employee"]}>
-              <OffboardingDetails />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/employee/offboarding"
-          element={
-            <ProtectedRoute allowedRoles={["Employee", "Admin", "HR Manager"]}>
-              <OffboardingDetails />
-            </ProtectedRoute>
-          }
-        />
-        {/* Document Verification Route */}
-        <Route
-          path="/hr/document-verification"
-          element={
-            <ProtectedRoute allowedRoles={["Admin", "HR Manager"]}>
-              <DocumentVerification />
-            </ProtectedRoute>
-          }
-        />
-        {/* Asset Management Routes */}
-        <Route
-          path="/assets"
-          element={
-            <ProtectedRoute allowedRoles={["Admin", "HR Manager"]}>
-              <AssetInventory />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/assets/assignments"
-          element={
-            <ProtectedRoute allowedRoles={["Admin", "HR Manager"]}>
-              <AssetAssignment />
-            </ProtectedRoute>
-          }
-        />
-        {/* Work From Home Requests (HR/Admin view-only) */}
-        <Route
-          path="/wfh-requests"
-          element={
-            <ProtectedRoute allowedRoles={["Admin", "HR Manager", "HR", "Employee", "employee"]}>
-              <WFHRequests />
-            </ProtectedRoute>
-          }
-        />
-
-
     </Routes>
   );
 }

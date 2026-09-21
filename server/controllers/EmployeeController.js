@@ -6,6 +6,7 @@ import { generateNextDepartmentId } from "../services/departmentService.js";
 import { syncEmployeesToCandidates } from "./candidateController.js";
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
+import transporter from "../config/mail.js";
 
 
 // =====================================================
@@ -149,6 +150,7 @@ export const createEmployee = async (req, res) => {
       name,
       email,
       phone,
+      password,
       role,
       department_id,
       designation,
@@ -224,6 +226,8 @@ export const createEmployee = async (req, res) => {
 
     const targetEmail = String(email || user_id || "").trim().toLowerCase();
     let resolvedUserId = null;
+    let assignedPassword = null;
+    let isNewUserCreated = false;
 
     // 1. Check if user_id is provided as a valid ObjectId AND matches targetEmail
     if (user_id && mongoose.Types.ObjectId.isValid(user_id)) {
@@ -290,8 +294,9 @@ export const createEmployee = async (req, res) => {
         const userPhone = phone ? String(phone).replace(/\D/g, "") : "0000000000";
         const userRole = isSuperAdmin && role ? role : "Employee";
 
-        // Generate strong hashed password that matches policy: Emp@12345
-        const defaultHash = await bcrypt.hash("Emp@12345", 10);
+        // Assign custom password if provided by HR or fallback to strong default: Emp@12345
+        assignedPassword = (password && String(password).trim()) || "Emp@12345";
+        const defaultHash = await bcrypt.hash(assignedPassword, 10);
 
         existingUser = await User.create({
           name: userName,
@@ -304,6 +309,7 @@ export const createEmployee = async (req, res) => {
         });
 
         resolvedUserId = existingUser._id;
+        isNewUserCreated = true;
       }
     }
 
@@ -349,10 +355,43 @@ export const createEmployee = async (req, res) => {
       )
       .populate("manager_id", "employee_code designation");
 
+    // Send welcome email with login credentials if mailer configured
+    if (isNewUserCreated && targetEmail && assignedPassword) {
+      try {
+        if (transporter && process.env.EMAIL && process.env.EMAIL_PASS) {
+          await transporter.sendMail({
+            from: process.env.EMAIL,
+            to: targetEmail,
+            subject: "Welcome to Infinetra HRMS - Your Login Credentials",
+            html: `
+              <div style="font-family: Arial, sans-serif; padding: 20px; color: #333; max-width: 600px; margin: auto;">
+                <h2 style="color: #2563eb;">Welcome to Infinetra HRMS!</h2>
+                <p>Hello <strong>${populatedEmployee?.user_id?.name || "Team Member"}</strong>,</p>
+                <p>Your employee profile has been created in the HR portal. Below are your login credentials to access your account:</p>
+                <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                  <p style="margin: 6px 0;"><strong>Portal URL:</strong> <a href="${process.env.CLIENT_URL || 'http://localhost:5173'}/login">${process.env.CLIENT_URL || 'http://localhost:5173'}/login</a></p>
+                  <p style="margin: 6px 0;"><strong>Email Address:</strong> ${targetEmail}</p>
+                  <p style="margin: 6px 0;"><strong>Temporary Password:</strong> <code style="background: #e2e8f0; padding: 3px 8px; border-radius: 4px; font-weight: bold; color: #1e293b;">${assignedPassword}</code></p>
+                </div>
+                <p style="font-size: 0.9rem; color: #64748b;">Please log in and update your password under Settings &gt; Security for your account safety.</p>
+              </div>
+            `,
+          });
+        }
+      } catch (mailErr) {
+        console.warn("[Welcome Email] Could not send welcome email:", mailErr.message);
+      }
+    }
+
     return res.status(201).json({
       success: true,
       message: "Employee created successfully",
       employee: populatedEmployee,
+      credentials: {
+        email: targetEmail,
+        temporaryPassword: assignedPassword,
+        isNewAccount: isNewUserCreated,
+      },
     });
   } catch (error) {
     console.error("CREATE EMPLOYEE ERROR:", error);

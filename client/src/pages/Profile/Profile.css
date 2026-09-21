@@ -2,6 +2,47 @@
   padding-bottom: 32px;
 }
 
+/* Profile Navigation Tabs */
+.profile-nav-tabs,
+.asset-nav-tabs {
+  display: flex;
+  gap: 8px;
+  border-bottom: 2px solid #e2e8f0;
+  padding-bottom: 2px;
+  margin: 20px 0 24px 0;
+}
+
+.profile-nav-tab,
+.asset-nav-tab {
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748b;
+  background: transparent;
+  border: none;
+  border-bottom: 2.5px solid transparent;
+  margin-bottom: -2px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 8px 8px 0 0;
+}
+
+.profile-nav-tab:hover,
+.asset-nav-tab:hover {
+  color: #4f46e5;
+  background: #f8fafc;
+}
+
+.profile-nav-tab.active,
+.asset-nav-tab.active {
+  color: #4f46e5 !important;
+  border-bottom-color: #4f46e5 !important;
+  background: #eef2ff !important;
+}
+
 .profile-layout-grid {
   display: grid;
   grid-template-columns: 320px 1fr;

@@ -24,9 +24,9 @@ import "./AttendanceDashboard.css";
 
 function AttendanceDashboard() {
   const { user } = useAuth();
-  const normRole   = normalizeRole(user?.role);
-  const isAdmin    = normRole === "admin";
-  const isHR       = normRole === "hr_manager";
+  const normRole = normalizeRole(user?.role);
+  const isAdmin = normRole === "admin";
+  const isHR = normRole === "hr_manager";
   const isEmployee = normRole === "employee";
 
   // HR Manager gets both personal check-in view AND org monitoring
@@ -35,18 +35,18 @@ function AttendanceDashboard() {
   const [currentTime, setCurrentTime] = useState(new Date());
 
   // Personal attendance state (Employee + HR)
-  const [todayAttendance,   setTodayAttendance]   = useState(null);
+  const [todayAttendance, setTodayAttendance] = useState(null);
   const [attendanceHistory, setAttendanceHistory] = useState([]);
   const [monthlyAttendance, setMonthlyAttendance] = useState([]);
   const [calendarAttendance, setCalendarAttendance] = useState([]);
-  const [approvedLeaves, setApprovedLeaves]       = useState([]);
-  const [myShift, setMyShift]                     = useState(null);
-  const [myShiftGroup, setMyShiftGroup]           = useState(null);
+  const [approvedLeaves, setApprovedLeaves] = useState([]);
+  const [myShift, setMyShift] = useState(null);
+  const [myShiftGroup, setMyShiftGroup] = useState(null);
 
   // Admin monitoring state
-  const [adminRecords,      setAdminRecords]      = useState([]);
-  const [adminLoading,      setAdminLoading]      = useState(false);
-  const [adminError,        setAdminError]        = useState(null);
+  const [adminRecords, setAdminRecords] = useState([]);
+  const [adminLoading, setAdminLoading] = useState(false);
+  const [adminError, setAdminError] = useState(null);
 
   // Live clock
   useEffect(() => {
@@ -58,7 +58,7 @@ function AttendanceDashboard() {
   const loadAttendanceData = useCallback(async () => {
     try {
       const today = new Date();
-      const year  = today.getFullYear();
+      const year = today.getFullYear();
       const month = today.getMonth() + 1;
 
       const [todayData, historyData, monthlyData, calendarData, ownLeaveRes, shiftRes] =
@@ -133,8 +133,8 @@ function AttendanceDashboard() {
   const heroSubtitle = isAdmin
     ? "Monitor organization-wide attendance and employee working hours."
     : isEmployee
-    ? "Track check-in times, work duration, monthly logs, and attendance history."
-    : "Track your personal attendance and monitor organisation-wide attendance records.";
+      ? "Track check-in times, work duration, monthly logs, and attendance history."
+      : "Track your personal attendance and monitor organisation-wide attendance records.";
 
   return (
     <div className="attendance-page">
@@ -238,44 +238,44 @@ function AttendanceDashboard() {
           </div>
 
           <div className="attendance-grid-layout">
-          <div className="col-span-6">
-            <div className="attendance-section-box">
-              <CheckInCard
-                attendance={todayAttendance}
-                setTodayAttendance={setTodayAttendance}
-                loadAttendanceData={loadAttendanceData}
-              />
+            <div className="col-span-6">
+              <div className="attendance-section-box">
+                <CheckInCard
+                  attendance={todayAttendance}
+                  setTodayAttendance={setTodayAttendance}
+                  loadAttendanceData={loadAttendanceData}
+                />
+              </div>
             </div>
-          </div>
 
-          <div className="col-span-6">
-            <div className="attendance-section-box">
-              <TodayAttendanceCard attendance={todayAttendance} />
+            <div className="col-span-6">
+              <div className="attendance-section-box">
+                <TodayAttendanceCard attendance={todayAttendance} />
+              </div>
             </div>
-          </div>
 
-          <div className="col-span-12">
-            <div className="attendance-section-box">
-              <AttendanceCalendar
-                calendarAttendance={calendarAttendance}
-                approvedLeaves={approvedLeaves}
-              />
+            <div className="col-span-12">
+              <div className="attendance-section-box">
+                <AttendanceCalendar
+                  calendarAttendance={calendarAttendance}
+                  approvedLeaves={approvedLeaves}
+                />
+              </div>
             </div>
-          </div>
 
-          <div className="col-span-12">
-            <div className="attendance-section-box">
-              <AttendanceHistory history={attendanceHistory} />
+            <div className="col-span-12">
+              <div className="attendance-section-box">
+                <AttendanceHistory history={attendanceHistory} />
+              </div>
             </div>
-          </div>
 
-          <div className="col-span-12">
-            <div className="attendance-section-box">
-              <MonthlyAttendance monthlyAttendance={monthlyAttendance} />
+            <div className="col-span-12">
+              <div className="attendance-section-box">
+                <MonthlyAttendance monthlyAttendance={monthlyAttendance} />
+              </div>
             </div>
           </div>
-        </div>
-      </>
+        </>
       )}
 
       {/* ── HR MANAGER ORG MONITORING SECTION ───────────────────────────────── */}

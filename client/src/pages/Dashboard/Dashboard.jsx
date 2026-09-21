@@ -59,9 +59,9 @@ function Dashboard() {
   const { user } = useAuth();
 
   // ── Normalized Role flags ───────────────────────────────────────────────────
-  const normRole   = normalizeRole(user?.role);
-  const isAdmin    = normRole === 'admin';
-  const isHR       = normRole === 'hr_manager';
+  const normRole = normalizeRole(user?.role);
+  const isAdmin = normRole === 'admin';
+  const isHR = normRole === 'hr_manager';
   const isEmployee = normRole === 'employee';
   const isAdminOrHR = isAdmin || isHR;
 
@@ -146,8 +146,8 @@ function Dashboard() {
         const rawLeaves = Array.isArray(leaveRes?.data)
           ? leaveRes.data
           : Array.isArray(leaveRes)
-          ? leaveRes
-          : [];
+            ? leaveRes
+            : [];
         setLeaveHistory(rawLeaves);
 
         if (isAdminOrHR) {
@@ -156,10 +156,10 @@ function Dashboard() {
           const empList = Array.isArray(empRes?.employees)
             ? empRes.employees
             : Array.isArray(empRes?.data)
-            ? empRes.data
-            : Array.isArray(empRes)
-            ? empRes
-            : [];
+              ? empRes.data
+              : Array.isArray(empRes)
+                ? empRes
+                : [];
           setEmployees(empList);
           setEmployeeCount(empRes?.totalEmployees ?? empList.length);
 
@@ -168,10 +168,10 @@ function Dashboard() {
           const deptList = Array.isArray(deptRes?.data)
             ? deptRes.data
             : Array.isArray(deptRes?.departments)
-            ? deptRes.departments
-            : Array.isArray(deptRes)
-            ? deptRes
-            : [];
+              ? deptRes.departments
+              : Array.isArray(deptRes)
+                ? deptRes
+                : [];
           setDepartments(deptList);
           setDepartmentCount(deptList.length);
 
@@ -180,8 +180,8 @@ function Dashboard() {
           const allOrgLeaves = Array.isArray(adminLeavesRes?.data)
             ? adminLeavesRes.data
             : Array.isArray(adminLeavesRes)
-            ? adminLeavesRes
-            : [];
+              ? adminLeavesRes
+              : [];
           setAdminLeaves(allOrgLeaves);
         } else {
           // 3. Employee Attendance History
@@ -189,8 +189,8 @@ function Dashboard() {
           const rawHist = Array.isArray(attHistRes?.data)
             ? attHistRes.data
             : Array.isArray(attHistRes)
-            ? attHistRes
-            : [];
+              ? attHistRes
+              : [];
           setAttendanceHistory(rawHist);
 
           // 4. Employee Co-workers
@@ -198,10 +198,10 @@ function Dashboard() {
           const empList = Array.isArray(empRes?.employees)
             ? empRes.employees
             : Array.isArray(empRes?.data)
-            ? empRes.data
-            : Array.isArray(empRes)
-            ? empRes
-            : [];
+              ? empRes.data
+              : Array.isArray(empRes)
+                ? empRes
+                : [];
           setEmployees(empList);
           setEmployeeCount(empRes?.totalEmployees ?? empList.length);
         }
@@ -333,8 +333,8 @@ function Dashboard() {
             {isAdmin
               ? 'Administrator Overview & System Metrics'
               : isHR
-              ? 'HR Management Portal & Live Workforce Indicators'
-              : 'Personal Workforce Workspace & Live Status'}
+                ? 'HR Management Portal & Live Workforce Indicators'
+                : 'Personal Workforce Workspace & Live Status'}
           </p>
         </div>
         <div className="dashboard-actions">

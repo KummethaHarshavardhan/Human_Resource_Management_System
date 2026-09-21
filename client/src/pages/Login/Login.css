@@ -539,12 +539,26 @@ html:has(.login-container) {
    RESPONSIVE — tablet & mobile
    ────────────────────────────────────── */
 @media (max-width: 1024px) {
+  html:has(.login-container),
+  body:has(.login-container) {
+    overflow: auto !important;
+    height: auto !important;
+    min-height: 100% !important;
+  }
+
   .login-container {
-    position: relative;
-    inset: auto;
-    min-height: 100vh;
-    height: auto;
-    overflow: visible;
+    position: relative !important;
+    inset: auto !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    width: 100% !important;
+    min-height: 100vh !important;
+    height: auto !important;
+    overflow: visible !important;
+    display: flex !important;
+    flex-direction: column !important;
   }
 
   .login-left {
@@ -552,30 +566,70 @@ html:has(.login-container) {
   }
 
   .login-right {
-    width: 100%;
-    height: auto;
-    min-height: 100vh;
-    align-items: flex-start;
-    padding: 32px 20px;
+    flex: 1 1 100% !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 100vh !important;
+    overflow-y: visible !important;
+    overflow-x: hidden !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 36px 20px !important;
+    box-sizing: border-box !important;
   }
 
   .login-form-box {
-    max-width: 480px;
-    margin: 0 auto;
+    width: 100% !important;
+    max-width: 440px !important;
+    margin: 0 auto !important;
+    box-sizing: border-box !important;
   }
 
   .mobile-logo-header {
-    display: flex;
+    display: flex !important;
   }
 }
 
 @media (max-width: 480px) {
   .login-right {
-    padding: 24px 16px;
+    padding: 24px 16px !important;
+    align-items: center !important;
   }
 
   .login-form-box {
-    padding: 28px 22px 26px 22px;
-    border-radius: 14px;
+    padding: 28px 20px 24px 20px !important;
+    border-radius: 16px !important;
+    width: 100% !important;
+    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08) !important;
+  }
+
+  .mobile-logo-header {
+    margin-bottom: 18px !important;
+    padding-bottom: 16px !important;
+  }
+
+  .mobile-logo {
+    width: 46px !important;
+    height: 46px !important;
+  }
+
+  .login-form-box h2 {
+    font-size: 1.35rem !important;
+  }
+
+  .subtitle {
+    font-size: 0.825rem !important;
+    margin-bottom: 20px !important;
+  }
+
+  .login-form-box .form-group {
+    margin-bottom: 14px !important;
+  }
+
+  .login-form-box .btn-primary,
+  .login-form-box .btn-google {
+    height: 44px !important;
+    font-size: 0.875rem !important;
   }
 }

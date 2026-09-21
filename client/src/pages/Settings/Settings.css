@@ -313,3 +313,386 @@ input:checked + .toggle-slider:before {
     width: 100%;
   }
 }
+
+/* ==========================================
+   SETTINGS WFH TAB & MODAL STYLES
+   ========================================== */
+.wfh-settings-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.wfh-settings-subtitle {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin: 0.25rem 0 0 0;
+}
+
+.wfh-new-request-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.1rem;
+  font-weight: 600;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+  color: #ffffff;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(79, 70, 229, 0.25);
+  transition: all 0.2s;
+}
+
+.wfh-new-request-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(79, 70, 229, 0.35);
+}
+
+.settings-wfh-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.85rem;
+}
+
+.settings-wfh-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.settings-wfh-stat .count {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.settings-wfh-stat .label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  margin-top: 0.2rem;
+}
+
+.settings-wfh-stat.pending .count { color: #d97706; }
+.settings-wfh-stat.approved .count { color: #16a34a; }
+.settings-wfh-stat.rejected .count { color: #dc2626; }
+
+.settings-wfh-history {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.settings-wfh-history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.settings-wfh-history-header h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+}
+
+.settings-wfh-empty {
+  padding: 3rem 1.5rem;
+  text-align: center;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.settings-wfh-empty .empty-icon {
+  color: #94a3b8;
+}
+
+.settings-wfh-empty p {
+  color: #64748b;
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.settings-wfh-table-wrapper {
+  overflow-x: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.settings-wfh-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.settings-wfh-table th {
+  background-color: #f8fafc;
+  color: #475569;
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.settings-wfh-table td {
+  padding: 0.875rem 1rem;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+
+.settings-wfh-table tr:hover {
+  background-color: #f8fafc;
+}
+
+.wfh-table-dates {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.wfh-table-dates strong {
+  color: #1e293b;
+  font-weight: 600;
+}
+
+.wfh-requested-on {
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.wfh-table-days {
+  display: inline-block;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  background-color: #eff6ff;
+  color: #2563eb;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.wfh-table-reason {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #334155;
+}
+
+.wfh-table-files {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.wfh-table-file-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.5rem;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  border-radius: 5px;
+  font-size: 0.75rem;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.2s;
+  max-width: 140px;
+}
+
+.wfh-table-file-btn span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wfh-table-file-btn:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.wfh-no-files-text {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.wfh-pending-note {
+  font-size: 0.75rem;
+  color: #d97706;
+  font-weight: 500;
+}
+
+.wfh-outcome-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.wfh-outcome-date {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #334155;
+}
+
+.wfh-outcome-reason {
+  font-size: 0.7rem;
+  color: #b91c1c;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: #fef2f2;
+  padding: 0.1rem 0.3rem;
+  border-radius: 4px;
+}
+
+/* Modal Form styling */
+.wfh-modal-header-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.wfh-form-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.wfh-dates-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.wfh-calc-preview {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.6rem 0.85rem;
+  background-color: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  color: #1e40af;
+}
+
+.wfh-textarea-field {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.wfh-upload-zone {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.wfh-upload-btn-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 0.85rem;
+  background-color: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.wfh-upload-btn-label:hover:not(.disabled) {
+  background-color: #e2e8f0;
+  color: #0f172a;
+}
+
+.wfh-upload-btn-label.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.wfh-upload-hint {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.wfh-selected-files-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: 0.5rem;
+}
+
+.wfh-selected-file-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.35rem 0.65rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+}
+
+.wfh-selected-file-row .file-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8125rem;
+  color: #334155;
+  overflow: hidden;
+}
+
+.wfh-selected-file-row .name {
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 280px;
+}
+
+.wfh-selected-file-row .size {
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.wfh-file-remove-btn {
+  background: transparent;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+}
+
+.wfh-file-remove-btn:hover {
+  background: #fee2e2;
+}
+

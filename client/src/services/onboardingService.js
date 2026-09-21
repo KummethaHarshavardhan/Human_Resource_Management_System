@@ -88,3 +88,4 @@ export const getEmployeeLifecycleHistory = async (employeeId) => {
   });
   return handleResponse(res);
 };
+

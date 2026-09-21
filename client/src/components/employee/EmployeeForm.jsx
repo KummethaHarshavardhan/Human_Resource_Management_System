@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { FiEye, FiEyeOff, FiRefreshCw, FiCheckCircle, FiInfo } from "react-icons/fi";
 import "../employee/emp.shared.css";
 import "../employee/EmployeeForm.css";
 
@@ -7,6 +8,7 @@ const EMPTY = {
   name: "",
   email: "",
   phone: "",
+  password: "",
   role: "Employee",
   department_id: "",
   designation: "",
@@ -32,7 +34,28 @@ export default function EmployeeForm({
   const [form, setForm] = useState({ ...EMPTY, ...initialData });
   const [errors, setErrors] = useState({});
   const [userSearch, setUserSearch] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const initialDataStr = JSON.stringify(initialData);
+
+  const generateRandomPassword = () => {
+    const chars = "abcdefghjkmnpqrstuvwxyz";
+    const uppers = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+    const nums = "23456789";
+    const specials = "@#$%&*!";
+
+    let pass = "";
+    pass += uppers.charAt(Math.floor(Math.random() * uppers.length));
+    pass += chars.charAt(Math.floor(Math.random() * chars.length));
+    pass += chars.charAt(Math.floor(Math.random() * chars.length));
+    pass += nums.charAt(Math.floor(Math.random() * nums.length));
+    pass += specials.charAt(Math.floor(Math.random() * specials.length));
+    pass += nums.charAt(Math.floor(Math.random() * nums.length));
+    pass += chars.charAt(Math.floor(Math.random() * chars.length));
+    pass += nums.charAt(Math.floor(Math.random() * nums.length));
+
+    setForm((prev) => ({ ...prev, password: pass }));
+    if (errors.password) setErrors((prev) => ({ ...prev, password: "" }));
+  };
 
   const DEFAULT_DEPT_NAMES = [
     "Human Resource",
@@ -140,6 +163,15 @@ export default function EmployeeForm({
       }
     }
 
+    // Password validation (only for newly created accounts when a password is typed)
+    if (!isEditMode && !form.user_id && form.password && form.password.trim()) {
+      const passwordRegex = /^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*]).{8,}$/;
+      if (!passwordRegex.test(form.password.trim())) {
+        errs.password =
+          "Password must be at least 8 characters with 1 uppercase, 1 number, and 1 special character";
+      }
+    }
+
     if (!form.department_id) errs.department_id = "Department is required";
     if (!form.designation?.trim()) errs.designation = "Designation is required";
     if (!form.date_of_joining) errs.date_of_joining = "Date of joining is required";
@@ -168,7 +200,8 @@ export default function EmployeeForm({
       name: form.name.trim(),
       email: form.email.trim().toLowerCase(),
       phone: form.phone ? form.phone.trim() : "",
-      role: "Employee",
+      password: form.password ? form.password.trim() : undefined,
+      role: form.role || "Employee",
       department_id: form.department_id,
       designation: form.designation.trim(),
       manager_id: form.manager_id || null,
@@ -213,8 +246,8 @@ export default function EmployeeForm({
               />
 
               {form.user_id && users.some((u) => (u._id || u.id) === form.user_id) && (
-                <span style={{ fontSize: "0.8rem", color: "#16a34a", marginTop: 4 }}>
-                  ✓ Existing user account matched and details filled below
+                <span style={{ fontSize: "0.8rem", color: "#16a34a", marginTop: 4, display: "inline-flex", alignItems: "center", gap: "5px" }}>
+                  <FiCheckCircle size={14} /> Existing user account matched and details filled below
                 </span>
               )}
             </div>
@@ -255,6 +288,87 @@ export default function EmployeeForm({
               <span className="emp-field-error">{errors.email}</span>
             )}
           </div>
+
+          {/* Login Password (Create mode only) */}
+          {!isEditMode && (
+            <div className="emp-form-group">
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.25rem" }}>
+                <label className="emp-form-label" style={{ margin: 0 }}>
+                  Login Password {!form.user_id && <span style={{ color: "#64748b", fontWeight: "normal", fontSize: "0.8rem" }}>(Default: Emp@12345)</span>}
+                </label>
+                {!form.user_id && (
+                  <button
+                    type="button"
+                    onClick={generateRandomPassword}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      color: "#2563eb",
+                      fontSize: "0.8rem",
+                      cursor: "pointer",
+                      fontWeight: 600,
+                      padding: "0 4px",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "4px",
+                    }}
+                    title="Auto-generate a secure random password"
+                  >
+                    <FiRefreshCw size={12} /> Generate
+                  </button>
+                )}
+              </div>
+
+              {form.user_id && users.some((u) => (u._id || u.id) === form.user_id) ? (
+                <div style={{ padding: "0.625rem 0.875rem", backgroundColor: "#f1f5f9", borderRadius: "8px", fontSize: "0.85rem", color: "#64748b", border: "1px solid #e2e8f0", display: "flex", alignItems: "center", gap: "6px" }}>
+                  <FiCheckCircle size={15} color="#16a34a" /> Existing account linked (employee will use their existing password)
+                </div>
+              ) : (
+                <div style={{ position: "relative" }}>
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    name="password"
+                    className={`emp-form-input${errors.password ? " error" : ""}`}
+                    placeholder="Enter password or leave blank for Emp@12345"
+                    value={form.password}
+                    onChange={handleChange}
+                    style={{ paddingRight: "42px" }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    style={{
+                      position: "absolute",
+                      right: "10px",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      color: "#64748b",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      padding: "4px",
+                    }}
+                    title={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? <FiEyeOff size={16} /> : <FiEye size={16} />}
+                  </button>
+                </div>
+              )}
+
+              {errors.password && (
+                <span className="emp-field-error">{errors.password}</span>
+              )}
+              {!form.user_id && (
+                <span style={{ fontSize: "0.76rem", color: "#64748b", marginTop: "4px", display: "inline-flex", alignItems: "center", gap: "5px" }}>
+                  <FiInfo size={13} style={{ color: "#3b82f6", flexShrink: 0 }} />
+                  <span>Temporary login password. The employee will use this to sign in at <strong>/login</strong>.</span>
+                </span>
+              )}
+            </div>
+          )}
 
           {/* Phone Number */}
           <div className="emp-form-group">

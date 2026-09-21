@@ -22,20 +22,20 @@ export const generatePayslip = async (req, res) => {
     }
 
     // Map his Payroll fields into your Payslip schema
-    const basic = payrollRecord.earnings.basicSalary || 0;
-    const hra = payrollRecord.earnings.hra || 0;
-    const allowances = payrollRecord.earnings.allowances || 0;
+    const basic = payrollRecord.earnings?.basicSalary || payrollRecord.basicSalary || 0;
+    const hra = payrollRecord.earnings?.hra || 0;
+    const allowances = payrollRecord.earnings?.allowances || 0;
     const bonus = 0; // not tracked in his Payroll model
 
-    const grossPay = basic + hra + allowances + bonus;
+    const grossPay = payrollRecord.grossSalary || (basic + hra + allowances + bonus);
 
     const tax = 0;
-    const providentFund = 0;
+    const providentFund = payrollRecord.pf_amount || 0;
     const insurance = 0;
-    const other = payrollRecord.deductions || 0; // his single deductions value
+    const other = (typeof payrollRecord.deductions === "number") ? payrollRecord.deductions : 0;
 
     const totalDeductions = tax + providentFund + insurance + other;
-    const netPay = grossPay - totalDeductions;
+    const netPay = payrollRecord.netSalary || (grossPay - totalDeductions);
 
     const payslip = await Payslip.create({
       employeeId: payrollRecord.employeeId,

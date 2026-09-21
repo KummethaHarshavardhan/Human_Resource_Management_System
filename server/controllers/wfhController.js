@@ -133,7 +133,7 @@ export const createRequest = async (req, res) => {
     if (!employee) {
       // Clean up uploaded files if employee record not found
       if (req.files && req.files.length > 0) {
-        req.files.forEach((f) => fs.unlink(f.path, () => {}));
+        req.files.forEach((f) => fs.unlink(f.path, () => { }));
       }
       return res.status(404).json({
         success: false,
@@ -196,7 +196,7 @@ export const createRequest = async (req, res) => {
   } catch (error) {
     console.error("createRequest error:", error);
     if (req.files && req.files.length > 0) {
-      req.files.forEach((f) => fs.unlink(f.path, () => {}));
+      req.files.forEach((f) => fs.unlink(f.path, () => { }));
     }
     return res.status(500).json({
       success: false,

@@ -13,18 +13,18 @@ function TodayAttendanceCard({ attendance }) {
   const formatWorkingHours = (hours) => {
     if (hours === undefined || hours === null) return "—";
     const totalMinutes = Math.round(hours * 60);
-    const hrs  = Math.floor(totalMinutes / 60);
+    const hrs = Math.floor(totalMinutes / 60);
     const mins = totalMinutes % 60;
     return `${hrs}h ${mins}m`;
   };
 
   const getStatusBadgeClass = (status) => {
     switch (status) {
-      case "Present":       return "att-badge att-badge-present";
-      case "Late":          return "att-badge att-badge-late";
-      case "Half Day":       return "att-badge att-badge-halfday";
+      case "Present": return "att-badge att-badge-present";
+      case "Late": return "att-badge att-badge-late";
+      case "Half Day": return "att-badge att-badge-halfday";
       case "Early Checkout": return "att-badge att-badge-early";
-      default:               return "att-badge att-badge-default";
+      default: return "att-badge att-badge-default";
     }
   };
 

@@ -8,6 +8,7 @@ import {
   decideWFHRequest,
   downloadAttachment,
   withdrawWFHRequest,
+  submitWFHRequest,
 } from "../../services/wfhService";
 import { getOrganizations } from "../../services/superAdminService";
 import Modal, { ModalHeader, ModalBody, ModalFooter } from "../../components/Modal/Modal";
@@ -82,6 +83,16 @@ export default function WFHRequests() {
   // Withdraw Modal state
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
   const [requestToWithdraw, setRequestToWithdraw] = useState(null);
+
+  // Apply Modal state (for Employee self-service)
+  const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
+  const [applySubmitting, setApplySubmitting] = useState(false);
+  const [applyForm, setApplyForm] = useState({
+    start_date: "",
+    end_date: "",
+    reason: "",
+    files: [],
+  });
 
   // Fetch organizations for Super Admin filter
   useEffect(() => {
@@ -214,6 +225,118 @@ export default function WFHRequests() {
     }
   };
 
+  // Submit Rejection (Super Admin Only)
+  const handleConfirmReject = async () => {
+    if (!selectedRequest || !rejectionReason.trim()) return;
+    setActionLoading(true);
+    try {
+      await decideWFHRequest(selectedRequest._id, {
+        decision: "Rejected",
+        rejection_reason: rejectionReason.trim(),
+      });
+      showToast("success", "WFH request rejected successfully.");
+      setIsRejectModalOpen(false);
+      setSelectedRequest(null);
+      setRejectionReason("");
+      fetchRequests();
+    } catch (err) {
+      console.error("Rejection error:", err);
+      showToast("error", err.message || "Failed to reject WFH request.");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // Handle Apply Form File Change
+  const handleApplyFileChange = (e) => {
+    const selectedFiles = Array.from(e.target.files || []);
+    if (!selectedFiles.length) return;
+
+    if (applyForm.files.length + selectedFiles.length > 5) {
+      showToast("error", "You can upload a maximum of 5 files.");
+      return;
+    }
+
+    const allowedTypes = [
+      "application/pdf",
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "application/msword",
+    ];
+
+    for (const f of selectedFiles) {
+      if (f.size > 10 * 1024 * 1024) {
+        showToast("error", `File "${f.name}" exceeds the 10MB size limit.`);
+        return;
+      }
+      if (!allowedTypes.includes(f.type)) {
+        showToast("error", `File "${f.name}" has an unsupported format. Allowed: PDF, JPG, PNG, DOCX.`);
+        return;
+      }
+    }
+
+    setApplyForm((prev) => ({
+      ...prev,
+      files: [...prev.files, ...selectedFiles],
+    }));
+    e.target.value = "";
+  };
+
+  const handleRemoveApplyFile = (indexToRemove) => {
+    setApplyForm((prev) => ({
+      ...prev,
+      files: prev.files.filter((_, idx) => idx !== indexToRemove),
+    }));
+  };
+
+  const handleSubmitApply = async (e) => {
+    if (e) e.preventDefault();
+    if (!applyForm.start_date) {
+      showToast("error", "Start Date is required.");
+      return;
+    }
+    if (!applyForm.end_date) {
+      showToast("error", "End Date is required.");
+      return;
+    }
+    const s = new Date(applyForm.start_date);
+    const end = new Date(applyForm.end_date);
+    s.setHours(0, 0, 0, 0);
+    end.setHours(0, 0, 0, 0);
+    if (end.getTime() < s.getTime()) {
+      showToast("error", "End Date cannot be earlier than Start Date.");
+      return;
+    }
+    if (!applyForm.reason.trim()) {
+      showToast("error", "Reason is required.");
+      return;
+    }
+
+    setApplySubmitting(true);
+    try {
+      const formData = new FormData();
+      formData.append("start_date", applyForm.start_date);
+      formData.append("end_date", applyForm.end_date);
+      formData.append("reason", applyForm.reason.trim());
+      applyForm.files.forEach((file) => {
+        formData.append("files", file);
+      });
+
+      await submitWFHRequest(formData);
+      showToast("success", "Work From Home request submitted successfully.");
+      setIsApplyModalOpen(false);
+      setApplyForm({ start_date: "", end_date: "", reason: "", files: [] });
+      fetchRequests();
+    } catch (err) {
+      console.error("Submit WFH error:", err);
+      showToast("error", err?.response?.data?.message || err.message || "Failed to submit WFH request.");
+    } finally {
+      setApplySubmitting(false);
+    }
+  };
+
   // Open Withdraw Confirmation Modal
   const openWithdrawModal = (req) => {
     setRequestToWithdraw(req);
@@ -260,28 +383,39 @@ export default function WFHRequests() {
               {isSuperAdmin
                 ? "Work From Home Requests (Global Approval Queue)"
                 : isEmployee
-                ? "My Work From Home Requests"
-                : "Work From Home Requests"}
+                  ? "My Work From Home Requests"
+                  : "Work From Home Requests"}
             </h1>
             <p className="wfh-page-subtitle">
               {isSuperAdmin
                 ? "Review and approve or reject remote work requests submitted across all organizations."
                 : isEmployee
-                ? "Submit and track your remote work requests. You can withdraw any pending request before a decision is made."
-                : "View Work From Home requests submitted by employees in your organization."}
+                  ? "Submit and track your remote work requests. You can withdraw any pending request before a decision is made."
+                  : "View Work From Home requests submitted by employees in your organization."}
             </p>
           </div>
         </div>
 
-        <button
-          className="wfh-refresh-btn"
-          onClick={fetchRequests}
-          disabled={loading}
-          title="Refresh table"
-        >
-          <FiRefreshCw className={loading ? "wfh-spin" : ""} size={16} />
-          <span>Refresh</span>
-        </button>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+          {isEmployee && (
+            <Button
+              variant="primary"
+              onClick={() => setIsApplyModalOpen(true)}
+            >
+              <FiHome size={16} />
+              <span>Apply for WFH</span>
+            </Button>
+          )}
+          <button
+            className="wfh-refresh-btn"
+            onClick={fetchRequests}
+            disabled={loading}
+            title="Refresh table"
+          >
+            <FiRefreshCw className={loading ? "wfh-spin" : ""} size={16} />
+            <span>Refresh</span>
+          </button>
+        </div>
       </div>
 
       {/* Role Notice Banner */}
@@ -1104,6 +1238,153 @@ export default function WFHRequests() {
         variant="warning"
         loading={actionLoading}
       />
+
+      {/* ============================================================== */}
+      {/* 5. Apply for WFH Modal (Employee Self-Service) */}
+      {/* ============================================================== */}
+      <Modal
+        isOpen={isApplyModalOpen}
+        onClose={() => {
+          if (!applySubmitting) {
+            setIsApplyModalOpen(false);
+          }
+        }}
+        maxWidth="600px"
+      >
+        <ModalHeader
+          onClose={() => {
+            if (!applySubmitting) {
+              setIsApplyModalOpen(false);
+            }
+          }}
+        >
+          <div className="wfh-modal-title">
+            <FiHome size={20} />
+            <span>Submit Work From Home Request</span>
+          </div>
+        </ModalHeader>
+
+        <form onSubmit={handleSubmitApply}>
+          <ModalBody>
+            <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+                <div className="wfh-form-group">
+                  <label className="wfh-form-label">
+                    Start Date <span className="required">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    className="wfh-search-input"
+                    value={applyForm.start_date}
+                    onChange={(e) =>
+                      setApplyForm((prev) => ({ ...prev, start_date: e.target.value }))
+                    }
+                    min={new Date().toISOString().split("T")[0]}
+                    required
+                    disabled={applySubmitting}
+                  />
+                </div>
+                <div className="wfh-form-group">
+                  <label className="wfh-form-label">
+                    End Date <span className="required">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    className="wfh-search-input"
+                    value={applyForm.end_date}
+                    onChange={(e) =>
+                      setApplyForm((prev) => ({ ...prev, end_date: e.target.value }))
+                    }
+                    min={applyForm.start_date || new Date().toISOString().split("T")[0]}
+                    required
+                    disabled={applySubmitting}
+                  />
+                </div>
+              </div>
+
+              <div className="wfh-form-group">
+                <label className="wfh-form-label">
+                  Reason for Remote Work <span className="required">*</span>
+                </label>
+                <textarea
+                  className="wfh-textarea"
+                  rows={4}
+                  placeholder="Explain why you are requesting to work from home..."
+                  value={applyForm.reason}
+                  onChange={(e) =>
+                    setApplyForm((prev) => ({ ...prev, reason: e.target.value }))
+                  }
+                  required
+                  disabled={applySubmitting}
+                />
+              </div>
+
+              <div className="wfh-form-group">
+                <label className="wfh-form-label">
+                  Supporting Documents (Optional, max 5 files, 10MB each)
+                </label>
+                <input
+                  type="file"
+                  multiple
+                  accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                  onChange={handleApplyFileChange}
+                  disabled={applySubmitting || applyForm.files.length >= 5}
+                />
+                {applyForm.files.length > 0 && (
+                  <div style={{ marginTop: "0.5rem", display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+                    {applyForm.files.map((file, idx) => (
+                      <span
+                        key={idx}
+                        className="wfh-file-pill-btn"
+                        style={{ cursor: "default" }}
+                      >
+                        <FiPaperclip size={12} />
+                        {file.name}
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveApplyFile(idx)}
+                          style={{
+                            background: "none",
+                            border: "none",
+                            cursor: "pointer",
+                            marginLeft: "4px",
+                            color: "#ef4444",
+                          }}
+                        >
+                          <FiX size={12} />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </ModalBody>
+
+          <ModalFooter>
+            <Button
+              variant="secondary"
+              type="button"
+              onClick={() => setIsApplyModalOpen(false)}
+              disabled={applySubmitting}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              type="submit"
+              disabled={
+                applySubmitting ||
+                !applyForm.start_date ||
+                !applyForm.end_date ||
+                !applyForm.reason.trim()
+              }
+            >
+              {applySubmitting ? "Submitting..." : "Submit WFH Request"}
+            </Button>
+          </ModalFooter>
+        </form>
+      </Modal>
     </div>
   );
 }

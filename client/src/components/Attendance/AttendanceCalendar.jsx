@@ -4,7 +4,7 @@ import { FiCalendar, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 function AttendanceCalendar({ calendarAttendance = [], approvedLeaves = [] }) {
   const currentDate = new Date();
   const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth());
-  const [selectedYear, setSelectedYear]   = useState(currentDate.getFullYear());
+  const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
 
   const months = [
     "January", "February", "March", "April", "May", "June",
@@ -19,7 +19,7 @@ function AttendanceCalendar({ calendarAttendance = [], approvedLeaves = [] }) {
   const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
   const totalDays = new Date(selectedYear, selectedMonth + 1, 0).getDate();
-  const firstDay  = new Date(selectedYear, selectedMonth, 1).getDay();
+  const firstDay = new Date(selectedYear, selectedMonth, 1).getDay();
 
   // Map attendance records
   const records = {};
@@ -37,9 +37,9 @@ function AttendanceCalendar({ calendarAttendance = [], approvedLeaves = [] }) {
     if (!leave.startDate || !leave.endDate) return;
 
     const start = new Date(leave.startDate);
-    const end   = new Date(leave.endDate);
+    const end = new Date(leave.endDate);
 
-    const cur  = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+    const cur = new Date(start.getFullYear(), start.getMonth(), start.getDate());
     const last = new Date(end.getFullYear(), end.getMonth(), end.getDate());
 
     if (isNaN(cur.getTime()) || isNaN(last.getTime()) || cur > last) return;

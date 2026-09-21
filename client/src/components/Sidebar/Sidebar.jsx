@@ -53,7 +53,7 @@ const superAdminMenuItems = [
   { label: "Leave Management", to: "/leave", icon: <FiCalendar size={18} /> },
   { label: "Holiday Calendar", to: "/holidays", icon: <FiSun size={18} /> },
   { label: "Document Verification", to: "/super-admin/document-verification", icon: <FiFileText size={18} /> },
-  { label: "WFH Requests", to: "/super-admin/wfh-requests", icon: <FiHome size={18} /> },
+  { label: "WFH Requests", to: "/wfh-requests", icon: <FiHome size={18} /> },
   { label: "Payroll", to: "/super-admin/payroll", icon: <FiDollarSign size={18} /> },
   { label: "Profile", to: "/profile", icon: <FiUser size={18} /> },
 ];

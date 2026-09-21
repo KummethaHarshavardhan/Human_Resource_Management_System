@@ -83,6 +83,7 @@ const permissions = {
     "onboarding",
     "holidays",
     "assets",
+    "wfh_requests",
   ],
 };
 
