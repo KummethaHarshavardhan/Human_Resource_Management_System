@@ -93,3 +93,51 @@
   background: #e2e8f0;
   color: #1e293b;
 }
+
+/* ==========================================
+   RESPONSIVE BREAKPOINTS
+   ========================================== */
+@media (max-width: 768px) {
+  .report-filters-form {
+    padding: 14px 12px;
+  }
+
+  .report-filters-grid {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .filter-group {
+    min-width: 0 !important;
+    width: 100%;
+  }
+
+  .filter-actions {
+    width: 100%;
+    display: flex;
+    gap: 8px;
+  }
+
+  .filter-submit-btn,
+  .filter-reset-btn {
+    flex: 1;
+    text-align: center;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .report-filters-form {
+    padding: 12px 10px;
+  }
+
+  .filter-actions {
+    flex-direction: column;
+  }
+
+  .filter-submit-btn,
+  .filter-reset-btn {
+    width: 100%;
+  }
+}

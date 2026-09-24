@@ -204,25 +204,39 @@
   flex: 1;
   min-width: 260px;
   max-width: 420px;
+  display: flex;
+  align-items: center;
 }
 
 .wfh-search-icon {
   position: absolute;
-  left: 12px;
+  left: 14px;
   top: 50%;
   transform: translateY(-50%);
   color: #94a3b8;
+  font-size: 16px;
+  pointer-events: none;
+  z-index: 2;
+  transition: color 0.2s ease;
 }
 
+.wfh-search-box:focus-within .wfh-search-icon {
+  color: #6366f1;
+}
+
+input[type="text"].wfh-search-input,
+input[type="search"].wfh-search-input,
 .wfh-search-input {
   width: 100%;
-  padding: 0.6rem 2.2rem 0.6rem 2.25rem;
+  padding: 10px 38px 10px 42px !important;
   border: 1px solid #cbd5e1;
   border-radius: 8px;
   font-size: 0.875rem;
   outline: none;
   background-color: #f8fafc;
+  color: #1e293b;
   transition: all 0.2s;
+  box-sizing: border-box;
 }
 
 .wfh-search-input:focus {
@@ -230,6 +244,7 @@
   border-color: #6366f1;
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
 }
+
 
 .wfh-clear-search {
   position: absolute;
@@ -954,4 +969,118 @@
 .wfh-hint {
   font-size: 0.75rem;
   color: #64748b;
+}
+
+/* ==========================================
+   RESPONSIVE BREAKPOINTS
+   ========================================== */
+@media (max-width: 1024px) {
+  .wfh-stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .wfh-page-container {
+    padding: 16px 0;
+    gap: 16px;
+  }
+
+  .wfh-page-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .wfh-controls-card {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .wfh-search-box {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .wfh-filters-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .wfh-filter-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    width: 100%;
+  }
+
+  .wfh-filter-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #64748b;
+  }
+
+  .wfh-select {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .wfh-filter-tabs {
+    overflow-x: auto;
+    width: 100%;
+    padding-bottom: 4px;
+    flex-wrap: nowrap;
+  }
+
+  .wfh-tab-btn {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .wfh-table-card {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .wfh-table {
+    min-width: 650px;
+  }
+}
+
+@media (max-width: 480px) {
+  .wfh-stats-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .wfh-stat-card {
+    padding: 14px 12px;
+  }
+
+  .wfh-footer-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .wfh-footer-actions button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 360px) {
+  .wfh-page-header h1 {
+    font-size: 1.25rem;
+  }
+
+  .wfh-stat-value {
+    font-size: 1.35rem;
+  }
 }

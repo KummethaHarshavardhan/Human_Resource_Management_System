@@ -224,9 +224,14 @@ input[type="search"].search-input,
 .search-input,
 input[type="text"].sa-search-input,
 input[type="search"].sa-search-input,
-.sa-search-input {
+.sa-search-input,
+input[type="text"].wfh-search-input,
+input[type="search"].wfh-search-input,
+.wfh-search-input,
+.wfh-search-box input {
   padding-left: 42px !important;
 }
+
 
 .search-box::before {
   content: '🔍';

@@ -388,10 +388,6 @@ table{
 
 @media(max-width:480px){
 
-.page{
-    padding:14px;
-}
-
 .form-card{
     padding:16px;
 }
@@ -404,8 +400,8 @@ table{
 
 @media(max-width:360px){
 
-.page{
-    padding:10px;
+.form-card{
+    padding:12px;
 }
 
 }

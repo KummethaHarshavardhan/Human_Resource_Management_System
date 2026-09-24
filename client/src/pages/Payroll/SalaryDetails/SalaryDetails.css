@@ -99,3 +99,46 @@
   font-size: 14px;
   color: #1e293b;
 }
+
+/* ==========================================
+   RESPONSIVE BREAKPOINTS
+   ========================================== */
+@media (max-width: 768px) {
+  .details-card {
+    padding: 20px 16px;
+    border-radius: 12px;
+  }
+
+  .details-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .details-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .details-footer-meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .details-card {
+    padding: 14px 10px;
+  }
+
+  .highlight-row {
+    padding: 10px 8px;
+  }
+}
+
+@media (max-width: 360px) {
+  .details-card {
+    padding: 10px 8px;
+  }
+}

@@ -1,34 +1,153 @@
-/* ==========================================
-   HRMS DESIGN SYSTEM - RESPONSIVE BREAKPOINTS
-   ========================================== */
+/* ==========================================================================
+   HRMS ENTERPRISE DESIGN SYSTEM - MASTER RESPONSIVE STYLESHEET
+   Supports:
+   - Mobile: 320px – 480px (Ultra-narrow phones, compact screens)
+   - Tablet: 481px – 768px (Phablets, iPads, portrait tablets)
+   - Laptop: 769px – 1024px (Landscape tablets, small laptops)
+   - Desktop: 1025px+ (Standard and high-resolution monitors)
+   ========================================================================== */
 
-/* Universal Responsive Helpers */
-img, video, canvas, svg {
-  max-width: 100%;
+/* ── Universal Resets & Zero-Horizontal-Scroll Guards ─────────────────── */
+html,
+body {
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+  position: relative;
+  -webkit-text-size-adjust: 100%;
 }
 
-.table-wrapper {
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Fluid Media Guards */
+img,
+video,
+canvas,
+svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Global Table Overflow Wrappers */
+.table-wrapper,
+.table-responsive,
+.table-container,
+.hrms-table-outer,
+.hrms-table-scroll-body,
+.salary-table-wrapper,
+.asset-table-wrapper,
+.onboarding-table-wrapper,
+.leave-table-container,
+.attendance-table-container,
+.shift-table-wrapper,
+.settings-wfh-table-wrapper,
+.wfh-table-container {
   width: 100%;
   max-width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
 }
 
-/* Large Desktop (<= 1200px) */
+/* Prevent layout breaking text overflows */
+h1, h2, h3, h4, h5, h6, p, span, a, label {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+}
+
+/* Layout Wrappers */
+.app-layout {
+  display: flex;
+  width: 100%;
+  max-width: 100vw;
+  min-height: 100vh;
+  min-width: 0;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+.app-main-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: hidden;
+  margin-left: 260px;
+  transition: margin-left 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  box-sizing: border-box;
+}
+
+.sidebar-collapsed .app-main-wrapper {
+  margin-left: 80px;
+}
+
+.app-main-content {
+  flex: 1;
+  padding: 92px 28px 40px 28px;
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+  min-width: 0;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+/* Touch target helpers */
+button,
+a,
+input,
+select,
+textarea {
+  touch-action: manipulation;
+}
+
+/* ==========================================================================
+   LAPTOP / DESKTOP (<= 1200px)
+   ========================================================================== */
 @media (max-width: 1200px) {
-  .grid-cols-4 {
+  .grid-cols-4,
+  .dashboard-grid-4,
+  .stats-grid-4 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .app-main-content {
+    padding: 88px 20px 32px 20px;
   }
 }
 
-/* Tablet (<= 1024px) */
+/* ==========================================================================
+   TABLET / COMPACT LAPTOP (<= 1024px)
+   ========================================================================== */
 @media (max-width: 1024px) {
   .app-layout {
     flex-direction: column;
   }
 
+  .app-main-wrapper {
+    margin-left: 0 !important;
+    width: 100% !important;
+    max-width: 100vw;
+  }
+
+  .sidebar-collapsed .app-main-wrapper {
+    margin-left: 0 !important;
+  }
+
   .app-main-content {
-    padding: 84px var(--space-4) var(--space-4);
+    padding: 84px 16px 28px 16px;
+    width: 100%;
+    max-width: 100vw;
+  }
+
+  .grid-cols-3,
+  .dashboard-grid-3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .login-left {
@@ -36,102 +155,253 @@ img, video, canvas, svg {
   }
 
   .login-right {
-    padding: var(--space-6);
-  }
-
-  .grid-cols-3 {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .app-main {
-    padding: var(--space-4);
+    padding: var(--space-6, 24px);
+    width: 100%;
   }
 }
 
-/* Mobile Devices (<= 768px) */
+/* ==========================================================================
+   MOBILE DEVICES (<= 768px)
+   ========================================================================== */
 @media (max-width: 768px) {
-  .page-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--space-3);
+  .app-main-content {
+    padding: 80px 14px 24px 14px;
   }
 
-  .page-actions {
+  /* Page Headers & Actions */
+  .page-header,
+  .dashboard-header,
+  .section-header,
+  .content-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3, 12px);
+  }
+
+  .page-actions,
+  .header-actions,
+  .action-buttons,
+  .toolbar-actions {
     width: 100%;
     justify-content: flex-start;
     flex-wrap: wrap;
-    gap: var(--space-2);
+    gap: var(--space-2, 8px);
   }
 
+  /* All Multi-column Grids stack to 1 column */
   .grid-cols-2,
   .grid-cols-3,
-  .grid-cols-4 {
-    grid-template-columns: repeat(1, minmax(0, 1fr));
+  .grid-cols-4,
+  .dashboard-grid,
+  .stats-grid,
+  .kpi-grid,
+  .overview-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
   }
 
-  .navbar {
-    padding: var(--space-3) var(--space-4);
-    flex-direction: column;
-    gap: var(--space-3);
-    align-items: flex-start;
+  /* Form layouts */
+  .form-row,
+  .form-grid-2,
+  .form-grid-3,
+  .form-grid-4,
+  .grid-form {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
   }
 
-  .navbar-right {
-    width: 100%;
-    justify-content: space-between;
-  }
-
-  .users-toolbar {
+  /* Toolbar and Search Bars */
+  .toolbar,
+  .filter-bar,
+  .users-toolbar,
+  .table-toolbar,
+  .search-filter-row {
     flex-direction: column;
     align-items: stretch;
-    gap: var(--space-3);
-  }
-
-  .search-box {
+    gap: 10px;
     width: 100%;
   }
 
-  .table-footer {
+  .search-box,
+  .search-input-wrapper,
+  .filter-group {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .search-box input,
+  .search-input-wrapper input {
+    width: 100% !important;
+  }
+
+  /* Table Footer / Pagination */
+  .table-footer,
+  .pagination-container,
+  .pagination-bar {
     flex-direction: column;
-    gap: var(--space-3);
-    align-items: stretch;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+  }
+
+  /* Chart Containers - preserve aspect ratio without horizontal overflow */
+  .chart-container,
+  .recharts-responsive-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow: hidden;
+  }
+
+  /* Card and Panel spacing */
+  .card,
+  .stat-card,
+  .dashboard-card,
+  .summary-card,
+  .profile-card,
+  .content-card {
+    padding: var(--space-4, 16px);
+  }
+
+  /* Modal responsive defaults */
+  .modal-dialog,
+  .modal-content {
+    width: 95vw !important;
+    max-width: 95vw !important;
+    margin: 10px auto;
   }
 }
 
-/* Small Mobile (<= 480px) */
+/* ==========================================================================
+   SMALL MOBILE (<= 480px)
+   ========================================================================== */
 @media (max-width: 480px) {
   .app-main-content {
-    padding: 76px 12px 20px 12px;
+    padding: 76px 10px 20px 10px;
   }
 
-  .app-main {
-    padding: var(--space-3);
-  }
-
+  /* Cards */
   .card,
-  .users-card,
   .stat-card,
+  .dashboard-card,
   .summary-card,
-  .feature-card {
-    padding: var(--space-4);
+  .feature-card,
+  .users-card {
+    padding: var(--space-3, 12px);
+    border-radius: var(--radius-md, 10px);
   }
 
+  /* Typography Scaling */
+  h1, .page-title {
+    font-size: 1.35rem !important;
+    line-height: 1.25;
+  }
+
+  h2, .section-title {
+    font-size: 1.15rem !important;
+  }
+
+  h3, .card-title {
+    font-size: 1rem !important;
+  }
+
+  /* Full-width interactive touch buttons */
   .btn-mobile-full,
-  .add-user-btn {
+  .add-user-btn,
+  .form-actions button,
+  .modal-actions button {
     width: 100%;
+    justify-content: center;
+  }
+
+  /* Button groups */
+  .button-group,
+  .btn-group {
+    flex-direction: column;
+    width: 100%;
+    gap: 8px;
+  }
+
+  .button-group > button,
+  .btn-group > button {
+    width: 100%;
+  }
+
+  /* Form Controls */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="date"],
+  input[type="search"],
+  select,
+  textarea {
+    font-size: 16px !important; /* Prevents auto-zoom in iOS Safari */
+    padding: 9px 12px;
+  }
+
+  /* Preserve search input icon clearance */
+  input[type="text"].wfh-search-input,
+  input[type="search"].wfh-search-input,
+  .wfh-search-input,
+  .wfh-search-box input,
+  .sa-search-input,
+  .tm-search-input,
+  .etm-search-input,
+  .epr-search-input {
+    padding-left: 42px !important;
+    padding-right: 36px !important;
+  }
+
+
+  /* Tabs navigation smooth scrolling */
+  .nav-tabs,
+  .tab-list,
+  .segmented-control,
+  .filter-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    flex-wrap: nowrap;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .nav-tabs::-webkit-scrollbar,
+  .tab-list::-webkit-scrollbar {
+    display: none;
   }
 }
 
-/* Extra Small Mobile (<= 360px) */
+/* ==========================================================================
+   EXTRA SMALL & TINY SCREENS (<= 360px & 320px)
+   ========================================================================== */
 @media (max-width: 360px) {
   .app-main-content {
-    padding: 72px 8px 16px 8px;
+    padding: 72px 6px 16px 6px;
   }
 
   .card,
-  .users-card,
   .stat-card,
-  .summary-card {
-    padding: 12px;
+  .dashboard-card,
+  .summary-card,
+  .users-card {
+    padding: 10px 8px;
+  }
+
+  h1, .page-title {
+    font-size: 1.2rem !important;
+  }
+
+  .stat-value,
+  .kpi-value {
+    font-size: 1.35rem !important;
+  }
+
+  .table-wrapper,
+  .table-responsive {
+    margin-left: -6px;
+    margin-right: -6px;
+    width: calc(100% + 12px);
   }
 }

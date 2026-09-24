@@ -696,3 +696,86 @@ input:checked + .toggle-slider:before {
   background: #fee2e2;
 }
 
+/* ── Responsive Settings & WFH ────────────────────────────────── */
+@media (max-width: 768px) {
+  .settings-section-card {
+    padding: var(--space-4);
+  }
+
+  .wfh-settings-card-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .wfh-new-request-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 540px) {
+  .wfh-dates-row {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-form-actions {
+    flex-direction: column;
+  }
+
+  .settings-form-actions button {
+    width: 100%;
+  }
+
+  .wfh-upload-zone {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .wfh-upload-btn-label {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .settings-section-card {
+    padding: var(--space-3);
+    border-radius: var(--radius-md);
+  }
+
+  .settings-pill {
+    padding: 7px 12px;
+    font-size: var(--font-size-xs);
+  }
+
+  .settings-wfh-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+
+  .settings-wfh-stat {
+    padding: 0.75rem 0.5rem;
+  }
+
+  .settings-wfh-stat .count {
+    font-size: 1.25rem;
+  }
+
+  .wfh-selected-file-row .name {
+    max-width: 160px;
+  }
+}
+
+@media (max-width: 360px) {
+  .settings-wfh-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-item-row {
+    padding-bottom: var(--space-3);
+  }
+
+  .wfh-selected-file-row .name {
+    max-width: 120px;
+  }
+}

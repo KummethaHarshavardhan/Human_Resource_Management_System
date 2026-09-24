@@ -226,3 +226,61 @@
 .view-emp-table tr:hover {
   background: #f8fafc;
 }
+
+/* ==========================================
+   RESPONSIVE BREAKPOINTS
+   ========================================== */
+@media (max-width: 768px) {
+  .orgs-page-container {
+    padding-bottom: 20px;
+    gap: 16px;
+  }
+
+  .orgs-page-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .orgs-filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .orgs-search-box {
+    min-width: 0 !important;
+    width: 100%;
+  }
+
+  .orgs-filter-group {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+  }
+
+  .orgs-filter-select {
+    width: 100%;
+  }
+
+  .view-emp-table {
+    min-width: 500px;
+  }
+}
+
+@media (max-width: 480px) {
+  .orgs-page-header h1 {
+    font-size: 1.35rem;
+  }
+
+  .sa-form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 360px) {
+  .orgs-page-header h1 {
+    font-size: 1.2rem;
+  }
+}

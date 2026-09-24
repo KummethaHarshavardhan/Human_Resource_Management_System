@@ -780,3 +780,14 @@ input[type="search"].etm-search-input:focus,
   color: #ffffff;
   border-color: #4f46e5;
 }
+
+@media (max-width: 360px) {
+  .etm-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .etm-container {
+    padding: 8px 4px 30px;
+  }
+}
+

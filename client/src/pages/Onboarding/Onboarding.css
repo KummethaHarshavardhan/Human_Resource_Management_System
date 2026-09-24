@@ -300,3 +300,77 @@
   background: #f8fafc;
 }
 
+/* ==========================================
+   RESPONSIVE BREAKPOINTS
+   ========================================== */
+@media (max-width: 768px) {
+  .onboarding-page {
+    padding: 16px;
+    gap: 16px;
+  }
+
+  .onboarding-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .checklist-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+  }
+
+  .checklist-card-right {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .exit-pkg-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .exit-table {
+    min-width: 600px;
+  }
+}
+
+@media (max-width: 480px) {
+  .onboarding-page {
+    padding: 12px 8px;
+    gap: 14px;
+  }
+
+  .onboarding-header-text h1 {
+    font-size: 20px;
+  }
+
+  .checklist-card {
+    padding: 12px 14px;
+  }
+
+  .exit-doc-card {
+    padding: 14px;
+  }
+
+  .exit-doc-card-top {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 360px) {
+  .onboarding-page {
+    padding: 10px 6px;
+  }
+
+  .onboarding-header-text h1 {
+    font-size: 18px;
+  }
+}
+

@@ -22,6 +22,7 @@ import {
   FiBox,
   FiUserMinus,
   FiHome,
+  FiX,
 } from "react-icons/fi";
 
 import "./Sidebar.css";
@@ -194,26 +195,40 @@ export default function Sidebar({
   return (
     <aside className={sidebarClasses}>
       <div className="sidebar-top">
-        {user && (
-          <div className="sidebar-user-card" title={`${user.name} (${displayRole})`}>
-            <div className="sidebar-user-avatar">
-              {user.name?.charAt(0).toUpperCase() || "U"}
-            </div>
-
-            {!isCollapsed && (
-              <div className="sidebar-user-details">
-                <div className="sidebar-user-name">{user.name}</div>
-                <div className="sidebar-user-role">{displayRole}</div>
+        <div className="sidebar-header-row">
+          {user && (
+            <div className="sidebar-user-card" title={`${user.name} (${displayRole})`}>
+              <div className="sidebar-user-avatar">
+                {user.name?.charAt(0).toUpperCase() || "U"}
               </div>
-            )}
-          </div>
-        )}
+
+              {(!isCollapsed || isMobileOpen) && (
+                <div className="sidebar-user-details">
+                  <div className="sidebar-user-name">{user.name}</div>
+                  <div className="sidebar-user-role">{displayRole}</div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {isMobileOpen && (
+            <button
+              type="button"
+              className="sidebar-mobile-close-btn"
+              onClick={onCloseMobile}
+              aria-label="Close navigation sidebar"
+              title="Close menu"
+            >
+              <FiX size={20} />
+            </button>
+          )}
+        </div>
 
         <nav className="sidebar-nav" aria-label="Main Navigation">
           {isHR ? (
             hrMenuSections.map((section, idx) => (
               <div key={section.title || idx} className="sidebar-section-group">
-                {!isCollapsed && section.title && (
+                {(!isCollapsed || isMobileOpen) && section.title && (
                   <div className="sidebar-section-title">{section.title}</div>
                 )}
                 {section.items.map((item) => (
@@ -221,14 +236,14 @@ export default function Sidebar({
                     key={item.to}
                     to={item.to}
                     onClick={handleLinkClick}
-                    title={isCollapsed ? item.label : undefined}
+                    title={isCollapsed && !isMobileOpen ? item.label : undefined}
                     aria-label={item.label}
                     className={({ isActive }) =>
                       `sidebar-link ${isActive ? "active" : ""}`
                     }
                   >
                     <span className="sidebar-icon">{item.icon}</span>
-                    {!isCollapsed && <span className="sidebar-label">{item.label}</span>}
+                    {(!isCollapsed || isMobileOpen) && <span className="sidebar-label">{item.label}</span>}
                   </NavLink>
                 ))}
               </div>
@@ -236,7 +251,7 @@ export default function Sidebar({
           ) : isEmployee ? (
             employeeMenuSections.map((section, idx) => (
               <div key={section.title || idx} className="sidebar-section-group">
-                {!isCollapsed && section.title && (
+                {(!isCollapsed || isMobileOpen) && section.title && (
                   <div className="sidebar-section-title">{section.title}</div>
                 )}
                 {section.items.map((item) => (
@@ -244,21 +259,21 @@ export default function Sidebar({
                     key={item.to}
                     to={item.to}
                     onClick={handleLinkClick}
-                    title={isCollapsed ? item.label : undefined}
+                    title={isCollapsed && !isMobileOpen ? item.label : undefined}
                     aria-label={item.label}
                     className={({ isActive }) =>
                       `sidebar-link ${isActive ? "active" : ""}`
                     }
                   >
                     <span className="sidebar-icon">{item.icon}</span>
-                    {!isCollapsed && <span className="sidebar-label">{item.label}</span>}
+                    {(!isCollapsed || isMobileOpen) && <span className="sidebar-label">{item.label}</span>}
                   </NavLink>
                 ))}
               </div>
             ))
           ) : visibleItems.length === 0 ? (
             <div className="sidebar-no-items">
-              {!isCollapsed && "No menu items available."}
+              {(!isCollapsed || isMobileOpen) && "No menu items available."}
             </div>
           ) : (
             visibleItems.map((item) => (
@@ -266,14 +281,14 @@ export default function Sidebar({
                 key={item.to}
                 to={item.to}
                 onClick={handleLinkClick}
-                title={isCollapsed ? item.label : undefined}
+                title={isCollapsed && !isMobileOpen ? item.label : undefined}
                 aria-label={item.label}
                 className={({ isActive }) =>
                   `sidebar-link ${isActive ? "active" : ""}`
                 }
               >
                 <span className="sidebar-icon">{item.icon}</span>
-                {!isCollapsed && <span className="sidebar-label">{item.label}</span>}
+                {(!isCollapsed || isMobileOpen) && <span className="sidebar-label">{item.label}</span>}
               </NavLink>
             ))
           )}
@@ -283,7 +298,10 @@ export default function Sidebar({
       <div className="sidebar-footer">
         <button
           type="button"
-          onClick={logout}
+          onClick={() => {
+            if (onCloseMobile) onCloseMobile();
+            logout();
+          }}
           className="sidebar-logout-btn"
           title="Logout"
           aria-label="Logout"
@@ -291,7 +309,7 @@ export default function Sidebar({
           <span className="sidebar-icon">
             <FiLogOut size={18} />
           </span>
-          {!isCollapsed && <span className="sidebar-label">Logout</span>}
+          {(!isCollapsed || isMobileOpen) && <span className="sidebar-label">Logout</span>}
         </button>
       </div>
     </aside>

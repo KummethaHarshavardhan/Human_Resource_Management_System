@@ -180,3 +180,31 @@
   cursor: pointer;
   font-weight: 500;
 }
+
+/* ==========================================
+   RESPONSIVE BREAKPOINTS
+   ========================================== */
+@media (max-width: 768px) {
+  .report-table th,
+  .report-table td {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+
+  .actions-cell {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .action-btn {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 480px) {
+  .report-table th,
+  .report-table td {
+    padding: 8px 10px;
+  }
+}

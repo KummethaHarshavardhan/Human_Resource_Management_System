@@ -146,3 +146,89 @@
   color: #7e22ce;
   border: 1px solid #e9d5ff;
 }
+
+/* Calendar wrapper for responsive horizontal scrolling */
+.holiday-cal-wrapper {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 12px;
+}
+
+/* ==========================================
+   RESPONSIVE BREAKPOINTS
+   ========================================== */
+@media (max-width: 768px) {
+  .holiday-page {
+    padding: 16px;
+    gap: 16px;
+  }
+
+  .holiday-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .holiday-cal-grid {
+    min-width: 580px;
+    padding: 10px;
+    gap: 6px;
+  }
+
+  .holiday-cal-cell {
+    min-height: 72px;
+    padding: 6px;
+  }
+
+  .view-toggle-group {
+    width: 100%;
+  }
+
+  .view-toggle-btn {
+    flex: 1;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .holiday-page {
+    padding: 12px 8px;
+    gap: 14px;
+  }
+
+  .holiday-header-text h1 {
+    font-size: 20px;
+  }
+
+  .holiday-cal-grid {
+    min-width: 500px;
+    padding: 8px;
+    gap: 4px;
+  }
+
+  .holiday-cal-cell {
+    min-height: 60px;
+    padding: 4px;
+  }
+
+  .holiday-cell-date {
+    font-size: 11px;
+  }
+
+  .holiday-cell-badge {
+    font-size: 9px;
+    padding: 2px 4px;
+  }
+}
+
+@media (max-width: 360px) {
+  .holiday-page {
+    padding: 10px 6px;
+  }
+
+  .holiday-header-text h1 {
+    font-size: 18px;
+  }
+}

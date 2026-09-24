@@ -151,3 +151,71 @@
 .sheet-footer-meta strong {
   color: #1e293b;
 }
+
+/* ==========================================
+   RESPONSIVE BREAKPOINTS
+   ========================================== */
+@media (max-width: 768px) {
+  .payroll-sheet {
+    padding: 20px 16px;
+    border-radius: 12px;
+  }
+
+  .sheet-body-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .sheet-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .net-pay-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 18px 16px;
+  }
+
+  .net-amount {
+    font-size: 26px;
+  }
+
+  .attendance-strip {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .payroll-sheet {
+    padding: 14px 10px;
+  }
+
+  .column-box {
+    padding: 14px 12px;
+  }
+
+  .sheet-footer-meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 360px) {
+  .payroll-sheet {
+    padding: 10px 8px;
+  }
+
+  .attendance-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .net-amount {
+    font-size: 22px;
+  }
+}

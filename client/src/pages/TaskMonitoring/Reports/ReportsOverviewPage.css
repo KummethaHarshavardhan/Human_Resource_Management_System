@@ -639,5 +639,48 @@ input[type="search"].epr-search-input:focus,
   }
   .epr-header-actions {
     width: 100%;
+    flex-wrap: wrap;
+  }
+  .epr-drilldown-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .epr-search-wrapper {
+    min-width: 0;
+    width: 100%;
   }
 }
+
+@media (max-width: 480px) {
+  .epr-page-container {
+    padding: 12px 10px 36px;
+  }
+  .epr-chart-card,
+  .epr-table-card,
+  .epr-nav-card {
+    padding: 14px;
+    border-radius: 10px;
+  }
+  .epr-kpi-card {
+    padding: 12px;
+  }
+  .epr-pill-btn {
+    padding: 6px 12px;
+    font-size: 0.78rem;
+  }
+  .epr-title {
+    font-size: 1.35rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .epr-page-container {
+    padding: 10px 6px 30px;
+  }
+  .epr-header-actions button,
+  .epr-header-actions a {
+    width: 100%;
+    justify-content: center;
+  }
+}

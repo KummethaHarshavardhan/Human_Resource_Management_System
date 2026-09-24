@@ -150,3 +150,51 @@
     min-width: 100px;
   }
 }
+
+@media (max-width: 480px) {
+  .hrms-modal-backdrop {
+    padding: 8px;
+  }
+
+  .hrms-modal-dialog {
+    max-height: calc(100vh - 16px);
+  }
+
+  .hrms-modal-header {
+    padding: 12px 14px;
+  }
+
+  .hrms-modal-title {
+    font-size: 1rem;
+  }
+
+  .hrms-modal-body {
+    padding: 14px;
+  }
+
+  .hrms-modal-footer {
+    padding: 10px 14px;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .hrms-modal-footer button {
+    width: 100%;
+    flex: 1 1 100%;
+  }
+}
+
+@media (max-width: 360px) {
+  .hrms-modal-backdrop {
+    padding: 4px;
+  }
+
+  .hrms-modal-dialog {
+    max-height: calc(100vh - 8px);
+    border-radius: 8px;
+  }
+
+  .hrms-modal-body {
+    padding: 12px 10px;
+  }
+}

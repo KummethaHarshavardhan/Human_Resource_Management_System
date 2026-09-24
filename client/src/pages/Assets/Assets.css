@@ -98,6 +98,13 @@
   gap: 8px;
   border-bottom: 2px solid #e2e8f0;
   padding-bottom: 2px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.asset-nav-tabs::-webkit-scrollbar {
+  display: none;
 }
 
 .asset-nav-tab {
@@ -114,9 +121,53 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .asset-nav-tab.active {
   color: #4f46e5;
   border-bottom-color: #4f46e5;
+}
+
+/* ==========================================
+   RESPONSIVE BREAKPOINTS
+   ========================================== */
+@media (max-width: 768px) {
+  .assets-page {
+    padding: 16px;
+    gap: 16px;
+  }
+
+  .assets-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .assets-page {
+    padding: 12px 8px;
+    gap: 14px;
+  }
+
+  .assets-header-text h1 {
+    font-size: 20px;
+  }
+
+  .asset-nav-tab {
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 360px) {
+  .assets-page {
+    padding: 10px 6px;
+  }
+
+  .assets-header-text h1 {
+    font-size: 18px;
+  }
 }

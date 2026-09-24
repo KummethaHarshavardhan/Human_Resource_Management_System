@@ -443,3 +443,20 @@
     z-index: 9999;
   }
 }
+
+@media (max-width: 360px) {
+  .notif-dropdown {
+    right: 6px;
+    left: 6px;
+    max-width: calc(100vw - 12px);
+    top: 64px;
+  }
+
+  .notif-dropdown-header {
+    padding: 10px 12px;
+  }
+
+  .notif-item {
+    padding: 10px 12px;
+  }
+}
