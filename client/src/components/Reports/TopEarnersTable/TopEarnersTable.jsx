@@ -21,41 +21,62 @@ export default function TopEarnersTable({ data = [], loading = false, error = nu
   }
 
   return (
-    <div className="top-earners-table-wrapper">
-      <table className="top-earners-table">
-        <thead>
-          <tr>
-            <th>Rank</th>
-            <th>Employee</th>
-            <th>Month/Year</th>
-            <th>Gross Pay</th>
-            <th>Net Pay</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((item, index) => {
-            // Backend sends { employeeCode, employeeName, grossSalary, netSalary }
-            const empCode = item.employeeCode || "";
-            const empName = item.employeeName || "";
-            const empDisplay =
-              empCode && empName
-                ? `${empCode} - ${empName}`
-                : empCode || empName || "No employee assigned";
+    <div className="top-earners-table-container">
+      {/* Subtle Mobile Scroll Cue */}
+      <div className="table-scroll-hint">
+        <svg
+          width="13"
+          height="13"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="scroll-hint-icon"
+        >
+          <polyline points="13 17 18 12 13 7" />
+          <polyline points="6 17 11 12 6 7" />
+        </svg>
+        <span>Swipe table left/right to view Gross & Net Pay</span>
+      </div>
 
-            return (
-              <tr key={item._id || index}>
-                <td className="rank-cell">
-                  <span className={`rank-badge rank-${index + 1}`}>#{index + 1}</span>
-                </td>
-                <td className="emp-id-cell">{empDisplay}</td>
-                <td>{`${MONTH_NAMES[item.month] || item.month} ${item.year}`}</td>
-                <td>{formatCurrency(item.grossSalary || item.grossPay || 0)}</td>
-                <td className="net-pay-cell">{formatCurrency(item.netSalary || item.netPay || 0)}</td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+      <div className="top-earners-table-wrapper">
+        <table className="top-earners-table">
+          <thead>
+            <tr>
+              <th className="th-rank">Rank</th>
+              <th className="th-emp">Employee</th>
+              <th className="th-period">Month/Year</th>
+              <th className="th-gross">Gross Pay</th>
+              <th className="th-net">Net Pay</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.map((item, index) => {
+              // Backend sends { employeeCode, employeeName, grossSalary, netSalary }
+              const empCode = item.employeeCode || "";
+              const empName = item.employeeName || "";
+              const empDisplay =
+                empCode && empName
+                  ? `${empCode} - ${empName}`
+                  : empCode || empName || "No employee assigned";
+
+              return (
+                <tr key={item._id || index}>
+                  <td className="rank-cell">
+                    <span className={`rank-badge rank-${index + 1}`}>#{index + 1}</span>
+                  </td>
+                  <td className="emp-id-cell">{empDisplay}</td>
+                  <td className="period-cell">{`${MONTH_NAMES[item.month] || item.month} ${item.year}`}</td>
+                  <td className="gross-pay-cell">{formatCurrency(item.grossSalary || item.grossPay || 0)}</td>
+                  <td className="net-pay-cell">{formatCurrency(item.netSalary || item.netPay || 0)}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

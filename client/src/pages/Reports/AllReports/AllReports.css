@@ -148,8 +148,13 @@
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .filter-status-bar {
@@ -181,15 +186,18 @@
     flex-direction: column;
     align-items: stretch;
   }
+
   .toolbar-left {
     flex-direction: column;
     align-items: stretch;
   }
+
   .control-select,
   .search-group {
     width: 100%;
     min-width: unset;
   }
+
   .refresh-reports-btn {
     width: 100%;
     justify-content: center;

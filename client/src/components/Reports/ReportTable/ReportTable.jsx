@@ -88,10 +88,10 @@ export default function ReportTable({
             const summary = report.summary || {};
             const generatedAtStr = report.generatedAt || report.createdAt
               ? new Date(report.generatedAt || report.createdAt).toLocaleDateString("en-IN", {
-                  day: "2-digit",
-                  month: "short",
-                  year: "numeric",
-                })
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+              })
               : "N/A";
 
             const empObj = report.employee || (typeof report.employeeId === "object" ? report.employeeId : null);

@@ -185,6 +185,7 @@
    RESPONSIVE BREAKPOINTS
    ========================================== */
 @media (max-width: 768px) {
+
   .report-table th,
   .report-table td {
     padding: 10px 12px;
@@ -203,6 +204,7 @@
 }
 
 @media (max-width: 480px) {
+
   .report-table th,
   .report-table td {
     padding: 8px 10px;

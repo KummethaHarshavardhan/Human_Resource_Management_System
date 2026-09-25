@@ -1,3 +1,7 @@
+/* ==========================================
+   ANALYTICS CARD STYLING
+   ========================================== */
+
 .analytics-card {
   background: #ffffff;
   border-radius: 14px;
@@ -7,6 +11,10 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+  min-width: 0;
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .analytics-card-header {
@@ -14,6 +22,8 @@
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 18px;
+  gap: 12px;
+  min-width: 0;
 }
 
 .analytics-card-title {
@@ -21,22 +31,55 @@
   font-weight: 600;
   color: #0f172a;
   margin: 0 0 4px 0;
+  word-break: break-word;
 }
 
 .analytics-card-subtitle {
   font-size: 13px;
   color: #64748b;
   margin: 0;
+  word-break: break-word;
 }
 
 .analytics-card-action {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-shrink: 0;
 }
 
 .analytics-card-body {
   flex: 1;
   display: flex;
   flex-direction: column;
+  min-width: 0;
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden; /* Prevents children from stretching card beyond viewport */
+}
+
+@media (max-width: 768px) {
+  .analytics-card {
+    padding: 16px 14px;
+    border-radius: 12px;
+  }
+
+  .analytics-card-header {
+    margin-bottom: 12px;
+  }
+
+  .analytics-card-title {
+    font-size: 15.5px;
+  }
+
+  .analytics-card-subtitle {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .analytics-card {
+    padding: 14px 12px;
+  }
 }
